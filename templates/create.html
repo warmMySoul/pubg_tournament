@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создать турнир PUBG</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Создать новый турнир</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            <label for="name">Название турнира:</label>
+            <input type="text" id="name" name="name" required>
+            
+            <label for="reg_start">Начало регистрации:</label>
+            <input type="datetime-local" id="reg_start" name="reg_start" required>
+            
+            <label for="reg_end">Окончание регистрации:</label>
+            <input type="datetime-local" id="reg_end" name="reg_end" required>
+            
+            <label for="tournament_date">Дата проведения турнира:</label>
+            <input type="datetime-local" id="tournament_date" name="tournament_date" required>
+            
+            <label for="mode">Режим игры:</label>
+            <select id="mode" name="mode" required>
+                <option value="Соло">Соло</option>
+                <option value="Дуо">Дуо</option>
+                <option value="Сквад">Сквад</option>
+            </select>
+            
+            <label for="scoring_system">Система начисления очков:</label>
+            <textarea id="scoring_system" name="scoring_system" rows="5" required></textarea>
+            
+            <button type="submit">Создать турнир</button>
+            <a href="{{ url_for('admin') }}" class="button">Отмена</a>
+        </form>
+    </div>
+</body>
+</html>

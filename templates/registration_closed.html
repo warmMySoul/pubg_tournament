@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Регистрация закрыта | {{ tournament.name }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Регистрация на турнир "{{ tournament.name }}" закрыта</h1>
+        
+        <div class="alert alert-error">
+            Регистрация на данный турнир закончилась {{ tournament.reg_end.strftime('%d.%m.%Y в %H:%M') }}
+        </div>
+        
+        <div class="tournament-info">
+            <p><strong>Режим:</strong> {{ tournament.mode }}</p>
+            <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+            <p><strong>Система начисления очков:</strong></p>
+            <pre>{{ tournament.scoring_system }}</pre>
+        </div>
+        
+        <a href="{{ url_for('view_players_public', tournament_id=tournament.id) }}" class="button">
+            Посмотреть список участников
+        </a>
+    </div>
+</body>
+</html>

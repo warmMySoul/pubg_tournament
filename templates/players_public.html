@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Участники турнира {{ tournament.name }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ tournament.name }}</h1>
+        
+        {% if just_registered %}
+        <div class="alert alert-success">
+            Спасибо за регистрацию! Ваши данные успешно добавлены.
+        </div>
+        {% endif %}
+        
+        <p><strong>Режим:</strong> {{ tournament.mode }}</p>
+        <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+        
+        <div class="actions">
+            <a href="{{ url_for('player_form', tournament_id=tournament.id) }}" class="button">
+                Вернуться к форме регистрации
+            </a>
+        </div>
+        
+        {% if tournament.mode in ['Дуо', 'Сквад'] %}
+            <h2>Группы игроков</h2>
+            {% for group in tournament.player_groups|sort(attribute='group_number') %}
+            <div class="player-group">
+                <h3>Группа #{{ group.group_number }} ({{ group.players|length }}/{{ max_players }} участников)</h3>
+                <ul>
+                    {% for player in group.players %}
+                    <li>{{ player.name }} ({{ player.nickname }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        {% else %}
+            <h2>Зарегистрированные игроки ({{ players|length }})</h2>
+            {% if players %}
+            <table>
+                <tr>
+                    <th>#</th>
+                    <th>Имя</th>
+                    <th>Ник</th>
+                </tr>
+                {% for player in players %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.nickname }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>Пока нет зарегистрированных участников. Будьте первым!</p>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>

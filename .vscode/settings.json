@@ -1,0 +1,11 @@
+{
+    "python.pythonPath": "venv\\Scripts\\python.exe",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "autopep8",
+    "python.languageServer": "Pylance",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python",
+        "editor.formatOnSave": true
+    }
+}

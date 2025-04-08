@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Админ-панель турниров PUBG</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Админ-панель турниров PUBG</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="admin-actions">
+            <a href="/create" class="button">Создать новый турнир</a>
+            <a href="/register_admin" class="button">Добавить администратора</a>
+            <a href="/logout" class="button">Выйти</a>
+        </div>
+        
+        <h2>Активные турниры</h2>
+        {% if tournaments %}
+        <table>
+            <tr>
+                <th>Название</th>
+                <th>Режим</th>
+                <th>Регистрация</th>
+                <th>Дата турнира</th>
+                <th>Статус</th>
+                <th>Участники</th>
+                <th></th>
+            </tr>
+            {% for tournament in tournaments %}
+            <tr>
+                <td>{{ tournament.name }}</td>
+                <td>{{ tournament.mode }}</td>
+                <td>
+                    {{ tournament.reg_start.strftime('%d.%m.%Y') }} -<br>
+                    {{ tournament.reg_end.strftime('%d.%m.%Y') }}
+                </td>
+                <td>{{ tournament.tournament_date.strftime('%d.%m.%Y') }}</td>
+                <td>
+                    {% if registration_open(tournament) %}
+                        <span class="status-open">Открыта</span>
+                    {% else %}
+                        <span class="status-closed">Закрыта</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('view_players', tournament_id=tournament.id) }}" class="button">
+                        {{ tournament.players|length }} участников
+                    </a>
+                    
+                </td>
+                <td>
+                    <button onclick="copyRegistrationLink('{{ tournament.id }}')" class="button">
+                        Копировать ссылку
+                    </button>
+                    <button onclick='confirmDelete({{ tournament.id|tojson }})'>Удалить</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>Нет активных турниров</p>
+        {% endif %}
+    </div>
+
+    <div id="modalConfirm" class="modal" style="display:none;">
+        <div class="modal-content">
+            <p id="modalText">Подтвердите действие</p>
+            <button onclick="handleModalConfirm()">Да</button>
+            <button onclick="hideModal()">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+    function copyRegistrationLink(tournamentId) {
+        fetch(`/copy_link/${tournamentId}`)
+            .then(response => response.json())
+            .then(data => {
+                navigator.clipboard.writeText(data.link)
+                    .then(() => alert('Ссылка скопирована в буфер обмена!'))
+                    .catch(err => alert('Ошибка копирования: ' + err));
+            });
+    }
+
+    let modalAction = null;
+let pendingDeleteId = null;
+
+
+function showConfirmModal(action) {
+    modalAction = action;
+    document.getElementById('modalText').innerText = action === 'edit' ? 'Подтвердить изменения турнира?' : 'Удалить турнир?';
+    document.getElementById('modalConfirm').style.display = 'flex';
+}
+
+function hideModal() {
+    modalAction = null;
+    pendingDeleteId = null;
+    document.getElementById('modalConfirm').style.display = 'none';
+}
+
+function handleModalConfirm() {
+    if (modalAction === 'edit') {
+        fetch('/api/edit_tournament', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                tournament_id: document.getElementById('edit_id').value,
+                name: document.getElementById('edit_name').value,
+                mode: document.getElementById('edit_mode').value,
+                scoring: document.getElementById('edit_scoring').value,
+                confirm: true
+            })
+        }).then(res => res.json()).then(data => {
+            if (data.success) location.reload();
+            else alert('Ошибка: ' + (data.error || 'Не удалось сохранить'));
+        });
+    }
+    if (modalAction === 'delete' && pendingDeleteId) {
+        fetch('/api/delete_tournament', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ tournament_id: pendingDeleteId, confirm: true })
+        }).then(res => res.json()).then(data => {
+            if (data.success) location.reload();
+            else alert('Ошибка: ' + (data.error || 'Не удалось удалить'));
+        });
+    }
+    hideModal();
+}
+
+function confirmDelete(id) {
+    pendingDeleteId = id;
+    showConfirmModal('delete');
+}
+    </script>
+</body>
+</html>

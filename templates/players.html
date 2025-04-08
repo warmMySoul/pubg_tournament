@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Участники турнира {{ tournament.name }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ tournament.name }}</h1>
+        <p><strong>Режим:</strong> {{ tournament.mode }}</p>
+        <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+        
+        <div class="actions">
+            <a href="{{ url_for('player_form', tournament_id=tournament.id) }}" class="button">Форма регистрации</a>
+            <a href="{{ url_for('admin') }}" class="button">Назад в админ-панель</a>
+        </div>
+        
+        {% if tournament.mode in ['Дуо', 'Сквад'] %}
+            <h2>Группы игроков</h2>
+            {% for group in tournament.player_groups|sort(attribute='group_number') %}
+            <div class="player-group">
+                <h3>Группа #{{ group.group_number }}</h3>
+                <table>
+                    <tr>
+                        <th>#</th>
+                        <th>Имя</th>
+                        <th>Ник</th>
+                        <th>Дата регистрации</th>
+                        <th>Действия</th>
+                    </tr>
+                    {% for player in group.players %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ player.name }}</td>
+                        <td>{{ player.nickname }}</td>
+                        <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td>
+                            <select onchange="movePlayer({{ player.id }}, this.value)">
+                                <option value="">-- Переместить в --</option>
+                                {% for other_group in tournament.player_groups %}
+                                    {% if other_group.id != group.id and other_group.players|length < max_players %}
+                                    <option value="{{ other_group.id }}">
+                                        Группа #{{ other_group.group_number }} ({{ other_group.players|length }}/{{ max_players }})
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value="">Новая группа</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endfor %}
+        {% else %}
+            <h2>Зарегистрированные игроки ({{ tournament.players|length }})</h2>
+            {% if tournament.players %}
+            <table>
+                <tr>
+                    <th>#</th>
+                    <th>Имя</th>
+                    <th>Ник</th>
+                    <th>Дата регистрации</th>
+                </tr>
+                {% for player in tournament.players %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.nickname }}</td>
+                    <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>Нет зарегистрированных игроков</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+    function movePlayer(playerId, newGroupId) {
+        if (newGroupId === "") newGroupId = null;
+        
+        fetch('/api/move_player', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                player_id: playerId,
+                new_group_id: newGroupId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Ошибка перемещения игрока');
+            }
+        });
+    }
+    </script>
+</body>
+</html>
