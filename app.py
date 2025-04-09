@@ -5,11 +5,17 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from functools import wraps
 from sqlalchemy import func
+from io import StringIO
+from flask import make_response
+import csv
+from flask import send_file
+from openpyxl import Workbook
+from io import BytesIO
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tournament.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-here'
+app.config['SECRET_KEY'] = 'dd1119a7-a123-457d-add4-26b68f83f9f8'
 db = SQLAlchemy(app)
 
 # Модель администратора
@@ -52,6 +58,24 @@ class Player(db.Model):
     name = db.Column(db.String(50), nullable=False)
     nickname = db.Column(db.String(50), nullable=False)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Модель логов
+class AdminActionLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=True)
+    action = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    admin = db.relationship('Admin', backref='action_logs')
+
+# Система логирования
+def log_admin_action(action):
+    admin_id = session.get('admin_logged')
+    if admin_id:
+        log = AdminActionLog(admin_id=admin_id, action=action)
+        db.session.add(log)
+        db.session.commit()
+
 
 # Декоратор для проверки авторизации
 def login_required(f):
@@ -97,6 +121,7 @@ def login():
         
         if admin and check_password_hash(admin.password, password):
             session['admin_logged'] = admin.id
+            log_admin_action(f"Вход в систему")
             return redirect(url_for('admin'))
         flash('Неверные учетные данные', 'error')
     return render_template('login.html')
@@ -124,6 +149,7 @@ def register_admin():
             db.session.add(admin)
             db.session.commit()
             flash('Новый администратор успешно зарегистрирован', 'success')
+            log_admin_action(f"Добавлен администратор '{username}'")
             return redirect(url_for('admin'))
     return render_template('register_admin.html')
 
@@ -155,6 +181,7 @@ def create_tournament():
             
             db.session.add(new_tournament)
             db.session.commit()
+            log_admin_action(f"Создан турнир '{request.form['name'],}'")
             return redirect(url_for('admin'))
         except ValueError as e:
             flash('Ошибка в формате даты', 'error')
@@ -215,6 +242,7 @@ def move_player():
             return jsonify({'success': False, 'error': 'Группа уже заполнена'})
 
     player.group_id = new_group_id
+    log_admin_action(f"В трунирне '{tournament.name}' игрок '{player.name}' ({player.nickname}) перемещен в '{player.group_id }'")
     db.session.commit()
 
     # Проверка и удаление старой группы, если она пуста
@@ -224,26 +252,6 @@ def move_player():
             db.session.delete(old_group)
             db.session.commit()
 
-    return jsonify({'success': True})
-
-@app.route('/api/edit_tournament', methods=['POST'])
-@login_required
-def edit_tournament():
-    data = request.json
-    tournament_id = data.get('tournament_id')
-    confirm = data.get('confirm')
-
-    if not confirm:
-        return jsonify({'success': False, 'error': 'Требуется подтверждение'})
-
-    tournament = Tournament.query.get_or_404(tournament_id)
-    tournament.name = data.get('name', tournament.name)
-    tournament.registration_start = data.get('registration_start', tournament.registration_start)
-    tournament.registration_end = data.get('registration_end', tournament.registration_end)
-    tournament.mode = data.get('mode', tournament.mode)
-    tournament.scoring = data.get('scoring', tournament.scoring)
-
-    db.session.commit()
     return jsonify({'success': True})
 
 
@@ -260,6 +268,7 @@ def delete_tournament():
     tournament = Tournament.query.get_or_404(tournament_id)
     db.session.delete(tournament)
     db.session.commit()
+    log_admin_action(f"Удален турнир {tournament.name}'")
 
     return jsonify({'success': True})
 
@@ -293,6 +302,11 @@ def player_form(tournament_id):
             name=request.form['name'],
             nickname=request.form['nickname']
         )
+        action = f"Игрок {new_player.name} (ник: {new_player.nickname}) зарегистрировался на турнир '{tournament.name}'"
+        log = AdminActionLog(
+        admin_id=None,  # пользователь не авторизован
+        action=action)       
+        db.session.add(log)
         db.session.add(new_player)
         db.session.commit()
         
@@ -328,6 +342,172 @@ def view_players_public(tournament_id):
                          players=players,
                          just_registered=just_registered,
                          max_players=max_players)
+
+
+
+@app.route('/admins')
+@login_required
+def admins():
+    admins = Admin.query.all()
+    return render_template('admins_list.html', admins=admins)
+
+@app.route('/api/delete_admin', methods=['POST'])
+@login_required
+def delete_admin():
+    data = request.json
+    admin_id = data.get('admin_id')
+    confirm = data.get('confirm')
+
+    if not confirm:
+        return jsonify({'success': False, 'error': 'Требуется подтверждение'})
+
+    admin = Admin.query.get_or_404(admin_id)
+    db.session.delete(admin)
+    log_admin_action(f"Удален администратор '{admin.username}'")
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+@app.route('/api/delete_player', methods=['POST'])
+@login_required
+def delete_player():
+    data = request.get_json()
+    player_id = data.get('player_id')
+
+    player = Player.query.get(player_id)
+    if not player:
+        return jsonify({'success': False, 'error': 'Игрок не найден'})
+
+    tournament = player.tournament
+    group = player.group  # Может быть None (в режиме Соло)
+
+    db.session.delete(player)
+
+    # Проверка на удаление пустой группы для Дуо и Сквад
+    if group and tournament.mode in ['Дуо', 'Сквад']:
+        remaining_players = Player.query.filter_by(group_id=group.id).count()
+        if remaining_players == 0:
+            db.session.delete(group)
+
+    log_admin_action(f"Удален игрок '{player.name}' ({player.nickname}) из турнира '{tournament.name}'")
+
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+@app.route('/logs')
+@login_required
+def view_logs():
+    admin_username = request.args.get('admin')
+    action_contains = request.args.get('action')
+    date_from = request.args.get('from')
+    date_to = request.args.get('to')
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    filter_by = request.args.get('admin_filter', 'all')
+
+    query = AdminActionLog.query
+
+    if filter_by == 'admins':
+        query = query.filter(AdminActionLog.admin_id != None)
+    elif filter_by == 'guests':
+        query = query.filter(AdminActionLog.admin_id == None)
+
+    if admin_username:
+        query = query.join(Admin).filter(Admin.username.ilike(f'%{admin_username}%'))
+
+    if action_contains:
+        query = query.filter(AdminActionLog.action.ilike(f'%{action_contains}%'))
+
+    if date_from:
+        try:
+            dt_from = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(AdminActionLog.timestamp >= dt_from)
+        except ValueError:
+            pass
+
+    if date_to:
+        try:
+            dt_to = datetime.strptime(date_to, '%Y-%m-%d')
+            query = query.filter(AdminActionLog.timestamp <= dt_to)
+        except ValueError:
+            pass
+
+    query = query.order_by(AdminActionLog.timestamp.desc())
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    logs = pagination.items
+
+    return render_template('logs.html', logs=logs, pagination=pagination)
+
+
+@app.route('/export_logs')
+@login_required
+def export_logs():
+    admin_username = request.args.get('admin')
+    action_contains = request.args.get('action')
+    date_from = request.args.get('from')
+    date_to = request.args.get('to')
+    filter_by = request.args.get('admin_filter', 'all')
+
+    query = AdminActionLog.query.outerjoin(Admin).order_by(AdminActionLog.timestamp.desc())
+
+    # Фильтры
+    if filter_by == 'admins':
+        query = query.filter(AdminActionLog.admin_id != None)
+    elif filter_by == 'guests':
+        query = query.filter(AdminActionLog.admin_id == None)
+
+    if admin_username:
+        query = query.filter(Admin.username.ilike(f'%{admin_username}%'))
+
+    if action_contains:
+        query = query.filter(AdminActionLog.action.ilike(f'%{action_contains}%'))
+
+    if date_from:
+        try:
+            dt_from = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(AdminActionLog.timestamp >= dt_from)
+        except ValueError:
+            pass
+
+    if date_to:
+        try:
+            dt_to = datetime.strptime(date_to, '%Y-%m-%d')
+            query = query.filter(AdminActionLog.timestamp <= dt_to)
+        except ValueError:
+            pass
+
+    logs = query.all()
+
+    # Создаём Excel-файл
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Журнал действий"
+
+    # Заголовки
+    ws.append(['Дата и время', 'Администратор', 'Действие'])
+
+    for log in logs:
+        ws.append([
+            log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            log.admin.username if log.admin else 'Гость',
+            log.action
+        ])
+
+    # Сохраняем в байтовый поток
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name='admin_logs.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

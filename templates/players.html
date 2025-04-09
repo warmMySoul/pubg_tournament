@@ -35,18 +35,22 @@
                         <td>{{ player.nickname }}</td>
                         <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
                         <td>
-                            <select onchange="movePlayer({{ player.id }}, this.value)">
-                                <option value="">-- Переместить в --</option>
-                                {% for other_group in tournament.player_groups %}
-                                    {% if other_group.id != group.id and other_group.players|length < max_players %}
-                                    <option value="{{ other_group.id }}">
-                                        Группа #{{ other_group.group_number }} ({{ other_group.players|length }}/{{ max_players }})
-                                    </option>
-                                    {% endif %}
-                                {% endfor %}
-                                <option value="">Новая группа</option>
-                            </select>
+                            <div style="display: flex; gap: 5px;">
+                                <select onchange="movePlayer({{ player.id }}, this.value)">
+                                    <option value="">-- Переместить в --</option>
+                                    {% for other_group in tournament.player_groups %}
+                                        {% if other_group.id != group.id and other_group.players|length < max_players %}
+                                        <option value="{{ other_group.id }}">
+                                            Группа #{{ other_group.group_number }} ({{ other_group.players|length }}/{{ max_players }})
+                                        </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <option value="">Новая группа</option>
+                                </select>
+                                <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
+                            </div>
                         </td>
+                        
                     </tr>
                     {% endfor %}
                 </table>
@@ -68,6 +72,9 @@
                     <td>{{ player.name }}</td>
                     <td>{{ player.nickname }}</td>
                     <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
@@ -101,5 +108,25 @@
         });
     }
     </script>
+
+    <script>
+        function deletePlayer(playerId) {
+            if (!confirm('Удалить этого игрока?')) return;
+        
+            fetch('/api/delete_player', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_id: playerId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Ошибка при удалении игрока');
+                }
+            });
+        }
+        </script>
 </body>
 </html>

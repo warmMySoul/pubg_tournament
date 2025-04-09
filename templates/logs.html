@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Журнал действий</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Журнал действий</h1>
+        <form method="get" class="log-filters">
+            <input type="text" name="admin" placeholder="Имя администратора" value="{{ request.args.get('admin', '') }}">
+            <input type="text" name="action" placeholder="Поиск по действию" value="{{ request.args.get('action', '') }}">
+            <input type="date" name="from" value="{{ request.args.get('from', '') }}">
+            <input type="date" name="to" value="{{ request.args.get('to', '') }}">
+        
+            <label for="admin_filter">Фильтр по автору:</label>
+            <select name="admin_filter" id="admin_filter" onchange="this.form.submit()">
+                <option value="all" {% if request.args.get('admin_filter', 'all') == 'all' %}selected{% endif %}>Все</option>
+                <option value="admins" {% if request.args.get('admin_filter') == 'admins' %}selected{% endif %}>Только администраторы</option>
+                <option value="guests" {% if request.args.get('admin_filter') == 'guests' %}selected{% endif %}>Только гости</option>
+            </select>
+        
+            <button type="submit" class="button">Фильтровать</button>
+            <a href="{{ url_for('view_logs') }}" class="button">Сброс</a>
+            <a href="{{ url_for('export_logs', **request.args) }}" class="button">Экспорт Excell</a>
+        </form>
+        
+        
+
+        <a href="{{ url_for('admin') }}" class="button">Назад</a>
+
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('view_logs', page=pagination.prev_num, **request.args.to_dict()) }}">← Назад</a>
+            {% endif %}
+            Страница {{ pagination.page }} из {{ pagination.pages }}
+            {% if pagination.has_next %}
+                <a href="{{ url_for('view_logs', page=pagination.next_num, **request.args.to_dict()) }}">Вперёд →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+
+        <table>
+            <tr>
+                <th>Дата и время</th>
+                <th>Администратор</th>
+                <th>Действие</th>
+            </tr>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                <td>{{ log.admin.username if log.admin_id else 'Гость' }}</td>
+                <td>{{ log.action }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% if not logs %}
+        <p>Нет записей, соответствующих фильтру.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
