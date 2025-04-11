@@ -330,3 +330,50 @@ select {
   border-radius: 5px;
   text-align: center;
 }
+
+.profile-menu {
+  position: relative;
+  display: inline-block;
+  margin-left: auto;
+  border:  2px solid (var(--gold));
+  padding: 10px;
+}
+
+.profile-icon {
+  font-size: 24px;
+  color: var(--gold);
+  cursor: pointer;
+}
+
+.profile-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: var(--dark-gray);
+  min-width: 140px;
+  border: 1px solid var(--dark-gold);
+  border-radius: 4px;
+  z-index: 100;
+}
+
+.profile-dropdown a {
+  color: var(--gold);
+  padding: 10px;
+  display: block;
+  text-decoration: none;
+}
+
+.profile-dropdown a:hover {
+  background-color: var(--light-gray);
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+.pagination{
+  margin-left: auto;
+  padding: 10px;
+}

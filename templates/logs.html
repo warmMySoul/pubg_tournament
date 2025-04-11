@@ -28,18 +28,28 @@
         
 
         <a href="{{ url_for('admin') }}" class="button">Назад</a>
-
         {% if pagination.pages > 1 %}
-        <div class="pagination">
-            {% if pagination.has_prev %}
-                <a href="{{ url_for('view_logs', page=pagination.prev_num, **request.args.to_dict()) }}">← Назад</a>
-            {% endif %}
-            Страница {{ pagination.page }} из {{ pagination.pages }}
-            {% if pagination.has_next %}
-                <a href="{{ url_for('view_logs', page=pagination.next_num, **request.args.to_dict()) }}">Вперёд →</a>
-            {% endif %}
+        <div class="pagination-wrapper">
+            <div class="pagination">
+                {% set args = request.args.copy().to_dict() %}
+    
+                {% if pagination.has_prev %}
+                    {% set args_prev = args.copy() %}
+                    {% set args_prev = args_prev.update({'page': pagination.prev_num}) or args_prev %}
+                    <a href="{{ url_for('view_logs') }}?{{ args_prev|urlencode }}" class="button">←</a>
+                {% endif %}
+    
+                Страница {{ pagination.page }} из {{ pagination.pages }}
+    
+                {% if pagination.has_next %}
+                    {% set args_next = args.copy() %}
+                    {% set args_next = args_next.update({'page': pagination.next_num}) or args_next %}
+                    <a href="{{ url_for('view_logs') }}?{{ args_next|urlencode }}" class="button">→</a>
+                {% endif %}
+            </div>
         </div>
-        {% endif %}
+    {% endif %}
+    
         
 
         <table>

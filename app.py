@@ -106,7 +106,7 @@ with app.app_context():
     if not Admin.query.first():
         admin = Admin(
             username='admin',
-            password=generate_password_hash('Njk,tkdfhgfk')
+            password=generate_password_hash('admin123')
         )
         db.session.add(admin)
         db.session.commit()
@@ -507,6 +507,27 @@ def export_logs():
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    admin = Admin.query.get_or_404(session['admin_logged'])
+
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+
+        if not check_password_hash(admin.password, current_password):
+            flash('Текущий пароль неверен', 'error')
+        elif len(new_password) < 6 or len(new_password) > 30:
+            flash('Новый пароль должен быть от 6 до 30 символов', 'error')
+        else:
+            admin.password = generate_password_hash(new_password)
+            db.session.commit()
+            flash('Пароль успешно обновлён', 'success')
+            log_admin_action("Сменил пароль")
+            return redirect(url_for('admin'))
+
+    return render_template('profile.html', admin=admin)
 
 
 if __name__ == '__main__':

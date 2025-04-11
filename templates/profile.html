@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Профиль администратора</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>Профиль администратора</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <form method="post">
+        <label>Логин:</label>
+        <input type="text" value="{{ admin.username }}" disabled>
+
+        <label>Текущий пароль:</label>
+        <input type="password" name="current_password" required>
+
+        <label>Новый пароль:</label>
+        <input type="password" name="new_password" minlength="6" maxlength="30" required>
+
+        <button type="submit" class="button">Обновить пароль</button>
+    </form>
+
+    <a href="{{ url_for('admin') }}" class="button">Назад</a>
+</div>
+</body>
+</html>

@@ -3,6 +3,7 @@
 <head>
     <title>Админ-панель турниров PUBG</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -20,7 +21,13 @@
             <a href="/create" class="button">Создать новый турнир</a>
             <a href="/admins" class="button">Управление администраторами</a>
             <a href="/logs" class="button">Журнал действий</a>
-            <a href="/logout" class="button">Выйти</a>
+            <div class="profile-menu">
+                <i class="fas fa-user profile-icon" onclick="toggleProfileMenu()"></i>
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a href="/profile">Профиль</a>
+                    <a href="/logout">Выйти</a>
+                </div>
+            </div>
         </div>
         
         <h2>Активные турниры</h2>
@@ -139,6 +146,17 @@ function handleModalConfirm() {
 function confirmDelete(id) {
     pendingDeleteId = id;
     showConfirmModal('delete');
+}
+
+function toggleProfileMenu() {
+    const dropdown = document.getElementById('profileDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+window.onclick = function(event) {
+    if (!event.target.closest('.profile-menu')) {
+        document.getElementById('profileDropdown').style.display = 'none';
+    }
 }
     </script>
 </body>
