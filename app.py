@@ -7,12 +7,16 @@ from functools import wraps
 from sqlalchemy import func
 from flask import send_file
 from openpyxl import Workbook
+from dotenv import load_dotenv
+import os
 from io import BytesIO
+
+load_dotenv()  # Загрузить переменные окружения из .env файла
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tournament.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'dd1119a7-a123-457d-add4-26b68f83f9f8'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # Получить SECRET_KEY из переменной окружения
 db = SQLAlchemy(app)
 
 # Роли
@@ -128,7 +132,7 @@ with app.app_context():
     if not User.query.filter_by(username='admin').first():
         admin = User(
             username='admin',
-            password=generate_password_hash('admin123'),
+            password=generate_password_hash(os.getenv('ADMIN_PASS')),
             role=RoleEnum.ADMIN,
             pubg_nickname="admin_user"
         )
