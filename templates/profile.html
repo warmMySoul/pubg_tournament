@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Профиль администратора</title>
+    <title>Профиль</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <div class="container">
-    <h1>Профиль администратора</h1>
-    
+    <h1>Профиль пользователя</h1>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
             <div class="alert alert-{{ category }}">{{ message }}</div>
@@ -15,19 +15,36 @@
     {% endwith %}
 
     <form method="post">
-        <label>Логин:</label>
-        <input type="text" value="{{ admin.username }}" disabled>
+        <label>Логин (нельзя изменить):</label>
+        <input type="text" value="{{ user.username }}" disabled>
+
+        <label>Имя:</label>
+        <input type="text" name="name" value="{{ user.name or '' }}">
+
+        <label>PUBG Никнейм:</label>
+        <input type="text" name="pubg_nickname" value="{{ user.pubg_nickname or '' }}" required>
+
+        <label>Дата рождения:</label>
+        <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
+
+        <hr>
 
         <label>Текущий пароль:</label>
-        <input type="password" name="current_password" required>
+        <input type="password" name="current_password">
 
         <label>Новый пароль:</label>
-        <input type="password" name="new_password" minlength="6" maxlength="30" required>
+        <input type="password" name="new_password" minlength="6" maxlength="30">
 
-        <button type="submit" class="button">Обновить пароль</button>
+        <p><small>Если вы хотите сменить пароль — введите текущий и новый пароль.</small></p>
+
+        <button type="submit" class="button">Сохранить изменения</button>
     </form>
 
-    <a href="{{ url_for('admin') }}" class="button">Назад</a>
+    {% if user.role == 'admin' %}
+        <a href="{{ url_for('admin') }}" class="button">Назад</a>
+    {% else %}
+        <a href="{{ url_for('home') }}" class="button">Назад</a>
+    {% endif %}
 </div>
 </body>
 </html>

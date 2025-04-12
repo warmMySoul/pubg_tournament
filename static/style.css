@@ -111,9 +111,10 @@
   input[type="text"],
   input[type="password"],
   input[type="date"],
+  input[type="datetime-local"],
   textarea,
   select {
-    width: 100%;
+    width: 98%;
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid var(--dark-gold);
@@ -327,7 +328,8 @@ select {
 .modal-content {
   background-color: rgba(0, 0, 0, 0.8);
   padding: 20px;
-  border-radius: 5px;
+  border: 2px solid white;
+  border-radius: 15px;
   text-align: center;
 }
 

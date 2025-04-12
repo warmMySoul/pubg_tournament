@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Пользователи</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Пользователи</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="admin-actions">
+            <a href="/admin" class="button">Назад</a>
+        </div>
+
+        <h2>Список пользователей</h2>
+        {% if users %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>Логин в PUBG</th>
+                <th>Роль</th>
+                <th>Имя</th>
+                <th>День рождения</th>
+                <th>Дата регистрации</th>
+                <th>Действия</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.pubg_nickname }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.name if user.name else '—' }}</td>
+                <td>{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</td>
+                <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                <td>
+                    {% if user.id != current_user.id %}
+                        <button onclick='confirmDelete({{ user.id|tojson }})'>Удалить</button>
+                        <i class="fas fa-pencil-alt" style="cursor:pointer; margin-left:10px;" onclick='editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>Нет зарегистрированных пользователей</p>
+        {% endif %}
+    </div>
+
+    <!-- Удаление -->
+    <div id="modalConfirm" class="modal" style="display:none;">
+        <div class="modal-content">
+            <p id="modalText">Подтвердите действие</p>
+            <button onclick="handleModalConfirm()">Да</button>
+            <button onclick="hideModal()">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Редактирование -->
+    <div id="modalEdit" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Редактировать пользователя</h3>
+            <form id="editForm" onsubmit="submitEdit(event)">
+                <input type="hidden" id="edit_id">
+                <label>PUBG Ник:</label>
+                <input type="text" id="edit_pubg_nickname" required>
+                <label>Имя:</label>
+                <input type="text" id="edit_name">
+                <label>Дата рождения:</label>
+                <input type="date" id="edit_birthday">
+                <label>Роль:</label>
+                <select id="edit_role">
+                    <option value="admin">Админ</option>
+                    <option value="moderator">Модератор</option>
+                    <option value="clan_member">Участник клана</option>
+                    <option value="guest">Гость</option>
+                </select>
+                <div style="margin-top:10px;">
+                    <button type="submit" class="button">Сохранить</button>
+                    <button type="button" class="button" onclick="hideEdit()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    let modalAction = null;
+    let pendingDeleteId = null;
+
+    function showConfirmModal(action) {
+        modalAction = action;
+        document.getElementById('modalText').innerText = 'Удалить пользователя?';
+        document.getElementById('modalConfirm').style.display = 'flex';
+    }
+
+    function hideModal() {
+        modalAction = null;
+        pendingDeleteId = null;
+        document.getElementById('modalConfirm').style.display = 'none';
+    }
+
+    function confirmDelete(id) {
+        pendingDeleteId = id;
+        showConfirmModal('delete');
+    }
+
+    function handleModalConfirm() {
+        if (modalAction === 'delete' && pendingDeleteId) {
+            fetch('/api/delete_user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: pendingDeleteId, confirm: true })
+            }).then(res => res.json()).then(data => {
+                if (data.success) location.reload();
+                else alert('Ошибка: ' + (data.error || 'Не удалось удалить'));
+            });
+        }
+        hideModal();
+    }
+
+    function editUser(id, pubg_nickname, name, birthday, role) {
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_pubg_nickname').value = pubg_nickname;
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_birthday').value = birthday;
+        document.getElementById('edit_role').value = role;
+        document.getElementById('modalEdit').style.display = 'flex';
+    }
+
+    function hideEdit() {
+        document.getElementById('modalEdit').style.display = 'none';
+    }
+
+    function submitEdit(e) {
+        e.preventDefault();
+        const id = document.getElementById('edit_id').value;
+        const body = {
+            user_id: id,
+            pubg_nickname: document.getElementById('edit_pubg_nickname').value,
+            name: document.getElementById('edit_name').value,
+            birthday: document.getElementById('edit_birthday').value,
+            role: document.getElementById('edit_role').value
+        };
+
+        fetch('/api/edit_user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        }).then(res => res.json()).then(data => {
+            if (data.success) location.reload();
+            else alert('Ошибка: ' + (data.error || 'Не удалось сохранить изменения'));
+        });
+
+        hideEdit();
+    }
+    </script>
+</body>
+</html>
