@@ -591,6 +591,7 @@ def profile():
 
         db.session.commit()
         flash('Профиль успешно обновлён', 'success')
+        log_admin_action(f"Обновил свой профиль")
         return redirect(url_for('profile'))
 
     return render_template('profile.html', user=user)
