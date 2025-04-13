@@ -3,71 +3,155 @@
 <head>
     <title>Регистрация на турнир {{ tournament.name }}</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
 <body>
-    <div class="container">
-        <h1>Регистрация на турнир {{ tournament.name }}</h1>
-        
-        <div class="time-info">
-            <p>Регистрация открыта до: <strong>{{ tournament.reg_end.strftime('%d.%m.%Y в %H:%M') }}</strong></p>
-        </div>
-        
-        <p><strong>Режим:</strong> {{ tournament.mode }}</p>
-        <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
-        <p><strong>Система начисления очков:</strong></p>
-        <pre>{{ tournament.scoring_system }}</pre>
-        
-        <div class="current-players">
-            <a href="{{ url_for('view_players_public', tournament_id=tournament.id) }}" class="button">
-                Посмотреть текущих участников ({{ tournament.players|length }})
-            </a>
-        </div>
-        
-        <form method="POST">
-            <label for="name">Ваше имя:</label>
-            <input type="text" id="name" name="name" required>
-            
-            <label for="nickname">Игровой ник в PUBG:</label>
-            <input type="text" id="nickname" name="nickname" required>
+<div class="container">
+    <h1>Регистрация на турнир {{ tournament.name }}</h1>
+
+    <div class="time-info">
+        <p>Регистрация открыта до: <strong>{{ tournament.reg_end.strftime('%d.%m.%Y в %H:%M') }}</strong></p>
+    </div>
+
+    <p><strong>Режим:</strong> {{ tournament.mode }}</p>
+    <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</strong></p>
+    <p><strong>Система начисления очков:</strong></p>
+    <pre>{{ tournament.scoring_system }}</pre>
+
+    <div class="current-players">
+        <a href="{{ url_for('view_players_public', tournament_id=tournament.id) }}" class="button">
+            Посмотреть текущих участников ({{ tournament.players|length }})
+        </a>
+    </div>
+
+    <form method="POST">
+        {% if current_user and current_user.role == 'clan_member' or current_user.role == 'admin' or current_user.role == 'moderator' %}
+            <p><strong>Вы участвуете как:</strong> {{ current_user.name }} ({{ current_user.pubg_nickname }})</p>
             
             {% if tournament.mode in ['Дуо', 'Сквад'] %}
-            <div class="group-selection">
-                <h3>Выбор группы</h3>
-                
-                <div class="available-groups">
-                    <h4>Доступные группы:</h4>
-                    {% if groups %}
-                        {% for group in groups %}
-                            {% set player_count = group.players|length %}
-                            {% if player_count < max_players %}
-                            <div class="group-option">
-                                <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
-                                <label for="group_{{ group.id }}">
-                                    Группа #{{ group.group_number }} 
-                                    ({{ player_count }}/{{ max_players }} участников)
-                                    {% if player_count > 0 %}
-                                    <ul>
-                                        {% for player in group.players %}
-                                        <li>{{ player.name }} ({{ player.nickname }})</li>
-                                        {% endfor %}
-                                    </ul>
-                                    {% endif %}
-                                </label>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-                    
-                    <div class="group-option">
-                        <input type="radio" name="group_id" id="new_group" value="" checked>
-                        <label for="new_group">Создать новую группу</label>
+                <div class="group-selection">
+                    <h3>Выбор группы</h3>
+                    <div class="available-groups">
+                        <h4>Доступные группы:</h4>
+                        {% if groups %}
+                            {% for group in groups %}
+                                {% set player_count = group.players|length %}
+                                {% if player_count < max_players %}
+                                <div class="group-option">
+                                    <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
+                                    <label for="group_{{ group.id }}">
+                                        Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }})
+                                        {% if player_count > 0 %}
+                                            <ul>
+                                                {% for player in group.players %}
+                                                    <li>{{ player.name }} ({{ player.nickname }})</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <div class="group-option">
+                            <input type="radio" name="group_id" id="new_group" value="" checked>
+                            <label for="new_group">Создать новую группу</label>
+                        </div>
                     </div>
                 </div>
-            </div>
             {% endif %}
-            
+
+            <button type="button" onclick="handleClanRegistration()" class="button">Записаться на турнир</button>
+
+            <input type="hidden" name="name" id="hidden_name_field" value="{{ current_user.name or '' }}">
+            <input type="hidden" name="nickname" value="{{ current_user.pubg_nickname }}">
+
+        {% else %}
+            <label for="name">Ваше имя:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="nickname">Игровой ник в PUBG:</label>
+            <input type="text" id="nickname" name="nickname" required>
+
+            {% if tournament.mode in ['Дуо', 'Сквад'] %}
+                <div class="group-selection">
+                    <h3>Выбор группы</h3>
+                    <div class="available-groups">
+                        <h4>Доступные группы:</h4>
+                        {% if groups %}
+                            {% for group in groups %}
+                                {% set player_count = group.players|length %}
+                                {% if player_count < max_players %}
+                                <div class="group-option">
+                                    <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
+                                    <label for="group_{{ group.id }}">
+                                        Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }})
+                                        {% if player_count > 0 %}
+                                            <ul>
+                                                {% for player in group.players %}
+                                                    <li>{{ player.name }} ({{ player.nickname }})</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <div class="group-option">
+                            <input type="radio" name="group_id" id="new_group" value="" checked>
+                            <label for="new_group">Создать новую группу</label>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
             <button type="submit">Зарегистрироваться</button>
-        </form>
+        {% endif %}
+    </form>
+</div>
+
+<div id="nameModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Введите имя</h3>
+        <p>Для регистрации укажите ваше имя (оно не задано в профиле).</p>
+        <input type="text" id="clan_name_input" placeholder="Введите имя">
+        <div style="margin-top: 10px;">
+            <button class="button" onclick="submitWithName()">Продолжить</button>
+            <button class="button" onclick="hideNameModal()">Отмена</button>
+        </div>
     </div>
+</div>
+
+
+<script>
+    function handleClanRegistration() {
+        const nameValue = document.getElementById('hidden_name_field').value.trim();
+        if (!nameValue) {
+            showNameModal();
+        } else {
+            document.querySelector('form').submit();
+        }
+    }
+    
+    function showNameModal() {
+        document.getElementById('nameModal').style.display = 'flex';
+    }
+    
+    function hideNameModal() {
+        document.getElementById('nameModal').style.display = 'none';
+    }
+    
+    function submitWithName() {
+        const name = document.getElementById('clan_name_input').value.trim();
+        if (!name) {
+            alert('Пожалуйста, введите имя.');
+            return;
+        }
+        document.getElementById('hidden_name_field').value = name;
+        hideNameModal();
+        document.querySelector('form').submit();
+    }
+    
+</script>
 </body>
 </html>

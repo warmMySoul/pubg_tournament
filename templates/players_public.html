@@ -3,6 +3,7 @@
 <head>
     <title>Участники турнира {{ tournament.name }}</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
 <body>
     <div class="container">
@@ -18,8 +19,8 @@
         <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
         
         <div class="actions">
-            <a href="{{ url_for('player_form', tournament_id=tournament.id) }}" class="button">
-                Вернуться к форме регистрации
+            <a href="{{ url_for('home') }}" class="button">
+                Вернуться на главную
             </a>
         </div>
         
