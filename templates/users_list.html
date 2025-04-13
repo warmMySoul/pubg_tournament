@@ -45,7 +45,7 @@
                 <td>{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</td>
                 <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
                 <td>
-                    {% if user.id != current_user.id or user.username != "admin" %}
+                    {% if user.id != current_user.id and user.username != "admin" %}
                         <button onclick='confirmDelete({{ user.id|tojson }})'>Удалить</button>
                         <i class="fas fa-pencil-alt" style="cursor:pointer; margin-left:10px;" onclick='editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
                     {% endif %}
