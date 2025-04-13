@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from functools import wraps
@@ -22,72 +21,18 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # Получить SECRET_KE
 if not app.config['SECRET_KEY']:
     raise ValueError("SECRET_KEY is not set in the environment variables")
 
-db = SQLAlchemy(app)
+# Подключение к БД
+from db_connection import db
+db.init_app(app)
 
-# Роли
-class RoleEnum:
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-    CLAN_MEMBER = 'clan_member'
-    GUEST = 'guest'
-
-# Универсальная модель пользователя
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    discord_id = db.Column(db.String(50), unique=True, nullable=True)
-    name = db.Column(db.String(70), nullable=True)
-    pubg_nickname = db.Column(db.String(70), unique=True, nullable=False)
-    birthday = db.Column(db.DateTime, nullable=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(20), default=RoleEnum.GUEST)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-# Модель группы
-class PlayerGroup(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    tournament_id = db.Column(db.String(36), db.ForeignKey('tournament.id'), nullable=False)
-    group_number = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    players = db.relationship('Player', backref='group', lazy=True)
-
-    __table_args__ = (
-        db.UniqueConstraint('tournament_id', 'group_number', name='unique_group_number'),
-    )
-
-# Модель турнира
-class Tournament(db.Model):
-    id = db.Column(db.String(36), primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    reg_start = db.Column(db.DateTime, nullable=False)
-    reg_end = db.Column(db.DateTime, nullable=False)
-    tournament_date = db.Column(db.DateTime, nullable=False)
-    mode = db.Column(db.String(20), nullable=False)
-    scoring_system = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    players = db.relationship('Player', backref='tournament', lazy=True, cascade='all, delete-orphan')
-    player_groups = db.relationship('PlayerGroup', backref='tournament', lazy=True, cascade='all, delete-orphan')
-
-# Модель игрока
-class Player(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    tournament_id = db.Column(db.String(36), db.ForeignKey('tournament.id'), nullable=False)
-    group_id = db.Column(db.Integer, db.ForeignKey('player_group.id'), nullable=True)
-    name = db.Column(db.String(50), nullable=False)
-    nickname = db.Column(db.String(50), nullable=False)
-    registered_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-# Модель логов
-class AdminActionLog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    action = db.Column(db.String(255), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-    user = db.relationship('User', backref='action_logs')
+# Импорт моделей
+from models import User, RoleEnum
+from models import PlayerGroup
+from models import Tournament
+from models import Player
+from models import AdminActionLog
 
 # Система логирования
-
 def log_admin_action(action):
     user_id = session.get('user_logged')
     if user_id:
@@ -96,13 +41,11 @@ def log_admin_action(action):
         db.session.commit()
 
 # Получение текущего пользователя
-
 def get_current_user():
     user_id = session.get('user_logged')
     return User.query.get(user_id) if user_id else None
 
-# Декоратор для проверки роли
-
+# Проверка роли
 def role_required(required_roles):
     def decorator(f):
         @wraps(f)
@@ -116,13 +59,11 @@ def role_required(required_roles):
     return decorator
 
 # Проверка доступности регистрации
-
 def registration_open(tournament):
     now = datetime.now()
     return tournament.reg_start <= now <= tournament.reg_end
 
 # Добавляем в шаблоны
-
 @app.context_processor
 def utility_processor():
     return dict(
