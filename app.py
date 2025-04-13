@@ -389,8 +389,7 @@ def player_form(tournament_id):
             tournament_id=tournament_id,
             group_id=group_id if tournament.mode in ['Дуо', 'Сквад'] else None,
             name=name,
-            nickname=nickname,
-            user_id=log_user_id  # Здесь привязываем игрока к текущему пользователю
+            nickname=nickname
         )
 
         # Логируем регистрацию
@@ -593,7 +592,7 @@ def export_logs():
     for log in logs:
         ws.append([
             log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            log.admin.username if log.admin else 'Гость',
+            log.user.username if log.user else 'Гость',
             log.action
         ])
 
