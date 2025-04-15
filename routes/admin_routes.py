@@ -42,7 +42,7 @@ def create_tournament():
             db.session.add(new_tournament)
             db.session.commit()
             log(f"Создан турнир '{request.form['name'],}'")
-            return redirect(url_for('admin'))
+            return redirect(url_for('admin.admin'))
         except ValueError as e:
             flash('Ошибка в формате даты', 'error')
     return render_template('create.html')
