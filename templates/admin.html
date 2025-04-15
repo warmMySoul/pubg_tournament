@@ -20,13 +20,13 @@
         
         <div class="admin-actions">
             <a href="/" class="button">На главную</a>
-            <a href="/create" class="button">Создать новый турнир</a>
-            <a href="/users" class="button">Пользователи</a>
-            <a href="/logs" class="button">Журнал действий</a>
+            <a href="/admin/tournament/create" class="button">Создать новый турнир</a>
+            <a href="/admin//users" class="button">Пользователи</a>
+            <a href="/admin/logs" class="button">Журнал действий</a>
             <div class="profile-menu">
                 <i class="fas fa-user profile-icon" onclick="toggleProfileMenu()"></i>
                 <div id="profileDropdown" class="profile-dropdown">
-                    <a href="/profile">Профиль</a>
+                    <a href="/user/profile">Профиль</a>
                     <a href="/logout">Выйти</a>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{{ url_for('view_players', tournament_id=tournament.id) }}" class="button">
+                    <a href="{{ url_for('admin.view_players', tournament_id=tournament.id) }}" class="button">
                         {{ tournament.players|length }} участников
                     </a>
                     
@@ -95,7 +95,7 @@
 
     <script>
         function copyRegistrationLink(tournamentId) {
-            fetch(`/copy_link/${tournamentId}`)
+            fetch(`/admin/copy_link/${tournamentId}`)
                 .then(response => response.json())
                 .then(data => {
                     const temp = document.createElement('textarea');
@@ -188,7 +188,7 @@ function hideEdit() {
 function submitEdit(e) {
     e.preventDefault();
 
-    fetch('/api/edit_tournament', {
+    fetch('/admin/api/edit_tournament', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({

@@ -17,7 +17,7 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('register_user') }}">
+    <form method="POST" action="{{ url_for('auth.register_user') }}">
         <label for="username">Имя пользователя:</label>
         <input type="text" id="username" name="username" required>
 

@@ -13,7 +13,7 @@
         
         <div class="actions">
             <a href="{{ url_for('player_form', tournament_id=tournament.id) }}" class="button">Форма регистрации</a>
-            <a href="{{ url_for('admin') }}" class="button">Назад в админ-панель</a>
+            <a href="{{ url_for('admin.admin') }}" class="button">Назад в админ-панель</a>
         </div>
         
         {% if tournament.mode in ['Дуо', 'Сквад'] %}
@@ -89,7 +89,7 @@
     function movePlayer(playerId, newGroupId) {
         if (newGroupId === "") newGroupId = null;
         
-        fetch('/api/move_player', {
+        fetch('/admin/api/move_player', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -114,7 +114,7 @@
         function deletePlayer(playerId) {
             if (!confirm('Удалить этого игрока?')) return;
         
-            fetch('/api/delete_player', {
+            fetch('/admin/api/delete_player', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ player_id: playerId })

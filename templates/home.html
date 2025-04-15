@@ -16,7 +16,7 @@
                     <span style="margin-right: 10px;">{{ current_user.username }}</span>
                     <i class="fas fa-user profile-icon" onclick="toggleProfileMenu()"></i>
                     <div id="profileDropdown" class="profile-dropdown">
-                        <a href="/profile">Профиль</a>
+                        <a href="/user/profile">Профиль</a>
                         {% if current_user.role in ['admin', 'moderator'] %}
                             <a href="/admin">Админ-панель</a>
                         {% endif %}

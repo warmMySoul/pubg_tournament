@@ -42,7 +42,7 @@
     </form>
 
     {% if user.role == 'admin' %}
-        <a href="{{ url_for('admin') }}" class="button">Назад</a>
+        <a href="{{ url_for('admin.admin') }}" class="button">Назад</a>
     {% else %}
         <a href="{{ url_for('home') }}" class="button">Назад</a>
     {% endif %}

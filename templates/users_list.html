@@ -117,7 +117,7 @@
 
     function handleModalConfirm() {
         if (modalAction === 'delete' && pendingDeleteId) {
-            fetch('/api/delete_user', {
+            fetch('/admin/api/delete_user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: pendingDeleteId, confirm: true })
@@ -153,7 +153,7 @@
             role: document.getElementById('edit_role').value
         };
 
-        fetch('/api/edit_user', {
+        fetch('/admin/api/edit_user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
