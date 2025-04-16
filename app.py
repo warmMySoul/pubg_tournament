@@ -32,15 +32,20 @@ from utils.helpers import registration_open as tournament_reg_is_open
 # Импорт инструментов безопасности (определение ролей и авторизованного пользователя)
 from extensions.security import get_current_user, role_required
 
-# Импорт роутов для авторизации
+# Импорт кастомных страниц ошибок
+from errors.handlers import errors
+
+# Импорт роутов
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.user_routes import user_bp
+
 
 # Регистрация Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(errors)
 
 # Добавляем в шаблоны
 @app.context_processor

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Ошибка {{ code }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 90%;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        #error-video {
+            width: 50vw;
+            max-width: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Ошибка {{ code }} — Что-то сломалось 😢</h1>
+        <video autoplay loop playsinline id="error-video">
+            <source src="{{ url_for('static', filename='videos/error.mp4') }}" type="video/mp4">
+        </video>
+        <a href="/" class="button">На главную</a>
+    </div>
+
+    <script>
+        const video = document.getElementById('error-video');
+
+        function tryPlayVideo() {
+            video.muted = false;
+            video.volume = 0.5;
+            video.play().then(() => {
+                console.log("Видео со звуком воспроизводится");
+            }).catch(err => {
+                console.warn("Не удалось воспроизвести:", err);
+            });
+
+            // удаляем обработчики, чтобы не запускать повторно
+            document.removeEventListener('click', tryPlayVideo);
+            document.removeEventListener('keydown', tryPlayVideo);
+        }
+
+        // ждём любое взаимодействие
+        document.addEventListener('click', tryPlayVideo);
+        document.addEventListener('keydown', tryPlayVideo);
+    </script>
+</body>
+</html>
