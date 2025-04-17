@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_SERVER_IP }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            cd /root/pubg_tournament
+
+            git restore .
+            git pull
+
+            # server
+            echo "SECRET= ${{ secrets.SECRET_KEY }}" > secrets.env
+            
+            echo "ADMIN_PASS= ${{ secrets.ADMIN_PASS }}" >> secrets.env
+
+            source venv/bin/activate
+            pip install -r requirements.txt
+            sudo systemctl restart pubg
