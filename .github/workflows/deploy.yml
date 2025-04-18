@@ -23,7 +23,7 @@ jobs:
             git pull
 
             # server
-            echo "SECRET= ${{ secrets.SECRET_KEY }}" > secrets.env
+            echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" > secrets.env
             
             echo "ADMIN_PASS= ${{ secrets.ADMIN_PASS }}" >> secrets.env
 
