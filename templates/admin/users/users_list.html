@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Пользователи</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>GB Admin - Пользователи</title>
+{% endblock %}
+
+{% block content %}
     <div class="container">
+        <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
         <h1>Пользователи</h1>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -18,9 +17,6 @@
             {% endif %}
         {% endwith %}
 
-        <div class="admin-actions">
-            <a href="/admin" class="button">Назад</a>
-        </div>
 
         <h2>Список пользователей</h2>
         {% if users %}
@@ -93,77 +89,78 @@
             </form>
         </div>
     </div>
+{% endblock %}
 
+{% block script %}
     <script>
-    let modalAction = null;
-    let pendingDeleteId = null;
+        let modalAction = null;
+        let pendingDeleteId = null;
 
-    function showConfirmModal(action) {
-        modalAction = action;
-        document.getElementById('modalText').innerText = 'Удалить пользователя?';
-        document.getElementById('modalConfirm').style.display = 'flex';
-    }
+        function showConfirmModal(action) {
+            modalAction = action;
+            document.getElementById('modalText').innerText = 'Удалить пользователя?';
+            document.getElementById('modalConfirm').style.display = 'flex';
+        }
 
-    function hideModal() {
-        modalAction = null;
-        pendingDeleteId = null;
-        document.getElementById('modalConfirm').style.display = 'none';
-    }
+        function hideModal() {
+            modalAction = null;
+            pendingDeleteId = null;
+            document.getElementById('modalConfirm').style.display = 'none';
+        }
 
-    function confirmDelete(id) {
-        pendingDeleteId = id;
-        showConfirmModal('delete');
-    }
+        function confirmDelete(id) {
+            pendingDeleteId = id;
+            showConfirmModal('delete');
+        }
 
-    function handleModalConfirm() {
-        if (modalAction === 'delete' && pendingDeleteId) {
-            fetch('/admin/api/delete_user', {
+        function handleModalConfirm() {
+            if (modalAction === 'delete' && pendingDeleteId) {
+                fetch('/admin/api/delete_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: pendingDeleteId, confirm: true })
+                }).then(res => res.json()).then(data => {
+                    if (data.success) location.reload();
+                    else alert('Ошибка: ' + (data.error || 'Не удалось удалить'));
+                });
+            }
+            hideModal();
+        }
+
+        function editUser(id, pubg_nickname, name, birthday, role) {
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_pubg_nickname').value = pubg_nickname;
+            document.getElementById('edit_name').value = name;
+            document.getElementById('edit_birthday').value = birthday;
+            document.getElementById('edit_role').value = role;
+            document.getElementById('modalEdit').style.display = 'flex';
+        }
+
+        function hideEdit() {
+            document.getElementById('modalEdit').style.display = 'none';
+        }
+
+        function submitEdit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit_id').value;
+            const body = {
+                user_id: id,
+                pubg_nickname: document.getElementById('edit_pubg_nickname').value,
+                name: document.getElementById('edit_name').value,
+                birthday: document.getElementById('edit_birthday').value,
+                role: document.getElementById('edit_role').value
+            };
+
+            fetch('/admin/api/edit_user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: pendingDeleteId, confirm: true })
+                body: JSON.stringify(body)
             }).then(res => res.json()).then(data => {
                 if (data.success) location.reload();
-                else alert('Ошибка: ' + (data.error || 'Не удалось удалить'));
+                else alert('Ошибка: ' + (data.error || 'Не удалось сохранить изменения'));
             });
+
+            hideEdit();
         }
-        hideModal();
-    }
-
-    function editUser(id, pubg_nickname, name, birthday, role) {
-        document.getElementById('edit_id').value = id;
-        document.getElementById('edit_pubg_nickname').value = pubg_nickname;
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_birthday').value = birthday;
-        document.getElementById('edit_role').value = role;
-        document.getElementById('modalEdit').style.display = 'flex';
-    }
-
-    function hideEdit() {
-        document.getElementById('modalEdit').style.display = 'none';
-    }
-
-    function submitEdit(e) {
-        e.preventDefault();
-        const id = document.getElementById('edit_id').value;
-        const body = {
-            user_id: id,
-            pubg_nickname: document.getElementById('edit_pubg_nickname').value,
-            name: document.getElementById('edit_name').value,
-            birthday: document.getElementById('edit_birthday').value,
-            role: document.getElementById('edit_role').value
-        };
-
-        fetch('/admin/api/edit_user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        }).then(res => res.json()).then(data => {
-            if (data.success) location.reload();
-            else alert('Ошибка: ' + (data.error || 'Не удалось сохранить изменения'));
-        });
-
-        hideEdit();
-    }
     </script>
-</body>
-</html>
+{% endblock %}

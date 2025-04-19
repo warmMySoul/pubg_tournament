@@ -1,11 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Создать турнир PUBG</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>GB Admin - Создать турнир</title>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <h1>Создать новый турнир</h1>
         
@@ -44,5 +43,35 @@
             <a href="{{ url_for('admin.admin') }}" class="button">Отмена</a>
         </form>
     </div>
-</body>
-</html>
+{% endblock %}
+
+{% block script %}
+    <script>
+        // Функция для форматирования даты в нужный для input формат
+        function formatDateForInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+    
+        // Текущая дата и время
+        const now = new Date();
+        
+        // Начало регистрации - текущая дата и время
+        document.getElementById('reg_start').value = formatDateForInput(now);
+        
+        // Окончание регистрации - текущая дата + 14 дней
+        const endDate = new Date(now);
+        endDate.setDate(now.getDate() + 14);
+        document.getElementById('reg_end').value = formatDateForInput(endDate);
+        
+        // Дата турнира - текущая дата + 15 дней
+        const tournamentDate = new Date(now);
+        tournamentDate.setDate(now.getDate() + 15);
+        document.getElementById('tournament_date').value = formatDateForInput(tournamentDate);
+    </script>
+  {% endblock %}

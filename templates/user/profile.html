@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Golden Bulls - Авторизация</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Профиль пользователя {{ user.name or '' }}</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="post">
+            <label>Логин (нельзя изменить):</label>
+            <input type="text" value="{{ user.username }}" disabled>
+
+            <label>Имя:</label>
+            <input type="text" name="name" value="{{ user.name or '' }}">
+
+            <label>PUBG Никнейм:</label>
+            <input type="text" name="pubg_nickname" value="{{ user.pubg_nickname or '' }}" disabled>
+            <small>Если вы сменили никнейм в PUBG - сообщите администраторам</small>
+
+            <label>Дата рождения:</label>
+            <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
+
+            <hr>
+
+            <label>Текущий пароль:</label>
+            <input type="password" name="current_password">
+
+            <label>Новый пароль:</label>
+            <input type="password" name="new_password" minlength="6" maxlength="30">
+
+            <p><small>Если вы хотите сменить пароль — введите текущий и новый пароль.</small></p>
+
+            <button type="submit" class="button">Сохранить изменения</button>
+        </form>
+
+    </div>
+{% endblock %}

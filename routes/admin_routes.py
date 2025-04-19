@@ -17,8 +17,14 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @admin_bp.route('/')
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def admin():
+    return render_template('admin/admin.html')
+
+@admin_bp.route('/tournaments')
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def tournaments():
     tournaments = Tournament.query.order_by(Tournament.created_at.desc()).all()
-    return render_template('admin.html', tournaments=tournaments)
+    return render_template('admin/tournaments/tournaments.html', tournaments=tournaments)
+
 
 @admin_bp.route('/tournament/create', methods=['GET', 'POST'])
 @role_required([RoleEnum.ADMIN])
@@ -37,15 +43,15 @@ def create_tournament():
             
             if new_tournament.reg_start >= new_tournament.reg_end:
                 flash('Дата окончания регистрации должна быть позже даты начала', 'error')
-                return redirect(url_for('create_tournament'))
+                return redirect(url_for('admin.create_tournament'))
             
             db.session.add(new_tournament)
             db.session.commit()
             log(f"Создан турнир '{request.form['name'],}'")
-            return redirect(url_for('admin.admin'))
+            return redirect(url_for('admin.tournaments'))
         except ValueError as e:
             flash('Ошибка в формате даты', 'error')
-    return render_template('create.html')
+    return render_template('admin/tournaments/create.html')
 
 # Скопировать ссылку на форму для регистрации на турнир
 @admin_bp.route('/copy_link/<tournament_id>')
@@ -62,10 +68,11 @@ def copy_link(tournament_id):
 def view_players(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)
     max_players = 4 if tournament.mode == 'Сквад' else 2 if tournament.mode == 'Дуо' else None
-    return render_template('players.html', 
+    return render_template('admin/tournaments/players.html', 
                          tournament=tournament,
                          max_players=max_players)
 
+# api перемещения игроков между команд
 @admin_bp.route('/api/move_player', methods=['POST'])
 @role_required([RoleEnum.ADMIN])
 def move_player():
@@ -233,7 +240,7 @@ def view_logs():
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     logs = pagination.items
 
-    return render_template('logs.html', logs=logs, pagination=pagination)
+    return render_template('admin/logs.html', logs=logs, pagination=pagination)
 
 # Экспорт логов в Excell
 @admin_bp.route('/export_logs')
@@ -308,7 +315,7 @@ def export_logs():
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def users_list():
     users = User.query.all()
-    return render_template('users_list.html', users=users)
+    return render_template('admin/users/users_list.html', users=users)
 
 # Удалить пользователя
 @admin_bp.route('/api/delete_user', methods=['POST'])

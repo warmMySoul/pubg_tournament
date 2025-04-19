@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Вход в админ-панель</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Golden Bulls - Авторизация</title>
+{% endblock %}
+
+
+{% block content %}
     <div class="container">
         <h1>Вход в админ-панель</h1>
         
@@ -17,8 +17,8 @@
             {% endif %}
         {% endwith %}
         
-        <form method="POST" action="{{ url_for('auth.login') }}">
-            <label for="username">Имя пользователя:</label>
+        <form method="POST" action="{{ url_for('user.login') }}">
+            <label for="username">Логин:</label>
             <input type="text" id="username" name="username" required>
             
             <label for="password">Пароль:</label>
@@ -27,5 +27,4 @@
             <button type="submit">Войти</button>
         </form>
     </div>
-</body>
-</html>
+{% endblock %}

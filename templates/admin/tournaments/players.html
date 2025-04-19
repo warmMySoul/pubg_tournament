@@ -1,19 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Участники турнира {{ tournament.name }}</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>GB Admin - Участники турнира</title>
+{% endblock %}
+
+{% block content %}
     <div class="container">
-        <h1>{{ tournament.name }}</h1>
+        <a class="button" href="{{url_for('admin.tournaments')}}">Назад в таблицу турниров</a>
+        <h1>Турнир: {{ tournament.name }}</h1>
         <p><strong>Режим:</strong> {{ tournament.mode }}</p>
         <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
         
         <div class="actions">
-            <a href="{{ url_for('player_form', tournament_id=tournament.id) }}" class="button">Форма регистрации</a>
-            <a href="{{ url_for('admin.admin') }}" class="button">Назад в админ-панель</a>
+            <a href="{{ url_for('user.player_form', tournament_id=tournament.id) }}" class="button">Форма регистрации</a>
         </div>
         
         {% if tournament.mode in ['Дуо', 'Сквад'] %}
@@ -84,33 +83,33 @@
             {% endif %}
         {% endif %}
     </div>
+{% endblock %}
 
+{% block script %}
     <script>
-    function movePlayer(playerId, newGroupId) {
-        if (newGroupId === "") newGroupId = null;
-        
-        fetch('/admin/api/move_player', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                player_id: playerId,
-                new_group_id: newGroupId
+        function movePlayer(playerId, newGroupId) {
+            if (newGroupId === "") newGroupId = null;
+            
+            fetch('/admin/api/move_player', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    player_id: playerId,
+                    new_group_id: newGroupId
+                })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.error || 'Ошибка перемещения игрока');
-            }
-        });
-    }
-    </script>
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Ошибка перемещения игрока');
+                }
+            });
+        }
 
-    <script>
         function deletePlayer(playerId) {
             if (!confirm('Удалить этого игрока?')) return;
         
@@ -128,6 +127,5 @@
                 }
             });
         }
-        </script>
-</body>
-</html>
+    </script>
+{% endblock %}

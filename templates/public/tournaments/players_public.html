@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Участники турнира {{ tournament.name }}</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Golden Bulls - участники {{ tournament.name }}</title>
+{% endblock %}
+
+
+{% block content %}
     <div class="container">
-        <h1>{{ tournament.name }}</h1>
+        <h1>Турнир {{ tournament.name }}</h1>
         
         {% if just_registered %}
         <div class="alert alert-success">
@@ -17,12 +17,7 @@
         
         <p><strong>Режим:</strong> {{ tournament.mode }}</p>
         <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
-        
-        <div class="actions">
-            <a href="{{ url_for('home') }}" class="button">
-                Вернуться на главную
-            </a>
-        </div>
+
         
         {% if tournament.mode in ['Дуо', 'Сквад'] %}
             <h2>Группы игроков</h2>
@@ -58,5 +53,4 @@
             {% endif %}
         {% endif %}
     </div>
-</body>
-</html>
+{% endblock %}

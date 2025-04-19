@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Golden Bulls - Авторизация</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <h1>Регистрация нового пользователя</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('user.register_user') }}">
+            <label for="username">Имя пользователя(логин):</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="pubg_nickname">Ник в PUBG:</label>
+            <input type="text" id="pubg_nickname" name="pubg_nickname" required>
+
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" minlength="6" maxlength="30" required>
+
+            <button type="submit" class="button">Зарегистрировать</button>
+        </form>
+    </div>
+{% endblock %}
