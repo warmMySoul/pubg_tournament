@@ -406,8 +406,9 @@ def delete_user():
     user = User.query.get_or_404(user_id)
     stat = PlayerStats.query.filter_by(user_id=user.id).first()
     # Начинаем транзакцию
-
-    db.session.delete(stat)
+    if (stat):
+        db.session.delete(stat)
+        
     db.session.delete(user)
     
     log(f"Удален пользователь '{user.username}' и его статистика")
