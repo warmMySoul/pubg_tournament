@@ -9,14 +9,6 @@
     <div class="container">
         <h1>Вход в админ-панель</h1>
         
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
         <form method="POST" action="{{ url_for('user.login') }}">
             <label for="username">Логин:</label>
             <input type="text" id="username" name="username" required>

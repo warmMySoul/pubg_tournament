@@ -45,7 +45,7 @@ from routes.user_routes import user_bp
 app.register_blueprint(public_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(user_bp)
-#app.register_blueprint(errors)
+app.register_blueprint(errors)
 
 # Добавляем в шаблоны
 @app.context_processor
@@ -69,6 +69,12 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
+# импорт планировщика
+from pubg_api.scheduler import start_scheduler
 
 if __name__ == '__main__':
-    app.run(debug=True)
+
+    # Запуск планироващика
+    start_scheduler(app)
+
+    app.run(debug=False)

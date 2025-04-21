@@ -28,7 +28,7 @@ def role_required(required_roles):
                 return redirect(request.referrer or url_for('public.home'))
             if user.role not in required_roles:
                 flash('Недостаточно прав доступа', 'error')
-                return redirect(url_for('public.home'))
+                return redirect(request.referrer or url_for('public.home'))
             return f(*args, **kwargs)
         return wrapper
     return decorator

@@ -27,6 +27,8 @@ jobs:
             
             echo "ADMIN_PASS= ${{ secrets.ADMIN_PASS }}" >> secrets.env
 
+            echo "PUBG_API_KEY= ${{ secrets.PUBG_API_KEY }}" >> secrets.env
+
             source venv/bin/activate
             pip install -r requirements.txt
             sudo systemctl restart pubg

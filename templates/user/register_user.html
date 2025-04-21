@@ -9,14 +9,6 @@
     <div class="container">
         <h1>Регистрация нового пользователя</h1>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
         <form method="POST" action="{{ url_for('user.register_user') }}">
             <label for="username">Имя пользователя(логин):</label>
             <input type="text" id="username" name="username" required>

@@ -9,50 +9,126 @@
         <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
         <h1>Пользователи</h1>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+            <!-- Форма фильтров -->
+            <div class="filters">
+                <form method="get" class="log-filters" action="{{ url_for('admin.users_list') }}">
+                        <!-- Фильтр по роли -->
+                            <label for="role_filter">Роль:</label>
+                            <select name="role_filter" id="role_filter" class="form-control">
+                                <option value="all" {% if current_filters.role_filter == 'all' %}selected{% endif %}>Все</option>
+                                <option value="admins" {% if current_filters.role_filter == 'admins' %}selected{% endif %}>Администраторы</option>
+                                <option value="moderators" {% if current_filters.role_filter == 'moderators' %}selected{% endif %}>Модераторы</option>
+                                <option value="clan_members" {% if current_filters.role_filter == 'clan_members' %}selected{% endif %}>Члены клана</option>
+                                <option value="guests" {% if current_filters.role_filter == 'guests' %}selected{% endif %}>Гости</option>
+                            </select>
+
+                            <label for="username">Логин:</label>
+                            <input type="text" name="username" id="username" 
+                                value="{{ current_filters.username }}" class="form-control">
+
+
+
+                            <label for="pubg_nickname">PUBG ник:</label>
+                            <input type="text" name="pubg_nickname" id="pubg_nickname" 
+                                value="{{ current_filters.pubg_nickname }}" class="form-control">
+
+                            <label for="name">Имя:</label>
+                            <input type="text" name="name" id="name" 
+                                value="{{ current_filters.name }}" class="form-control">
+
+                        <!-- Фильтры по дате -->
+                            <label for="from">Дата регистрации с:</label>
+                            <input type="date" name="from" id="from" 
+                                value="{{ current_filters.from }}" class="form-control">
+
+                            <label for="to">Дата регистрации по:</label>
+                            <input type="date" name="to" id="to" 
+                                value="{{ current_filters.to }}" class="form-control">
+
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button type="submit" class="button">Применить фильтры</button>
+                        <a class="button" href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">Сбросить</a>
+                    </div>
+                </form>
+            </div>
+        
+            <h2>Список пользователей</h2>
+            {% if users %}
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Логин</th>
+                    <th>Ник в PUBG</th>
+                    <th>Роль</th>
+                    <th>Имя</th>
+                    <th>День рождения</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr>
+                {% for user in users %}
+                <tr style="cursor: pointer;" 
+                onmouseover="this.style.backgroundColor='#FF8C00'" 
+                onmouseout="this.style.backgroundColor='transparent'"
+                onclick="handleRowClick(event, {{ user.id }})">
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.pubg_nickname }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>{{ user.name if user.name else '—' }}</td>
+                    <td>{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</td>
+                    <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                    <td>
+                        {% if user.id != current_user.id and user.username != "admin" and current_user.role == "admin" %}
+                            <button onclick='event.stopPropagation(); confirmDelete({{ user.id|tojson }})'>Удалить</button>
+                            <i class="fas fa-pencil-alt" style="cursor:pointer; margin-left:10px;" onclick='event.stopPropagation(); editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
+            </table>
             {% endif %}
-        {% endwith %}
-
-
-        <h2>Список пользователей</h2>
-        {% if users %}
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Логин</th>
-                <th>Логин в PUBG</th>
-                <th>Роль</th>
-                <th>Имя</th>
-                <th>День рождения</th>
-                <th>Дата регистрации</th>
-                <th>Действия</th>
-            </tr>
-            {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.pubg_nickname }}</td>
-                <td>{{ user.role }}</td>
-                <td>{{ user.name if user.name else '—' }}</td>
-                <td>{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</td>
-                <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
-                <td>
-                    {% if user.id != current_user.id and user.username != "admin" %}
-                        <button onclick='confirmDelete({{ user.id|tojson }})'>Удалить</button>
-                        <i class="fas fa-pencil-alt" style="cursor:pointer; margin-left:10px;" onclick='editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
+        
+            <!-- Пагинация с сохранением фильтров -->
+            <div class="pagination">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('admin.users_list', page=pagination.prev_num, 
+                                    username=current_filters.username,
+                                    pubg_nickname=current_filters.pubg_nickname,
+                                    name=current_filters.name,
+                                    role_filter=current_filters.role_filter,
+                                    from=current_filters.from,
+                                    to=current_filters.to) }}" 
+                    class="button">← Назад</a>
+                {% endif %}
+                
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        <a href="{{ url_for('admin.users_list', page=page_num, 
+                                        username=current_filters.username,
+                                        pubg_nickname=current_filters.pubg_nickname,
+                                        name=current_filters.name,
+                                        role_filter=current_filters.role_filter,
+                                        from=current_filters.from,
+                                        to=current_filters.to) }}"
+                        class="button {% if page_num == pagination.page %}active{% endif %}">
+                            {{ page_num }}
+                        </a>
+                    {% else %}
+                        <span class="ellipsis">...</span>
                     {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-        {% else %}
-        <p>Нет зарегистрированных пользователей</p>
-        {% endif %}
-    </div>
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('admin.users_list', page=pagination.next_num, 
+                                    username=current_filters.username,
+                                    pubg_nickname=current_filters.pubg_nickname,
+                                    name=current_filters.name,
+                                    role_filter=current_filters.role_filter,
+                                    from=current_filters.from,
+                                    to=current_filters.to) }}" 
+                    class="button">Вперед →</a>
+                {% endif %}
+            </div>
 
     <!-- Удаление -->
     <div id="modalConfirm" class="modal" style="display:none;">
@@ -93,6 +169,18 @@
 
 {% block script %}
     <script>
+
+        // Нажатие на строчку
+        function handleRowClick(event, user_id) {
+            if(user_id != 1) {
+                if (event.target.tagName !== 'BUTTON' && event.target.tagName !== 'I') {
+                window.location.href = "{{ url_for('admin.user_profile', user_id = user_id) }}" + user_id;;
+                console.log(user_id);
+                }
+            }
+        }
+
+
         let modalAction = null;
         let pendingDeleteId = null;
 

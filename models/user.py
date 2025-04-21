@@ -1,11 +1,14 @@
 from datetime import datetime
 from db_connection import db
 
-class RoleEnum:
+class RoleEnum():
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     CLAN_MEMBER = 'clan_member'
     GUEST = 'guest'
+
+    def __str__(self):
+        return self.value
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -26,7 +26,9 @@
                         <th>Имя</th>
                         <th>Ник</th>
                         <th>Дата регистрации</th>
-                        <th>Действия</th>
+                        {% if current_user.role == "admin" %}
+                            <th>Действия</th>
+                        {% endif %}
                     </tr>
                     {% for player in group.players %}
                     <tr>
@@ -34,23 +36,24 @@
                         <td>{{ player.name }}</td>
                         <td>{{ player.nickname }}</td>
                         <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                        <td>
-                            <div style="display: flex; gap: 5px;">
-                                <select onchange="movePlayer({{ player.id }}, this.value)">
-                                    <option value="">-- Переместить в --</option>
-                                    {% for other_group in tournament.player_groups %}
-                                        {% if other_group.id != group.id and other_group.players|length < max_players %}
-                                        <option value="{{ other_group.id }}">
-                                            Группа #{{ other_group.group_number }} ({{ other_group.players|length }}/{{ max_players }})
-                                        </option>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <option value="">Новая группа</option>
-                                </select>
-                                <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
-                            </div>
-                        </td>
-                        
+                        {% if current_user.role == "admin" %}
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <select onchange="movePlayer({{ player.id }}, this.value)">
+                                        <option value="">-- Переместить в --</option>
+                                        {% for other_group in tournament.player_groups %}
+                                            {% if other_group.id != group.id and other_group.players|length < max_players %}
+                                            <option value="{{ other_group.id }}">
+                                                Группа #{{ other_group.group_number }} ({{ other_group.players|length }}/{{ max_players }})
+                                            </option>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <option value="">Новая группа</option>
+                                    </select>
+                                    <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
+                                </div>
+                            </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </table>
