@@ -44,11 +44,11 @@ class ParsedPlayerStats:
 
     @classmethod
     def from_json(cls, json_data):
-        # json_data — это dict, в котором ключи — названия режимов (как в .to_dict())
-        return cls({
-            "data": {
-                "attributes": {
-                    "gameModeStats": json_data
-                }
-            }
-        })
+        """
+        Принимает уже обработанные данные (как из to_dict())
+        и создает объект с такой же структурой
+        """
+        obj = cls.__new__(cls)
+        obj.original_data = None  # Исходные данные не сохраняем
+        obj.stats = json_data
+        return obj

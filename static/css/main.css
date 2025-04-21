@@ -14,8 +14,12 @@ body{
     max-width: 1648px;
     margin: 0 auto;
     background-color: var(--black);
+    color: var(--white);
+    padding: 0;
+    line-height: 1.6;
 }
 
+/*Навбар*/
 .navbar{
     height: 72px;
     display: flex;
@@ -70,6 +74,30 @@ body{
     font-weight: 500;
 }
 
+/*Дроп-меню профиля*/
+.profile-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: var(--dark-gray);
+    min-width: 140px;
+    border: 1px solid var(--dark-gold);
+    border-radius: 4px;
+    z-index: 100;
+  }
+  
+  .profile-dropdown a {
+    color: var(--white);
+    padding: 10px;
+    display: block;
+    text-decoration: none;
+  }
+  
+  .profile-dropdown a:hover {
+    background-color: var(--light-gray);
+  }
+
+/* Кнопки */
 .button_dark{
     padding: 20px 16px;
     margin: 0 8px;
@@ -86,5 +114,184 @@ body{
     background: linear-gradient(to bottom, var(--orange), var(--dark-orange));
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
+}
 
+.button, button {
+    display: inline-block;
+    background: linear-gradient(to bottom, var(--gold), var(--dark-gold));
+    color: var(--black);
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 4px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    margin: 5px;
+}
+  
+.button:hover, button:hover {
+    background: linear-gradient(to bottom, var(--orange), var(--dark-orange));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+/* Контейнер */
+.container {
+    max-width: 1648px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: var(--dark-gray);
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+    border: 1px solid var(--dark-gold);
+}
+
+/* Заголовки */
+h1, .h1, h2, .h2, h3, .h3 {
+    color: var(--gold);
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+/* Таблицы */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background-color: var(--light-gray);
+    border: 1px solid var(--dark-gold);
+}
+  
+th {
+    background-color: var(--dark-gold);
+    color: var(--black);
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+}
+  
+td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--dark-gold);
+}
+  
+  tr:nth-child(even) {
+    background-color: rgba(255, 215, 0, 0.05);
+}
+  
+tr:hover {
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+/* Адаптация таблиц */
+table td, table th {
+    vertical-align: middle;
+}
+
+
+/* Уведомления */
+.alert {
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    font-weight: bold;
+}
+  
+.alert-success {
+    background-color: rgba(0, 100, 0, 0.3);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+  
+.alert-error {
+    background-color: rgba(139, 0, 0, 0.3);
+    border: 1px solid #F44336;
+    color: #F44336;
+}
+
+/* Формы */
+form {
+    margin: 20px 0;
+}
+  
+label {
+    display: block;
+    margin: 15px 0 5px;
+    color: var(--gold);
+    font-weight: bold;
+}
+  
+input[type="text"],
+  input[type="password"],
+  input[type="date"],
+  input[type="datetime-local"],
+  textarea,
+  select {
+    width: 98%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid var(--dark-gold);
+    border-radius: 4px;
+    background-color: var(--light-gray);
+    color: var(--white);
+    font-size: 16px;
+    resize: none;
+}
+
+select{
+    width: 99%;
+}
+  
+input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+}
+
+/* Добавляем новые стили для статусов */
+.status-open {
+    color: #4CAF50;
+    font-weight: bold;
+}
+  
+.status-closed {
+    color: #F44336;
+    font-weight: bold;
+}
+
+
+/*Модальные окна*/
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border: 2px solid white;
+    border-radius: 15px;
+    text-align: center;
+}
+
+/*Пагинация*/
+.pagination-wrapper {
+    display: flex;
+    justify-content: flex-end;
+}
+  
+.pagination{
+    margin-left: auto;
+    padding: 10px;
+}

@@ -1,0 +1,15 @@
+  /* Адаптивность */
+  @media (max-width: 768px) {
+    .container {
+      padding: 15px;
+      margin: 15px;
+    }
+    
+    .actions, .admin-actions {
+      flex-direction: column;
+    }
+    
+    table {
+      font-size: 14px;
+    }
+  }
