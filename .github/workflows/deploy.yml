@@ -29,7 +29,7 @@ jobs:
 
             echo "PUBG_API_KEY= ${{ secrets.PUBG_API_KEY }}" >> secrets.env
 
-            echo "FERNET_KEY= ${{ secrets.FERNET_KEY }}" > secrets.env
+            echo "FERNET_KEY= ${{ secrets.FERNET_KEY }}" >> secrets.env
             
             echo "MAIL_LOGIN= ${{ secrets.MAIL_LOGIN }}" >> secrets.env
 
