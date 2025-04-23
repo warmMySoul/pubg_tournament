@@ -1,7 +1,7 @@
 from io import BytesIO
 import uuid
 from zoneinfo import ZoneInfo
-from flask import Blueprint, flash, url_for, redirect, session, request, render_template, jsonify
+from flask import Blueprint, flash, url_for, redirect, request, render_template, jsonify
 from datetime import datetime
 from flask import send_file
 from openpyxl import Workbook
@@ -22,18 +22,20 @@ client = PUBGApiClient()
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+# Админ-панель
 @admin_bp.route('/')
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def admin():
     return render_template('admin/admin.html')
 
+# Турниры
 @admin_bp.route('/tournaments')
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def tournaments():
     tournaments = Tournament.query.order_by(Tournament.created_at.desc()).all()
     return render_template('admin/tournaments/tournaments.html', tournaments=tournaments)
 
-
+# Создать трунир
 @admin_bp.route('/tournament/create', methods=['GET', 'POST'])
 @role_required([RoleEnum.ADMIN])
 def create_tournament():
@@ -416,6 +418,7 @@ def delete_user():
 
     return jsonify({'success': True})
 
+# API редактирования пользователя
 @admin_bp.route('/api/edit_user', methods=['POST'])
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def edit_user():
@@ -440,6 +443,7 @@ def edit_user():
     log(f"Изменены данные пользователя {user.username}")
     return jsonify({'success': True})
 
+# Профиль пользователя
 @admin_bp.route('/profile/<user_id>', methods=['GET', 'POST'])
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def user_profile(user_id):

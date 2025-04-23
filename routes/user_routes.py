@@ -19,7 +19,7 @@ from services.admin_log_service import log_admin_action as log
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
-
+# Профиль пользователя
 @user_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -152,6 +152,7 @@ def register_user():
             return redirect(url_for('user.login'))
     return render_template('user/register_user.html')
 
+# Форма регистрации на турнир
 @user_bp.route('/form/<tournament_id>', methods=['GET', 'POST'])
 @login_required
 def player_form(tournament_id):

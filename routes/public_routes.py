@@ -8,6 +8,7 @@ from services.admin_log_service import log_admin_action as log
 
 public_bp = Blueprint('public', __name__)
 
+# Главная страница сайта
 @public_bp.route('/')
 def home():
     member_count = User.query.filter(User.role == RoleEnum.CLAN_MEMBER).count()
@@ -17,6 +18,7 @@ def home():
                            member_count=member_count,
                            upcoming_tournaments=upcoming_tournaments)
 
+#Публичный просмотр деталей турнира
 @public_bp.route('/public/tournament/<tournament_id>')
 def view_players_public(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)

@@ -30,7 +30,7 @@ from services.admin_log_service import log_admin_action as log
 from utils.helpers import registration_open as tournament_reg_is_open
 
 # Импорт инструментов безопасности (определение ролей и авторизованного пользователя)
-from extensions.security import get_current_user, role_required
+from extensions.security import get_current_user
 
 # Импорт кастомных страниц ошибок
 from errors.handlers import errors

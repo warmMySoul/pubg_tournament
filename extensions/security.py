@@ -12,7 +12,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not get_current_user():
-            flash('Для доступа к данной страницы необходимо авторизоваться', 'error')
+            flash('Для доступа к данной странице необходимо авторизоваться', 'error')
             return redirect(request.referrer or url_for('public.home'))
         return f(*args, **kwargs)
     return decorated_function
@@ -24,7 +24,7 @@ def role_required(required_roles):
         def wrapper(*args, **kwargs):
             user = get_current_user()
             if not user:
-                flash('Для доступа к данной страницы необходимо авторизоваться', 'warning')
+                flash('Для доступа к данной странице необходимо авторизоваться', 'warning')
                 return redirect(request.referrer or url_for('public.home'))
             if user.role not in required_roles:
                 flash('Недостаточно прав доступа', 'error')
