@@ -277,6 +277,7 @@ def verify_email():
                     session.pop('code_expires', None)
                     
                     flash('Email подтвержден! Вы успешно зарегистрированы.', 'success')
+                    log(f'Зарегистрирован новый пользователь - {new_user.username} ({new_user.pubg_nickname})')
                     return redirect(url_for('user.login'))
                     
                 except Exception as db_error:
