@@ -9,8 +9,13 @@
         <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
         <h1>Пользователи</h1>
 
+        <div class="collapsible-filters">
+            <div class="collapsible-header" onclick="toggleFilters(this)">
+                <span>Фильтры</span>
+                <span class="toggle-icon">▼</span>
+            </div>
             <!-- Форма фильтров -->
-            <div class="filters">
+            <div class="collapsible-content">
                 <form method="get" class="log-filters" action="{{ url_for('admin.users_list') }}">
                         <!-- Фильтр по роли -->
                             <label for="role_filter">Роль:</label>
@@ -22,18 +27,13 @@
                                 <option value="guests" {% if current_filters.role_filter == 'guests' %}selected{% endif %}>Гости</option>
                             </select>
 
-                            <label for="username">Логин:</label>
-                            <input type="text" name="username" id="username" 
+                            <input type="text" name="username" id="username" placeholder="Логин"
                                 value="{{ current_filters.username }}" class="form-control">
 
-
-
-                            <label for="pubg_nickname">PUBG ник:</label>
-                            <input type="text" name="pubg_nickname" id="pubg_nickname" 
+                            <input type="text" name="pubg_nickname" id="pubg_nickname" placeholder="Ник в PUBG"
                                 value="{{ current_filters.pubg_nickname }}" class="form-control">
 
-                            <label for="name">Имя:</label>
-                            <input type="text" name="name" id="name" 
+                            <input type="text" name="name" id="name" placeholder="Имя"
                                 value="{{ current_filters.name }}" class="form-control">
 
                         <!-- Фильтры по дате -->
@@ -51,6 +51,8 @@
                     </div>
                 </form>
             </div>
+        </div>
+    
         
             <h2>Список пользователей</h2>
             {% if users %}
@@ -250,5 +252,33 @@
 
             hideEdit();
         }
+
+
+        function toggleFilters(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            
+            content.classList.toggle('expanded');
+            icon.classList.toggle('rotated');
+            
+            // Сохраняем состояние в localStorage
+            const filtersId = header.closest('.collapsible-filters').id || 'default-filters';
+            localStorage.setItem(filtersId + '-expanded', content.classList.contains('expanded'));
+        }
+        
+        // Восстановление состояния при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.collapsible-filters').forEach(container => {
+                const filtersId = container.id || 'default-filters';
+                const isExpanded = localStorage.getItem(filtersId + '-expanded') === 'true';
+                const header = container.querySelector('.collapsible-header');
+                const content = container.querySelector('.collapsible-content');
+                
+                if (isExpanded) {
+                    content.classList.add('expanded');
+                    header.querySelector('.toggle-icon').classList.add('rotated');
+                }
+            });
+        });
     </script>
 {% endblock %}

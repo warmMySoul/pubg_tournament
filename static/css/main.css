@@ -10,6 +10,19 @@
     --white: #F5F5F5;
   }
 
+/* Scrollbar */
+html {
+    scrollbar-color: var(--light-gray) var(--dark-gold);
+    scrollbar-width: thin;
+}
+:root {
+    scrollbar-gutter: stable;
+}
+/* Альтернатива для старых браузеров */
+body {
+    padding-left: calc(100vw - 100%); /* Компенсирует ширину скроллбара */
+}
+
 body{
     max-width: 1648px;
     margin: 0 auto;
@@ -311,4 +324,47 @@ input:focus,
 
 .forgot-password-link a:hover {
     text-decoration: underline;
+}
+
+/* Стили для раскрывающихся фильтров */
+.collapsible-filters {
+    margin-bottom: 20px;
+    border: 1px solid var(--dark-gold);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.collapsible-header {
+    padding: 10px 15px;
+    background-color: var(--dark-gold);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+
+.collapsible-header:hover {
+    background-color: var(--dark-orange);
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    padding: 0 15px;
+}
+
+.collapsible-content.expanded {
+    max-height: 1000px;
+    padding: 15px;
+    transition: max-height 0.5s ease-in;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.toggle-icon.rotated {
+    transform: rotate(180deg);
 }

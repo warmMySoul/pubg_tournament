@@ -8,26 +8,38 @@
     <div class="container">
         <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
         <h1>Журнал действий</h1>
-        <h3>Фильтрация:</h3>
-        <form method="get" class="log-filters">
-            <input type="text" name="admin" placeholder="Имя пользователя" value="{{ request.args.get('admin', '') }}">
-            <input type="text" name="action" placeholder="Поиск по действию" value="{{ request.args.get('action', '') }}">
-            <input type="date" name="from" value="{{ request.args.get('from', '') }}">
-            <input type="date" name="to" value="{{ request.args.get('to', '') }}">
+        <div class="collapsible-filters">
+            <div class="collapsible-header" onclick="toggleFilters(this)">
+                <span>Фильтры</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <!-- Форма фильтров -->
+            <div class="collapsible-content">
+                <form method="get" class="log-filters">
+                    <label for="admin_filter">Роль:</label>
+                    <select name="admin_filter" id="admin_filter" onchange="this.form.submit()">
+                        <option value="all" {% if request.args.get('admin_filter', 'all') == 'all' %}selected{% endif %}>Все</option>
+                        <option value="admins" {% if request.args.get('admin_filter') == 'admins' %}selected{% endif %}>Только администраторы</option>
+                        <option value="moderator" {% if request.args.get('admin_filter') == 'moderator' %}selected{% endif %}>Только модераторы</option>
+                        <option value="clan_member" {% if request.args.get('admin_filter') == 'clan_member' %}selected{% endif %}>Только члены клана</option>
+                        <option value="guests" {% if request.args.get('admin_filter') == 'guests' %}selected{% endif %}>Только гости</option>
+                    </select>
 
-            <label for="admin_filter">Фильтр по автору:</label>
-            <select name="admin_filter" id="admin_filter" onchange="this.form.submit()">
-                <option value="all" {% if request.args.get('admin_filter', 'all') == 'all' %}selected{% endif %}>Все</option>
-                <option value="admins" {% if request.args.get('admin_filter') == 'admins' %}selected{% endif %}>Только администраторы</option>
-                <option value="moderator" {% if request.args.get('admin_filter') == 'moderator' %}selected{% endif %}>Только модераторы</option>
-                <option value="clan_member" {% if request.args.get('admin_filter') == 'clan_member' %}selected{% endif %}>Только члены клана</option>
-                <option value="guests" {% if request.args.get('admin_filter') == 'guests' %}selected{% endif %}>Только гости</option>
-            </select>
+                    <input type="text" name="admin" placeholder="Имя пользователя" value="{{ request.args.get('admin', '') }}">
+                    <input type="text" name="action" placeholder="Поиск по действию" value="{{ request.args.get('action', '') }}">
+                    
+                    <label for="from">С:</label>
+                    <input type="date" name="from" value="{{ request.args.get('from', '') }}">
+                    
+                    <label for="to">По:</label>
+                    <input type="date" name="to" value="{{ request.args.get('to', '') }}">
 
-            <button type="submit" class="button">Фильтровать</button>
-            <a href="{{ url_for('admin.view_logs') }}" class="button">Сброс</a>
-            <a href="{{ url_for('admin.export_logs', **request.args) }}" class="button">Экспорт Excel</a>
-        </form>
+                    <button type="submit" class="button">Фильтровать</button>
+                    <a href="{{ url_for('admin.view_logs') }}" class="button">Сброс</a>
+                    <a href="{{ url_for('admin.export_logs', **request.args) }}" class="button">Экспорт Excel</a>
+                </form>
+            </div>
+        </div>
 
         {% if pagination.pages > 1 %}
             <div class="pagination-wrapper">
@@ -70,4 +82,37 @@
         <p>Нет записей, соответствующих фильтру.</p>
         {% endif %}
     </div>
+{% endblock %}
+
+
+
+{% block script %}
+    <script>
+        function toggleFilters(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            
+            content.classList.toggle('expanded');
+            icon.classList.toggle('rotated');
+            
+            // Сохраняем состояние в localStorage
+            const filtersId = header.closest('.collapsible-filters').id || 'default-filters';
+            localStorage.setItem(filtersId + '-expanded', content.classList.contains('expanded'));
+        }
+
+        // Восстановление состояния при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.collapsible-filters').forEach(container => {
+                const filtersId = container.id || 'default-filters';
+                const isExpanded = localStorage.getItem(filtersId + '-expanded') === 'true';
+                const header = container.querySelector('.collapsible-header');
+                const content = container.querySelector('.collapsible-content');
+                
+                if (isExpanded) {
+                    content.classList.add('expanded');
+                    header.querySelector('.toggle-icon').classList.add('rotated');
+                }
+            });
+        });
+    </script>
 {% endblock %}
