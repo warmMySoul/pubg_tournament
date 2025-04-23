@@ -1,6 +1,6 @@
 from flask import session
 from models import AdminActionLog
-from db_connection import db
+from extensions.db_connection import db
 
 def log_admin_action(action):
     user_id = session.get('user_logged')

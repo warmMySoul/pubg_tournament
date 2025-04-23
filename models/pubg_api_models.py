@@ -1,5 +1,5 @@
 from datetime import datetime
-from db_connection import db
+from extensions.db_connection import db
 from zoneinfo import ZoneInfo
 
 class PlayerStats(db.Model):

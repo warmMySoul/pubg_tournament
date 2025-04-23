@@ -1,7 +1,7 @@
 from zoneinfo import ZoneInfo
 from pubg_api.client import PUBGApiClient
 from models import User, PlayerStats
-from db_connection import db
+from extensions.db_connection import db
 from datetime import datetime
 import time
 

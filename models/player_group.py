@@ -1,5 +1,5 @@
 from datetime import datetime
-from db_connection import db
+from extensions.db_connection import db
 
 class PlayerGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)

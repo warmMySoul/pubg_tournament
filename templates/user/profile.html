@@ -33,8 +33,13 @@
         
 
         <form method="post">
+            <input type="hidden" name="action" value="update_profile">
+            
             <label>Логин (нельзя изменить):</label>
             <input type="text" value="{{ user.username }}" disabled>
+
+            <label>Email:</label>
+            <input type="text" value="{{ masked_email }}" disabled>
 
             <label>Имя:</label>
             <input type="text" name="name" value="{{ user.name or '' }}">
@@ -48,16 +53,37 @@
 
             <hr>
 
+            <button type="submit" class="button">Сохранить изменения профиля</button>
+        </form>
+
+        <h3>Смена пароля</h3>
+        
+        {% if not password_change_requested %}
+        <form method="post">
+            <input type="hidden" name="action" value="request_password_change">
+            
             <label>Текущий пароль:</label>
-            <input type="password" name="current_password">
+            <input type="password" name="current_password" required>
 
             <label>Новый пароль:</label>
-            <input type="password" name="new_password" minlength="6" maxlength="30">
+            <input type="password" name="new_password" minlength="6" maxlength="30" required>
 
-            <p><small>Если вы хотите сменить пароль — введите текущий и новый пароль.</small></p>
+            <p><small>После отправки формы вам будет отправлен код подтверждения на email</small></p>
 
-            <button type="submit" class="button">Сохранить изменения</button>
+            <button type="submit" class="button">Запросить смену пароля</button>
         </form>
+        {% else %}
+        <form method="post">
+            <input type="hidden" name="action" value="confirm_password_change">
+            
+            <label>Код подтверждения:</label>
+            <input type="text" name="verification_code" required>
+            <small>Введите код, отправленный на ваш email</small>
+
+            <button type="submit" class="button">Подтвердить смену пароля</button>
+            <a href="{{ url_for('user.profile') }}" class="button">Отмена</a>
+        </form>
+        {% endif %}
 
     </div>
 {% endblock %}

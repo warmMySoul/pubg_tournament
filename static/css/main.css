@@ -225,6 +225,7 @@ label {
   
 input[type="text"],
   input[type="password"],
+  input[type="email"],
   input[type="date"],
   input[type="datetime-local"],
   textarea,
@@ -294,4 +295,20 @@ input:focus,
 .pagination{
     margin-left: auto;
     padding: 10px;
+}
+
+
+/* Забыл пароль */
+.forgot-password-link {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.forgot-password-link a {
+    color: #666;
+    text-decoration: none;
+}
+
+.forgot-password-link a:hover {
+    text-decoration: underline;
 }

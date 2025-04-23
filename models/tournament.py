@@ -1,5 +1,5 @@
 from datetime import datetime
-from db_connection import db
+from extensions.db_connection import db
 
 class Tournament(db.Model):
     id = db.Column(db.String(36), primary_key=True)

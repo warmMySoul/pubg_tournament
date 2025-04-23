@@ -1,7 +1,7 @@
 from flask import Blueprint, request, session, redirect, url_for, flash, render_template
 from datetime import datetime
 from models import User, RoleEnum, Tournament, Player
-from db_connection import db
+from extensions.db_connection import db
 
 # Импорт логирования
 from services.admin_log_service import log_admin_action as log

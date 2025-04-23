@@ -11,14 +11,28 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tournament.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # Получить SECRET_KEY из переменной окружения
+app.config['FERNET_KEY'] = os.getenv('FERNET_KEY')  # Для шифрования
+
+# Конфигурация Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.mail.ru'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_LOGIN') 
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASS') 
+app.config['MAIL_TIMEOUT'] = 10 # 10 сек  
 
 # Проверка, если SECRET_KEY не загружен
 if not app.config['SECRET_KEY']:
     raise ValueError("SECRET_KEY is not set in the environment variables")
 
+
 # Подключение к БД
-from db_connection import db
+from extensions.db_connection import db
 db.init_app(app)
+
+# Подключение почты
+from extensions.mail_connect import mail
+mail.init_app(app)
 
 # Импорт моделей
 from models import *
@@ -64,17 +78,19 @@ with app.app_context():
             username='admin',
             password=generate_password_hash(os.getenv('ADMIN_PASS')),
             role=RoleEnum.ADMIN,
-            pubg_nickname="admin_user"
+            pubg_nickname="admin_user",
+            email = os.getenv('ADMIN_MAIL'),
+            is_verified = True
         )
         db.session.add(admin)
         db.session.commit()
 
-# импорт планировщика
+# Импорт планировщика
 from pubg_api.scheduler import start_scheduler
 
 if __name__ == '__main__':
 
     # Запуск планироващика
-    start_scheduler(app)
+    #start_scheduler(app)
 
     app.run(debug=False)

@@ -7,7 +7,7 @@ from flask import send_file
 from openpyxl import Workbook
 from extensions.security import get_current_user, role_required
 from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User
-from db_connection import db
+from extensions.db_connection import db
 
 # Импорт логирования
 from services.admin_log_service import log_admin_action as log

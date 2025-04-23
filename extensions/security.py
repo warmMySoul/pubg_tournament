@@ -1,5 +1,7 @@
 from functools import wraps
 from flask import session, redirect, url_for, flash, request
+from cryptography.fernet import Fernet
+from flask import current_app
 from models import User
 
 # Получение данных авторизованного пользователя
@@ -32,3 +34,7 @@ def role_required(required_roles):
             return f(*args, **kwargs)
         return wrapper
     return decorator
+
+def get_cipher():
+    """Инициализирует шифровальщик в контексте приложения"""
+    return Fernet(current_app.config['FERNET_KEY'].encode())
