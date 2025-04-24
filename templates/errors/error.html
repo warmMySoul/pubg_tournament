@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <title>Ошибка {{ code }}</title>
     <style>
-        
         .content {
             display: flex;
             flex-direction: column;
@@ -12,21 +12,21 @@
             gap: 20px;
             max-width: 90%;
         }
-        
+
         h1 {
             margin: 0;
             font-size: 2rem;
         }
-        
+
         #error-video {
             width: 50vw;
             max-width: 600px;
             object-fit: cover;
             border-radius: 8px;
         }
-        
     </style>
 </head>
+
 <body>
     <div class="content">
         <h1>Ошибка {{ code }} — Упс. Что-то сломалось 😢</h1>
@@ -58,4 +58,5 @@
         document.addEventListener('keydown', tryPlayVideo);
     </script>
 </body>
+
 </html>

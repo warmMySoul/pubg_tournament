@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    <title>Golden Bulls - Подтверждение почты</title>
+<title>Golden Bulls - Подтверждение почты</title>
 {% endblock %}
 
 
 {% block content %}
-    <h2>Подтвердите email</h2>
-    <form method="POST">
-        <input type="text" name="verification_code" placeholder="Введите код из письма" required>
-        <button type="submit">Подтвердить</button>
-    </form>
-    <a class="button" href="{{ url_for('user.resend_code') }}">Отправить код повторно</a>
+<h2>Подтвердите email</h2>
+<form method="POST">
+    <input type="text" name="verification_code" placeholder="Введите код из письма" required>
+    <button type="submit">Подтвердить</button>
+</form>
+<a class="button" href="{{ url_for('user.resend_code') }}">Отправить код повторно</a>
 {% endblock %}

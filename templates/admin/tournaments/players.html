@@ -1,161 +1,162 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    <title>GB Admin - Участники турнира</title>
+<title>GB Admin - Участники турнира</title>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <a class="button" href="{{url_for('admin.tournaments')}}">Назад в таблицу турниров</a>
-        <h1>Турнир: {{ tournament.name }}</h1>
-        <p><strong>Режим:</strong> {{ tournament.mode }}</p>
-        <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
-        
-        <div class="scoring-info">
-            <h3>Начисление очков:</h3>
-            <p><strong>За убийство:</strong> {{ tournament.kill_points or 0 }} очков</p>
-            <p><strong>За 100 урона:</strong> {{ tournament.damage_points or 0 }} очков</p>
-            <p><strong>За 1 место:</strong> {{ tournament.first_place_points or 0 }} очков</p>
-            <p><strong>За 2 место:</strong> {{ tournament.second_place_points or 0 }} очков</p>
-            <p><strong>За 3 место:</strong> {{ tournament.third_place_points or 0 }} очков</p>
-        </div>
-        
-        <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
-        
-        <div class="actions">
-            <a href="{{ url_for('user.player_form', tournament_id=tournament.id) }}" class="button">Форма регистрации</a>
-            <a href="{{ url_for('admin.create_match', tournament_id=tournament.id) }}" class="button">Добавить матч</a>
-        </div>
-        
-        <!-- Таблица матчей -->
-        <h2>Матчи турнира</h2>
-        {% if tournament.matches %}
-        <table class="matches-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Карта</th>
-                    <th>Дата начала</th>
-                    <th>Дата окончания</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for match in tournament.matches|sort(attribute='map_number') %}
-                <tr>
-                    <td>{{ match.map_number }}</td>
-                    <td>Карта {{ match.map_number }}</td>
-                    <td>{{ match.started_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                    <td>
-                        {% if match.ended_at %}
-                            {{ match.ended_at.strftime('%d.%m.%Y %H:%M') }}
-                        {% else %}
-                            <span class="in-progress">В процессе</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{{ url_for('admin.match_stats', match_id=match.id) }}" class="button">Статистика</a>
-                        {% if current_user.role == "admin" %}
-                            <button onclick="deleteMatch({{ match.id }})" class="button-small danger">Удалить</button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <p>Матчи еще не добавлены</p>
-        {% endif %}
-        
-        <!-- Список игроков/групп -->
-        {% if tournament.mode in ['Дуо', 'Сквад'] %}
-            <h2>Группы игроков</h2>
-            {% for group in tournament.player_groups|sort(attribute='group_number') %}
-            <div class="player-group">
-                <h3>Группа #{{ group.group_number }}</h3>
-                <table>
-                    <tr>
-                        <th>#</th>
-                        <th>Имя</th>
-                        <th>Ник</th>
-                        <th>Общие очки</th>
-                        <th>Дата регистрации</th>
-                        {% if current_user.role == "admin" %}
-                            <th>Действия</th>
-                        {% endif %}
-                    </tr>
-                    {% for player in group.players %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ player.name }}</td>
-                        <td>{{ player.nickname }}</td>
-                        <td>{{ player.total_points or 0 }}</td>
-                        <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                        {% if current_user.role == "admin" %}
-                            <td>
-                                <div style="display: flex; gap: 5px;">
-                                    <select onchange="movePlayer({{ player.id }}, this.value)">
-                                        <option value="">-- Переместить в --</option>
-                                        {% for other_group in tournament.player_groups %}
-                                            {% if other_group.id != group.id and other_group.players|length < max_players %}
-                                            <option value="{{ other_group.id }}">
-                                                Группа #{{ other_group.group_number }} ({{ other_group.players|length }}/{{ max_players }})
-                                            </option>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <option value="">Новая группа</option>
-                                    </select>
-                                    <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
-                                </div>
-                            </td>
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
-                </table>
-            </div>
-            {% endfor %}
-        {% else %}
-            <h2>Зарегистрированные игроки ({{ tournament.players|length }})</h2>
-            {% if tournament.players %}
-            <table>
-                <tr>
-                    <th>#</th>
-                    <th>Имя</th>
-                    <th>Ник</th>
-                    <th>Общие очки</th>
-                    <th>Дата регистрации</th>
-                    {% if current_user.role == "admin" %}
-                        <th>Действия</th>
-                    {% endif %}
-                </tr>
-                {% for player in tournament.players %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ player.name }}</td>
-                    <td>{{ player.nickname }}</td>
-                    <td>{{ player.total_points or 0 }}</td>
-                    <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                    {% if current_user.role == "admin" %}
-                        <td>
-                            <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
-                        </td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p>Нет зарегистрированных игроков</p>
-            {% endif %}
-        {% endif %}
+<div class="container">
+    <a class="button" href="{{url_for('admin.tournaments')}}">Назад в таблицу турниров</a>
+    <h1>Турнир: {{ tournament.name }}</h1>
+    <p><strong>Режим:</strong> {{ tournament.mode }}</p>
+    <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
+
+    <div class="scoring-info">
+        <h3>Начисление очков:</h3>
+        <p><strong>За убийство:</strong> {{ tournament.kill_points or 0 }} очков</p>
+        <p><strong>За 100 урона:</strong> {{ tournament.damage_points or 0 }} очков</p>
+        <p><strong>За 1 место:</strong> {{ tournament.first_place_points or 0 }} очков</p>
+        <p><strong>За 2 место:</strong> {{ tournament.second_place_points or 0 }} очков</p>
+        <p><strong>За 3 место:</strong> {{ tournament.third_place_points or 0 }} очков</p>
     </div>
+
+    <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+
+    <div class="actions">
+        <a href="{{ url_for('user.player_form', tournament_id=tournament.id) }}" class="button">Форма регистрации</a>
+        <a href="{{ url_for('admin.create_match', tournament_id=tournament.id) }}" class="button">Добавить матч</a>
+    </div>
+
+    <!-- Таблица матчей -->
+    <h2>Матчи турнира</h2>
+    {% if tournament.matches %}
+    <table class="matches-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Карта</th>
+                <th>Дата начала</th>
+                <th>Дата окончания</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in tournament.matches|sort(attribute='map_number') %}
+            <tr>
+                <td>{{ match.map_number }}</td>
+                <td>Карта {{ match.map_number }}</td>
+                <td>{{ match.started_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>
+                    {% if match.ended_at %}
+                    {{ match.ended_at.strftime('%d.%m.%Y %H:%M') }}
+                    {% else %}
+                    <span class="in-progress">В процессе</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('admin.match_stats', match_id=match.id) }}" class="button">Статистика</a>
+                    {% if current_user.role == "admin" %}
+                    <button onclick="deleteMatch({{ match.id }})" class="button-small danger">Удалить</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Матчи еще не добавлены</p>
+    {% endif %}
+
+    <!-- Список игроков/групп -->
+    {% if tournament.mode in ['Дуо', 'Сквад'] %}
+    <h2>Группы игроков</h2>
+    {% for group in tournament.player_groups|sort(attribute='group_number') %}
+    <div class="player-group">
+        <h3>Группа #{{ group.group_number }}</h3>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Имя</th>
+                <th>Ник</th>
+                <th>Общие очки</th>
+                <th>Дата регистрации</th>
+                {% if current_user.role == "admin" %}
+                <th>Действия</th>
+                {% endif %}
+            </tr>
+            {% for player in group.players %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ player.name }}</td>
+                <td>{{ player.nickname }}</td>
+                <td>{{ player.total_points or 0 }}</td>
+                <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                {% if current_user.role == "admin" %}
+                <td>
+                    <div style="display: flex; gap: 5px;">
+                        <select onchange="movePlayer({{ player.id }}, this.value)">
+                            <option value="">-- Переместить в --</option>
+                            {% for other_group in tournament.player_groups %}
+                            {% if other_group.id != group.id and other_group.players|length < max_players %}
+                            <option value="{{ other_group.id }}">
+                                Группа #{{ other_group.group_number }}
+                                ({{ other_group.players|length }}/{{ max_players }})
+                            </option>
+                            {% endif %}
+                            {% endfor %}
+                            <option value="">Новая группа</option>
+                        </select>
+                        <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
+    {% else %}
+    <h2>Зарегистрированные игроки ({{ tournament.players|length }})</h2>
+    {% if tournament.players %}
+    <table>
+        <tr>
+            <th>#</th>
+            <th>Имя</th>
+            <th>Ник</th>
+            <th>Общие очки</th>
+            <th>Дата регистрации</th>
+            {% if current_user.role == "admin" %}
+            <th>Действия</th>
+            {% endif %}
+        </tr>
+        {% for player in tournament.players %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ player.name }}</td>
+            <td>{{ player.nickname }}</td>
+            <td>{{ player.total_points or 0 }}</td>
+            <td>{{ player.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            {% if current_user.role == "admin" %}
+            <td>
+                <button onclick="deletePlayer({{ player.id }})" class="button-small danger">Удалить</button>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Нет зарегистрированных игроков</p>
+    {% endif %}
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block script %}
-    <script>
-        function movePlayer(playerId, newGroupId) {
-            if (newGroupId === "") newGroupId = null;
-            
-            fetch('/admin/api/move_player', {
+<script>
+    function movePlayer(playerId, newGroupId) {
+        if (newGroupId === "") newGroupId = null;
+
+        fetch('/admin/api/move_player', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -173,15 +174,19 @@
                     alert(data.error || 'Ошибка перемещения игрока');
                 }
             });
-        }
+    }
 
-        function deletePlayer(playerId) {
-            if (!confirm('Удалить этого игрока?')) return;
-        
-            fetch('/admin/api/delete_player', {
+    function deletePlayer(playerId) {
+        if (!confirm('Удалить этого игрока?')) return;
+
+        fetch('/admin/api/delete_player', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ player_id: playerId })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    player_id: playerId
+                })
             })
             .then(res => res.json())
             .then(data => {
@@ -191,15 +196,19 @@
                     alert(data.error || 'Ошибка при удалении игрока');
                 }
             });
-        }
+    }
 
-        function deleteMatch(matchId) {
-            if (!confirm('Удалить этот матч и всю его статистику?')) return;
-            
-            fetch('/admin/api/delete_match', {
+    function deleteMatch(matchId) {
+        if (!confirm('Удалить этот матч и всю его статистику?')) return;
+
+        fetch('/admin/api/delete_match', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ match_id: matchId })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    match_id: matchId
+                })
             })
             .then(res => res.json())
             .then(data => {
@@ -209,6 +218,6 @@
                     alert(data.error || 'Ошибка при удалении матча');
                 }
             });
-        }
-    </script>
+    }
+</script>
 {% endblock %}

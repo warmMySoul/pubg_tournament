@@ -1,35 +1,36 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    <title>Golden Bulls - PUBG</title>
+<title>Golden Bulls - PUBG</title>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
+<div class="container">
 
 
-        <div class="tournament-info">
-            <h2>О клане</h2>
-            <p>Golden Bulls — это команда преданных игроков PUBG, которые сражаются с умом, честью и стилем. Мы стремимся к вершинам и поддерживаем друг друга в каждом бою.</p>
+    <div class="tournament-info">
+        <h2>О клане</h2>
+        <p>Golden Bulls — это команда преданных игроков PUBG, которые сражаются с умом, честью и стилем. Мы стремимся к
+            вершинам и поддерживаем друг друга в каждом бою.</p>
 
-            <h3>Наш состав</h3>
-            <p>Участников клана: <strong>{{ member_count }}</strong></p>
+        <h3>Наш состав</h3>
+        <p>Участников клана: <strong>{{ member_count }}</strong></p>
 
-            <h3>Ближайшие турниры</h3>
-            {% if upcoming_tournaments %}
-                <ul>
-                    {% for tournament in upcoming_tournaments %}
-                        <li>
-                            <strong>{{ tournament.name }}</strong> —
-                            {{ tournament.tournament_date.strftime('%d.%m.%Y') }}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>Пока нет запланированных турниров.</p>
-            {% endif %}
-        </div>
+        <h3>Ближайшие турниры</h3>
+        {% if upcoming_tournaments %}
+        <ul>
+            {% for tournament in upcoming_tournaments %}
+            <li>
+                <strong>{{ tournament.name }}</strong> —
+                {{ tournament.tournament_date.strftime('%d.%m.%Y') }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Пока нет запланированных турниров.</p>
+        {% endif %}
     </div>
+</div>
 
-    
+
 {% endblock %}

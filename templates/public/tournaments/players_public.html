@@ -1,63 +1,63 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    <title>Golden Bulls - участники {{ tournament.name }}</title>
+<title>Golden Bulls - участники {{ tournament.name }}</title>
 {% endblock %}
 
 
 {% block content %}
-    <div class="container">
-        <h1>Турнир {{ tournament.name }}</h1>
-        
-        {% if just_registered %}
-        <div class="alert alert-success">
-            Спасибо за регистрацию! Ваши данные успешно добавлены.
-        </div>
-        {% endif %}
-        
-        <p><strong>Режим:</strong> {{ tournament.mode }}</p>
-        <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
-        <h3>Начисление очков:</h3>
-        <p><strong>За убийство:</strong> {{ tournament.kill_points }} очков</p>
-        <p><strong>За 100 урона:</strong> {{ tournament.damage_points }} очков</p>
-        <p><strong>За 1 место:</strong> {{ tournament.first_place_points }} очков</p>
-        <p><strong>За 2 место:</strong> {{ tournament.second_place_points }} очков</p>
-        <p><strong>За 3 место:</strong> {{ tournament.third_place_points }} очков</p>
-        <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+<div class="container">
+    <h1>Турнир {{ tournament.name }}</h1>
 
-        
-        {% if tournament.mode in ['Дуо', 'Сквад'] %}
-            <h2>Группы игроков</h2>
-            {% for group in tournament.player_groups|sort(attribute='group_number') %}
-            <div class="player-group">
-                <h3>Группа #{{ group.group_number }} ({{ group.players|length }}/{{ max_players }} участников)</h3>
-                <ul>
-                    {% for player in group.players %}
-                    <li>{{ player.name }} ({{ player.nickname }})</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endfor %}
-        {% else %}
-            <h2>Зарегистрированные игроки ({{ players|length }})</h2>
-            {% if players %}
-            <table>
-                <tr>
-                    <th>#</th>
-                    <th>Имя</th>
-                    <th>Ник</th>
-                </tr>
-                {% for player in players %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ player.name }}</td>
-                    <td>{{ player.nickname }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p>Пока нет зарегистрированных участников. Будьте первым!</p>
-            {% endif %}
-        {% endif %}
+    {% if just_registered %}
+    <div class="alert alert-success">
+        Спасибо за регистрацию! Ваши данные успешно добавлены.
     </div>
+    {% endif %}
+
+    <p><strong>Режим:</strong> {{ tournament.mode }}</p>
+    <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
+    <h3>Начисление очков:</h3>
+    <p><strong>За убийство:</strong> {{ tournament.kill_points }} очков</p>
+    <p><strong>За 100 урона:</strong> {{ tournament.damage_points }} очков</p>
+    <p><strong>За 1 место:</strong> {{ tournament.first_place_points }} очков</p>
+    <p><strong>За 2 место:</strong> {{ tournament.second_place_points }} очков</p>
+    <p><strong>За 3 место:</strong> {{ tournament.third_place_points }} очков</p>
+    <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+
+
+    {% if tournament.mode in ['Дуо', 'Сквад'] %}
+    <h2>Группы игроков</h2>
+    {% for group in tournament.player_groups|sort(attribute='group_number') %}
+    <div class="player-group">
+        <h3>Группа #{{ group.group_number }} ({{ group.players|length }}/{{ max_players }} участников)</h3>
+        <ul>
+            {% for player in group.players %}
+            <li>{{ player.name }} ({{ player.nickname }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+    {% else %}
+    <h2>Зарегистрированные игроки ({{ players|length }})</h2>
+    {% if players %}
+    <table>
+        <tr>
+            <th>#</th>
+            <th>Имя</th>
+            <th>Ник</th>
+        </tr>
+        {% for player in players %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ player.name }}</td>
+            <td>{{ player.nickname }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Пока нет зарегистрированных участников. Будьте первым!</p>
+    {% endif %}
+    {% endif %}
+</div>
 {% endblock %}

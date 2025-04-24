@@ -1,89 +1,89 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    <title>Golden Bulls - Профиль</title>
+<title>Golden Bulls - Профиль</title>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h1>Профиль пользователя {{ user.pubg_nickname or '' }}</h1>
+<div class="container">
+    <h1>Профиль пользователя {{ user.pubg_nickname or '' }}</h1>
 
-        {% if stats %}
-        <h3>Статистика PUBG (FPP)</h3>
-        <h3>Обновлено: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
+    {% if stats %}
+    <h3>Статистика PUBG (FPP)</h3>
+    <h3>Обновлено: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
 
-            {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
-                {% if stats.stats.get(mode) %}
-                {% set values = stats.stats[mode] %}
-                <p><strong>{{ mode|upper }}</strong></p>
-                <p>Убийств: {{ values.kills }}</p>
-                <p>Побед: {{ values.wins }}</p>
-                <p>Поражений: {{ values.losses }}</p>
-                <p>Раундов сыграно: {{ values.rounds_played }}</p>
-                <p>Урон: {{ values.damage_dealt }}</p>
-                <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
-                <p>Хедшоты: {{ values.headshot_kills }}</p>
-                <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
-                <hr>
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            <p>Нет данных о статистике игрока.</p>
-        {% endif %}
-        
+    {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
+    {% if stats.stats.get(mode) %}
+    {% set values = stats.stats[mode] %}
+    <p><strong>{{ mode|upper }}</strong></p>
+    <p>Убийств: {{ values.kills }}</p>
+    <p>Побед: {{ values.wins }}</p>
+    <p>Поражений: {{ values.losses }}</p>
+    <p>Раундов сыграно: {{ values.rounds_played }}</p>
+    <p>Урон: {{ values.damage_dealt }}</p>
+    <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
+    <p>Хедшоты: {{ values.headshot_kills }}</p>
+    <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
+    <hr>
+    {% endif %}
+    {% endfor %}
+    {% else %}
+    <p>Нет данных о статистике игрока.</p>
+    {% endif %}
 
-        <form method="post">
-            <input type="hidden" name="action" value="update_profile">
-            
-            <label>Логин (нельзя изменить):</label>
-            <input type="text" value="{{ user.username }}" disabled>
 
-            <label>Email:</label>
-            <input type="text" value="{{ masked_email }}" disabled>
+    <form method="post">
+        <input type="hidden" name="action" value="update_profile">
 
-            <label>Имя:</label>
-            <input type="text" name="name" value="{{ user.name or '' }}">
+        <label>Логин (нельзя изменить):</label>
+        <input type="text" value="{{ user.username }}" disabled>
 
-            <label>PUBG Никнейм:</label>
-            <input type="text" name="pubg_nickname" value="{{ user.pubg_nickname or '' }}" disabled>
-            <small>Если вы сменили никнейм в PUBG - сообщите администраторам</small>
+        <label>Email:</label>
+        <input type="text" value="{{ masked_email }}" disabled>
 
-            <label>Дата рождения:</label>
-            <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
+        <label>Имя:</label>
+        <input type="text" name="name" value="{{ user.name or '' }}">
 
-            <hr>
+        <label>PUBG Никнейм:</label>
+        <input type="text" name="pubg_nickname" value="{{ user.pubg_nickname or '' }}" disabled>
+        <small>Если вы сменили никнейм в PUBG - сообщите администраторам</small>
 
-            <button type="submit" class="button">Сохранить изменения профиля</button>
-        </form>
+        <label>Дата рождения:</label>
+        <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
 
-        <h3>Смена пароля</h3>
-        
-        {% if not password_change_requested %}
-        <form method="post">
-            <input type="hidden" name="action" value="request_password_change">
-            
-            <label>Текущий пароль:</label>
-            <input type="password" name="current_password" required>
+        <hr>
 
-            <label>Новый пароль:</label>
-            <input type="password" name="new_password" minlength="6" maxlength="30" required>
+        <button type="submit" class="button">Сохранить изменения профиля</button>
+    </form>
 
-            <p><small>После отправки формы вам будет отправлен код подтверждения на email</small></p>
+    <h3>Смена пароля</h3>
 
-            <button type="submit" class="button">Запросить смену пароля</button>
-        </form>
-        {% else %}
-        <form method="post">
-            <input type="hidden" name="action" value="confirm_password_change">
-            
-            <label>Код подтверждения:</label>
-            <input type="text" name="verification_code" required>
-            <small>Введите код, отправленный на ваш email</small>
+    {% if not password_change_requested %}
+    <form method="post">
+        <input type="hidden" name="action" value="request_password_change">
 
-            <button type="submit" class="button">Подтвердить смену пароля</button>
-            <a href="{{ url_for('user.profile') }}" class="button">Отмена</a>
-        </form>
-        {% endif %}
+        <label>Текущий пароль:</label>
+        <input type="password" name="current_password" required>
 
-    </div>
+        <label>Новый пароль:</label>
+        <input type="password" name="new_password" minlength="6" maxlength="30" required>
+
+        <p><small>После отправки формы вам будет отправлен код подтверждения на email</small></p>
+
+        <button type="submit" class="button">Запросить смену пароля</button>
+    </form>
+    {% else %}
+    <form method="post">
+        <input type="hidden" name="action" value="confirm_password_change">
+
+        <label>Код подтверждения:</label>
+        <input type="text" name="verification_code" required>
+        <small>Введите код, отправленный на ваш email</small>
+
+        <button type="submit" class="button">Подтвердить смену пароля</button>
+        <a href="{{ url_for('user.profile') }}" class="button">Отмена</a>
+    </form>
+    {% endif %}
+
+</div>
 {% endblock %}

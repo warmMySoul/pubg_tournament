@@ -59,7 +59,7 @@ from routes.user_routes import user_bp
 app.register_blueprint(public_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(user_bp)
-#app.register_blueprint(errors)
+app.register_blueprint(errors)
 
 # Добавляем в шаблоны
 @app.context_processor

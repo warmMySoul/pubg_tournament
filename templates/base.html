@@ -1,105 +1,104 @@
 <!DOCTYPE html>
 <html>
-    <head>
 
-        {% block title %}
-        {% endblock %}
+<head>
+
+    {% block title %}
+    {% endblock %}
 
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-    </head>
-    <body>
-        <div class="main_container">
-            <!-- Navbar -->
-            <div class="navbar">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+</head>
 
-                <a href="{{ url_for('public.home') }}" class="h1">Golden Bulls</a>
+<body>
+    <div class="main_container">
+        <!-- Navbar -->
+        <div class="navbar">
 
-                <div class="navigation_menu">
-                    <a href="#" class="nav_link">О нас</a>
-                    <a href="#" class="nav_link">Галерея</a>
-                    <a href="#" class="nav_link">Турниры</a>
-                    <a href="#" class="nav_link">Состав клана</a>
-                </div>
+            <a href="{{ url_for('public.home') }}" class="h1">Golden Bulls</a>
 
-                {% if current_user %}
-                    <div class="navbar_profile_block">
-                        <div class="navbar_profile" onmouseenter="showProfileMenu()" onclick="toggleProfileMenu()">
-                            <span class="nav_username">{{ current_user.username }}</span>
-                            <i class="fas fa-user profile-icon"></i>
-                        </div>
-
-                        <div id="profileDropdown" class="profile-dropdown" 
-                            onmouseleave="hideProfileMenu()">
-                            <a href="/user/profile">Профиль</a>
-                            {% if current_user.role in ['admin', 'moderator'] %}
-                                <a href="/admin">Админ-панель</a>
-                            {% endif %}
-                            <a href="/user/logout">Выйти</a>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="navbar_auth">
-                        <a href="/user/login" class="button_dark">Вход</a>
-                        <a href="/user/register" class="button_dark">Регистрация</a>
-                    </div>
-                {% endif %}
+            <div class="navigation_menu">
+                <a href="#" class="nav_link">О нас</a>
+                <a href="#" class="nav_link">Галерея</a>
+                <a href="#" class="nav_link">Турниры</a>
+                <a href="#" class="nav_link">Состав клана</a>
             </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+            {% if current_user %}
+            <div class="navbar_profile_block">
+                <div class="navbar_profile" onmouseenter="showProfileMenu()" onclick="toggleProfileMenu()">
+                    <span class="nav_username">{{ current_user.username }}</span>
+                    <i class="fas fa-user profile-icon"></i>
+                </div>
 
-            {% block content %}
-            {% endblock %}
+                <div id="profileDropdown" class="profile-dropdown" onmouseleave="hideProfileMenu()">
+                    <a href="/user/profile">Профиль</a>
+                    {% if current_user.role in ['admin', 'moderator'] %}
+                    <a href="/admin">Админ-панель</a>
+                    {% endif %}
+                    <a href="/user/logout">Выйти</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="navbar_auth">
+                <a href="/user/login" class="button_dark">Вход</a>
+                <a href="/user/register" class="button_dark">Регистрация</a>
+            </div>
+            {% endif %}
         </div>
 
-        <script>
-            
-            function toggleProfileMenu() {
-                const dropdown = document.getElementById('profileDropdown');
-                if (dropdown) {
-                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                }
-            }
-            
-            function showProfileMenu() {
-                const dropdown = document.getElementById('profileDropdown');
-                if (dropdown) {
-                    dropdown.style.display = 'block';
-                }
-            }
-            
-            function hideProfileMenu() {
-                const dropdown = document.getElementById('profileDropdown');
-                if (dropdown) {
-                    // Небольшая задержка для плавного UX (если пользователь случайно выходит и сразу возвращается)
-                    setTimeout(() => {
-                        dropdown.style.display = 'none';
-                    }, 300);
-                }
-            }
-            
-            // Дополнительно: закрывать меню при клике вне его области
-            document.addEventListener('click', function(event) {
-                const dropdown = document.getElementById('profileDropdown');
-                const icon = document.querySelector('.profile-icon');
-                
-                if (dropdown && !dropdown.contains(event.target) && !icon.contains(event.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
-    
-        </script>
-        
-        {% block script %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}
         {% endblock %}
-    </body>
+    </div>
+
+    <script>
+        function toggleProfileMenu() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+
+        function showProfileMenu() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'block';
+            }
+        }
+
+        function hideProfileMenu() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown) {
+                // Небольшая задержка для плавного UX (если пользователь случайно выходит и сразу возвращается)
+                setTimeout(() => {
+                    dropdown.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Дополнительно: закрывать меню при клике вне его области
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const icon = document.querySelector('.profile-icon');
+
+            if (dropdown && !dropdown.contains(event.target) && !icon.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
+
+    {% block script %}
+    {% endblock %}
+</body>

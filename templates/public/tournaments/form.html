@@ -1,97 +1,97 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    <title>Golden Bulls - {{ tournament.name }}</title>
+<title>Golden Bulls - {{ tournament.name }}</title>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h1>Регистрация на турнир {{ tournament.name }}</h1>
+<div class="container">
+    <h1>Регистрация на турнир {{ tournament.name }}</h1>
 
-        <div class="time-info">
-            <p>Регистрация открыта до: <strong>{{ tournament.reg_end.strftime('%d.%m.%Y в %H:%M') }}</strong></p>
-        </div>
-
-        <p><strong>Режим:</strong> {{ tournament.mode }}</p>
-        <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
-        <h3>Начисление очков:</h3>
-        <p><strong>За убийство:</strong> {{ tournament.kill_points }} очков</p>
-        <p><strong>За 100 урона:</strong> {{ tournament.damage_points }} очков</p>
-        <p><strong>За 1 место:</strong> {{ tournament.first_place_points }} очков</p>
-        <p><strong>За 2 место:</strong> {{ tournament.second_place_points }} очков</p>
-        <p><strong>За 3 место:</strong> {{ tournament.third_place_points }} очков</p>
-        <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
-
-        <div class="current-players">
-            <a href="{{ url_for('public.view_players_public', tournament_id=tournament.id) }}" class="button">
-                Посмотреть текущих участников ({{ tournament.players|length }})
-            </a>
-        </div>
-
-        <form method="POST">
-            {% if current_user %}
-                <div class="player-info">
-                    <h3>Вы записываетесь как:</h3>
-                    <p>
-                        <strong>Имя:</strong> 
-                        {% if current_user.name %}
-                            {{ current_user.name }}
-                        {% else %}
-                            <span class="warning">Не указано</span>
-                        {% endif %}
-                    </p>
-                    <p><strong>Никнейм в PUBG:</strong> {{ current_user.pubg_nickname }}</p>
-                </div>
-                
-                <input type="hidden" name="nickname" value="{{ current_user.pubg_nickname }}">
-                
-                {% if not current_user.name %}
-                    <div class="name-input">
-                        <label for="name">Ваше имя (обязательно):</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                {% else %}
-                    <input type="hidden" name="name" value="{{ current_user.name }}">
-                {% endif %}
-
-                {% if tournament.mode in ['Дуо', 'Сквад'] %}
-                    <div class="group-selection">
-                        <h3>Выбор группы</h3>
-                        <div class="available-groups">
-                            <h4>Доступные группы:</h4>
-                            {% if groups %}
-                                {% for group in groups %}
-                                    {% set player_count = group.players|length %}
-                                    {% if player_count < max_players %}
-                                    <div class="group-option">
-                                        <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
-                                        <label for="group_{{ group.id }}">
-                                            Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }})
-                                            {% if player_count > 0 %}
-                                                <ul>
-                                                    {% for player in group.players %}
-                                                        <li>{{ player.name }} ({{ player.nickname }})</li>
-                                                    {% endfor %}
-                                                </ul>
-                                            {% endif %}
-                                        </label>
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                            <div class="group-option">
-                                <input type="radio" name="group_id" id="new_group" value="" checked>
-                                <label for="new_group">Создать новую группу</label>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <button type="submit" class="button">Записаться</button>
-
-            {% else %}
-                <h2>Для записи на турнир авторизуйтесь или зарегистрируйтесь на сайте</h2>
-            {% endif %}
-        </form>
+    <div class="time-info">
+        <p>Регистрация открыта до: <strong>{{ tournament.reg_end.strftime('%d.%m.%Y в %H:%M') }}</strong></p>
     </div>
+
+    <p><strong>Режим:</strong> {{ tournament.mode }}</p>
+    <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
+    <h3>Начисление очков:</h3>
+    <p><strong>За убийство:</strong> {{ tournament.kill_points }} очков</p>
+    <p><strong>За 100 урона:</strong> {{ tournament.damage_points }} очков</p>
+    <p><strong>За 1 место:</strong> {{ tournament.first_place_points }} очков</p>
+    <p><strong>За 2 место:</strong> {{ tournament.second_place_points }} очков</p>
+    <p><strong>За 3 место:</strong> {{ tournament.third_place_points }} очков</p>
+    <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+
+    <div class="current-players">
+        <a href="{{ url_for('public.view_players_public', tournament_id=tournament.id) }}" class="button">
+            Посмотреть текущих участников ({{ tournament.players|length }})
+        </a>
+    </div>
+
+    <form method="POST">
+        {% if current_user %}
+        <div class="player-info">
+            <h3>Вы записываетесь как:</h3>
+            <p>
+                <strong>Имя:</strong>
+                {% if current_user.name %}
+                {{ current_user.name }}
+                {% else %}
+                <span class="warning">Не указано</span>
+                {% endif %}
+            </p>
+            <p><strong>Никнейм в PUBG:</strong> {{ current_user.pubg_nickname }}</p>
+        </div>
+
+        <input type="hidden" name="nickname" value="{{ current_user.pubg_nickname }}">
+
+        {% if not current_user.name %}
+        <div class="name-input">
+            <label for="name">Ваше имя (обязательно):</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        {% else %}
+        <input type="hidden" name="name" value="{{ current_user.name }}">
+        {% endif %}
+
+        {% if tournament.mode in ['Дуо', 'Сквад'] %}
+        <div class="group-selection">
+            <h3>Выбор группы</h3>
+            <div class="available-groups">
+                <h4>Доступные группы:</h4>
+                {% if groups %}
+                {% for group in groups %}
+                {% set player_count = group.players|length %}
+                {% if player_count < max_players %}
+                <div class="group-option">
+                    <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
+                    <label for="group_{{ group.id }}">
+                        Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }})
+                        {% if player_count > 0 %}
+                        <ul>
+                            {% for player in group.players %}
+                            <li>{{ player.name }} ({{ player.nickname }})</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                <div class="group-option">
+                    <input type="radio" name="group_id" id="new_group" value="" checked>
+                    <label for="new_group">Создать новую группу</label>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="button">Записаться</button>
+
+        {% else %}
+        <h2>Для записи на турнир авторизуйтесь или зарегистрируйтесь на сайте</h2>
+        {% endif %}
+    </form>
+</div>
 {% endblock %}
