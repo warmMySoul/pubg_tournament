@@ -22,7 +22,7 @@
                         <option value="admins" {% if request.args.get('admin_filter') == 'admins' %}selected{% endif %}>Только администраторы</option>
                         <option value="moderator" {% if request.args.get('admin_filter') == 'moderator' %}selected{% endif %}>Только модераторы</option>
                         <option value="clan_member" {% if request.args.get('admin_filter') == 'clan_member' %}selected{% endif %}>Только члены клана</option>
-                        <option value="guests" {% if request.args.get('admin_filter') == 'guests' %}selected{% endif %}>Только гости</option>
+                        <option value="system" {% if request.args.get('admin_filter') == 'system' %}selected{% endif %}>Только системные</option>
                     </select>
 
                     <input type="text" name="admin" placeholder="Имя пользователя" value="{{ request.args.get('admin', '') }}">
@@ -72,7 +72,7 @@
             {% for log in logs %}
             <tr>
                 <td>{{ log.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
-                <td>{{ log.user.username if log.user else 'Гость' }}</td>
+                <td>{{ log.user.username if log.user else 'System' }}</td>
                 <td>{{ log.action }}</td>
             </tr>
             {% endfor %}

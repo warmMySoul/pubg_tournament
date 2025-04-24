@@ -13,9 +13,14 @@
         </div>
 
         <p><strong>Режим:</strong> {{ tournament.mode }}</p>
-        <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</strong></p>
-        <p><strong>Система начисления очков:</strong></p>
-        <pre>{{ tournament.scoring_system }}</pre>
+        <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
+        <h3>Начисление очков:</h3>
+        <p><strong>За убийство:</strong> {{ tournament.kill_points }} очков</p>
+        <p><strong>За 100 урона:</strong> {{ tournament.damage_points }} очков</p>
+        <p><strong>За 1 место:</strong> {{ tournament.first_place_points }} очков</p>
+        <p><strong>За 2 место:</strong> {{ tournament.second_place_points }} очков</p>
+        <p><strong>За 3 место:</strong> {{ tournament.third_place_points }} очков</p>
+        <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
 
         <div class="current-players">
             <a href="{{ url_for('public.view_players_public', tournament_id=tournament.id) }}" class="button">
@@ -25,11 +30,30 @@
 
         <form method="POST">
             {% if current_user %}
-                <p><h3>Вы записываетесь как:</h3>
-                    <strong>Имя:</strong> {{ current_user.name }} </br>
-                    <strong>Никнейм в PUBG:</strong> ({{ current_user.pubg_nickname }})
-                </p>
+                <div class="player-info">
+                    <h3>Вы записываетесь как:</h3>
+                    <p>
+                        <strong>Имя:</strong> 
+                        {% if current_user.name %}
+                            {{ current_user.name }}
+                        {% else %}
+                            <span class="warning">Не указано</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Никнейм в PUBG:</strong> {{ current_user.pubg_nickname }}</p>
+                </div>
                 
+                <input type="hidden" name="nickname" value="{{ current_user.pubg_nickname }}">
+                
+                {% if not current_user.name %}
+                    <div class="name-input">
+                        <label for="name">Ваше имя (обязательно):</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                {% else %}
+                    <input type="hidden" name="name" value="{{ current_user.name }}">
+                {% endif %}
+
                 {% if tournament.mode in ['Дуо', 'Сквад'] %}
                     <div class="group-selection">
                         <h3>Выбор группы</h3>
@@ -63,59 +87,11 @@
                     </div>
                 {% endif %}
 
-                <button type="button" onclick="handleClanRegistration()" class="button">Записаться</button>
-
-                <input type="hidden" name="name" id="hidden_name_field" value="{{ current_user.name or '' }}">
-                <input type="hidden" name="nickname" value="{{ current_user.pubg_nickname }}">
+                <button type="submit" class="button">Записаться</button>
 
             {% else %}
                 <h2>Для записи на турнир авторизуйтесь или зарегистрируйтесь на сайте</h2>
             {% endif %}
         </form>
     </div>
-
-    <div id="nameModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Введите имя</h3>
-            <p>Для регистрации укажите ваше имя (оно не задано в профиле).</p>
-            <input type="text" id="clan_name_input" placeholder="Введите имя">
-            <div style="margin-top: 10px;">
-                <button class="button" onclick="submitWithName()">Продолжить</button>
-                <button class="button" onclick="hideNameModal()">Отмена</button>
-            </div>
-        </div>
-    </div>
-{% endblock %}
-
-{% block script %}
-    <script>
-        function handleClanRegistration() {
-            const nameValue = document.getElementById('hidden_name_field').value.trim();
-            if (!nameValue) {
-                showNameModal();
-            } else {
-                document.querySelector('form').submit();
-            }
-        }
-        
-        function showNameModal() {
-            document.getElementById('nameModal').style.display = 'flex';
-        }
-        
-        function hideNameModal() {
-            document.getElementById('nameModal').style.display = 'none';
-        }
-        
-        function submitWithName() {
-            const name = document.getElementById('clan_name_input').value.trim();
-            if (!name) {
-                alert('Пожалуйста, введите имя.');
-                return;
-            }
-            document.getElementById('hidden_name_field').value = name;
-            hideNameModal();
-            document.querySelector('form').submit();
-        }
-        
-    </script>
 {% endblock %}

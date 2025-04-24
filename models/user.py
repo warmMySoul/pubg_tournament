@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from extensions.db_connection import db
 
 class RoleEnum():
@@ -20,7 +21,10 @@ class User(db.Model):
     role = db.Column(db.String(20), default=RoleEnum.GUEST)
     email = db.Column(db.String(120), unique=True, nullable=False)
     is_verified = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("Europe/Moscow")))
+    
+    # Связи
+    tournament_registrations = db.relationship('Player', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def check_password(self, password):
         from werkzeug.security import check_password_hash

@@ -5,8 +5,9 @@ from flask import Blueprint, flash, url_for, redirect, request, render_template,
 from datetime import datetime
 from flask import send_file
 from openpyxl import Workbook
+from sqlalchemy import func
 from extensions.security import get_current_user, role_required
-from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User
+from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User, Match, PlayerMatchStats
 from extensions.db_connection import db
 
 # Импорт логирования
@@ -41,6 +42,7 @@ def tournaments():
 def create_tournament():
     if request.method == 'POST':
         try:
+            # Основные параметры турнира
             new_tournament = Tournament(
                 id=str(uuid.uuid4()),
                 name=request.form['name'],
@@ -48,29 +50,45 @@ def create_tournament():
                 reg_end=datetime.strptime(request.form['reg_end'], '%Y-%m-%dT%H:%M'),
                 tournament_date=datetime.strptime(request.form['tournament_date'], '%Y-%m-%dT%H:%M'),
                 mode=request.form['mode'],
-                scoring_system=request.form['scoring_system']
+                maps_count=int(request.form['maps_count'])
             )
             
+            # Параметры подсчета очков (могут быть пустыми)
+            if request.form.get('kill_points'):
+                new_tournament.kill_points = float(request.form['kill_points'])
+            if request.form.get('first_place_points'):
+                new_tournament.first_place_points = float(request.form['first_place_points'])
+            if request.form.get('second_place_points'):
+                new_tournament.second_place_points = float(request.form['second_place_points'])
+            if request.form.get('third_place_points'):
+                new_tournament.third_place_points = float(request.form['third_place_points'])
+            if request.form.get('damage_points'):
+                new_tournament.damage_points = float(request.form['damage_points'])
+            
+            # Валидация дат
             if new_tournament.reg_start >= new_tournament.reg_end:
                 flash('Дата окончания регистрации должна быть позже даты начала', 'error')
                 return redirect(url_for('admin.create_tournament'))
             
+            if new_tournament.reg_end >= new_tournament.tournament_date:
+                flash('Дата проведения турнира должна быть позже окончания регистрации', 'error')
+                return redirect(url_for('admin.create_tournament'))
+            
             db.session.add(new_tournament)
             db.session.commit()
-            log(f"Создан турнир '{request.form['name'],}'")
+            
+            log(f"Создан турнир {new_tournament.name}")
+            flash('Турнир успешно создан', 'success')
             return redirect(url_for('admin.tournaments'))
+            
         except ValueError as e:
-            flash('Ошибка в формате даты', 'error')
+            db.session.rollback()
+            flash(f'Ошибка в формате данных: {str(e)}', 'error')
+        except Exception as e:
+            db.session.rollback()
+            flash('Произошла ошибка при создании турнира', 'error')
+    
     return render_template('admin/tournaments/create.html')
-
-# Скопировать ссылку на форму для регистрации на турнир
-@admin_bp.route('/copy_link/<tournament_id>')
-@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
-def copy_link(tournament_id):
-    tournament = Tournament.query.get_or_404(tournament_id)
-    return jsonify({
-        'link': url_for('user.player_form', tournament_id=tournament.id, _external=True)
-    })
 
 # Просмотр деталей турнира
 @admin_bp.route('/tournament/<tournament_id>')
@@ -121,7 +139,7 @@ def move_player():
             return jsonify({'success': False, 'error': 'Группа уже заполнена'})
 
     player.group_id = new_group_id
-    log(f"В трунирне '{tournament.name}' игрок '{player.name}' ({player.nickname}) перемещен в '{player.group_id }'")
+    log(f"В трунирне {tournament.name} игрок {player.name} ({player.nickname}) перемещен в группу '{player.group_id }'")
     db.session.commit()
     
     # Проверка и удаление старой группы, если она пуста
@@ -155,10 +173,137 @@ def delete_player():
         if remaining_players == 0:
             db.session.delete(group)
 
-    log(f"Удален игрок '{player.name}' ({player.nickname}) из турнира '{tournament.name}'")
+    log(f"Удален игрок {player.name} ({player.nickname}) из турнира {tournament.name}")
 
     db.session.commit()
     return jsonify({'success': True})
+
+# Создание матча
+@admin_bp.route('/tournament/<tournament_id>/create_match', methods=['GET', 'POST'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def create_match(tournament_id):
+    tournament = Tournament.query.get_or_404(tournament_id)
+    
+    if request.method == 'POST':
+        try:
+            map_number = int(request.form['map_number'])
+            started_at = datetime.strptime(request.form['started_at'], '%Y-%m-%dT%H:%M')
+            
+            # Проверка на уникальность номера карты
+            existing_match = Match.query.filter_by(
+                tournament_id=tournament_id,
+                map_number=map_number
+            ).first()
+            
+            if existing_match:
+                flash('Матч для этой карты уже существует', 'error')
+                return redirect(url_for('admin.create_match', tournament_id=tournament_id))
+            
+            new_match = Match(
+                tournament_id=tournament_id,
+                map_number=map_number,
+                started_at=started_at
+            )
+            
+            db.session.add(new_match)
+            db.session.commit()
+            
+            flash('Матч успешно создан', 'success')
+            return redirect(url_for('admin.view_players', tournament_id=tournament_id))
+            
+        except ValueError as e:
+            flash('Ошибка в формате данных', 'error')
+    
+    # Для GET-запроса
+    return render_template('admin/tournaments/create_match.html', tournament=tournament)
+
+# Статистика матча
+@admin_bp.route('/match/<int:match_id>/stats', methods=['GET', 'POST'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def match_stats(match_id):
+    match = Match.query.get_or_404(match_id)
+    tournament = match.tournament
+    
+    if request.method == 'POST':
+        try:
+            for player in tournament.players:
+                kills = int(request.form.get(f'kills_{player.id}', 0))
+                damage = float(request.form.get(f'damage_{player.id}', 0))
+                placement = request.form.get(f'placement_{player.id}')
+                
+                # Ищем существующую статистику или создаем новую
+                stats = PlayerMatchStats.query.filter_by(
+                    player_id=player.id,
+                    match_id=match.id
+                ).first()
+                
+                if not stats:
+                    stats = PlayerMatchStats(
+                        player_id=player.id,
+                        match_id=match.id
+                    )
+                    db.session.add(stats)
+                
+                # Обновляем статистику
+                stats.kills = kills
+                stats.damage_dealt = damage
+                stats.placement = int(placement) if placement else None
+                
+                # Рассчитываем очки
+                stats.points = 0
+                if tournament.kill_points:
+                    stats.points += kills * tournament.kill_points
+                if tournament.damage_points:
+                    stats.points += (damage // 100) * tournament.damage_points
+                if placement:
+                    if placement == '1' and tournament.first_place_points:
+                        stats.points += tournament.first_place_points
+                    elif placement == '2' and tournament.second_place_points:
+                        stats.points += tournament.second_place_points
+                    elif placement == '3' and tournament.third_place_points:
+                        stats.points += tournament.third_place_points
+                
+                # Обновляем общие очки игрока
+                player.total_points = db.session.query(
+                    func.sum(PlayerMatchStats.points)
+                    .filter(PlayerMatchStats.player_id == player.id)).scalar() or 0
+            
+            # Помечаем матч как завершенный
+            if not match.ended_at:
+                match.ended_at = datetime.now()
+            
+            db.session.commit()
+            flash('Статистика успешно сохранена', 'success')
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ошибка при сохранении статистики: {str(e)}', 'error')
+    
+    return render_template('admin/tournaments/match_stats.html', 
+                         match=match, 
+                         tournament=tournament)
+
+# API для удаления матча
+@admin_bp.route('/api/delete_match', methods=['POST'])
+@role_required([RoleEnum.ADMIN])
+def api_delete_match():
+    data = request.get_json()
+    match = Match.query.get_or_404(data['match_id'])
+    
+    try:
+        # Пересчитываем очки для игроков
+        for stats in match.players_stats:
+            player = stats.player
+            db.session.delete(stats)
+            player.total_points = db.session.query(
+                func.sum(PlayerMatchStats.points)).filter_by(player_id=player.id).scalar() or 0
+        
+        db.session.delete(match)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Удалить турнир
 @admin_bp.route('/api/delete_tournament', methods=['POST'])
@@ -174,7 +319,7 @@ def delete_tournament():
     tournament = Tournament.query.get_or_404(tournament_id)
     db.session.delete(tournament)
     db.session.commit()
-    log(f"Удален турнир {tournament.name}'")
+    log(f"Удален турнир {tournament.name}")
 
     return jsonify({'success': True})
 
@@ -196,7 +341,7 @@ def edit_tournament():
         tournament.tournament_date = datetime.strptime(data['tournament_date'], '%Y-%m-%dT%H:%M')
 
         db.session.commit()
-        log(f"Изменён турнир '{tournament.name}'")
+        log(f"Изменён турнир {tournament.name}")
         return jsonify({'success': True})
 
     except Exception as e:
@@ -222,7 +367,7 @@ def view_logs():
         query = query.join(User).filter(User.role == RoleEnum.MODERATOR)
     elif filter_by == 'clan_member':
         query = query.join(User).filter(User.role == RoleEnum.CLAN_MEMBER)
-    elif filter_by == 'guests':
+    elif filter_by == 'system':
         query = query.filter(AdminActionLog.user_id == None)
 
     if admin_username:
@@ -319,10 +464,6 @@ def export_logs():
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
-
-from flask import request
-from datetime import datetime
-
 # Пользователи с пагинацией и фильтрами
 @admin_bp.route('/users')
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
@@ -413,7 +554,7 @@ def delete_user():
         
     db.session.delete(user)
     
-    log(f"Удален пользователь '{user.username}' и его статистика")
+    log(f"Удален пользователь {user.username} и его статистика")
     db.session.commit()
 
     return jsonify({'success': True})

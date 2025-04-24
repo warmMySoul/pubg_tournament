@@ -16,9 +16,13 @@
         
         <div class="tournament-info">
             <p><strong>Режим:</strong> {{ tournament.mode }}</p>
-            <p><strong>Дата турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
-            <p><strong>Система начисления очков:</strong></p>
-            <pre>{{ tournament.scoring_system }}</pre>
+            <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
+            <h3>Начисление очков:</h3>
+            <p><strong>За убийство:</strong> {{ tournament.kill_points }} очков</p>
+            <p><strong>За 100 урона:</strong> {{ tournament.damage_points }} очков</p>
+            <p><strong>За 1 место:</strong> {{ tournament.first_place_points }} очков</p>
+            <p><strong>За 2 место:</strong> {{ tournament.second_place_points }} очков</p>
+            <p><strong>За 3 место:</strong> {{ tournament.third_place_points }} очков</p>
         </div>
         
         <a href="{{ url_for('public.view_players_public', tournament_id=tournament.id) }}" class="button">

@@ -176,8 +176,7 @@
         function handleRowClick(event, user_id) {
             if(user_id != 1) {
                 if (event.target.tagName !== 'BUTTON' && event.target.tagName !== 'I') {
-                window.location.href = "{{ url_for('admin.user_profile', user_id = user_id) }}" + user_id;;
-                console.log(user_id);
+                window.location.href = "{{ url_for('admin.user_profile', user_id = user_id) }}" + user_id;
                 }
             }
         }

@@ -395,89 +395,110 @@ def reset_password():
     
     return render_template('user/reset_password.html')
 
-# Форма регистрации на турнир
 @user_bp.route('/form/<tournament_id>', methods=['GET', 'POST'])
 @login_required
 def player_form(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)
     user = get_current_user()
 
-    # Проверка, если пользователь уже зарегистрирован на турнир
+    # Проверка существующей регистрации
     if user:
         existing_player = Player.query.filter_by(
             tournament_id=tournament_id,
-            nickname=user.pubg_nickname  # Мы предполагаем, что у игрока есть связь с пользователем через user_id
+            user_id=user.id  # Теперь проверяем по user_id
         ).first()
         
         if existing_player:
-            # Если игрок уже зарегистрирован, выводим информацию
-            return render_template('public/tournaments/tournament_register_already.html', tournament=tournament, player=existing_player)
+            return render_template('public/tournaments/tournament_register_already.html', 
+                                tournament=tournament, 
+                                player=existing_player)
 
     if not tournament_reg_is_open(tournament):
-        return render_template('public/tournaments/registration_closed.html', tournament=tournament)
+        return render_template('public/tournaments/registration_closed.html', 
+                            tournament=tournament)
 
     if request.method == 'POST':
-        group_id = request.form.get('group_id')
-        max_players = 4 if tournament.mode == 'Сквад' else 2 if tournament.mode == 'Дуо' else None
-
-        # Создание новой группы, если не выбрана
-        if tournament.mode in ['Дуо', 'Сквад'] and not group_id:
-            max_group = db.session.query(func.max(PlayerGroup.group_number)) \
-                .filter_by(tournament_id=tournament_id).scalar() or 0
-            new_group = PlayerGroup(
-                tournament_id=tournament_id,
-                group_number=max_group + 1
-            )
-            db.session.add(new_group)
-            db.session.flush()
-            group_id = new_group.id
-
-        # Определяем имя и никнейм
-        if user:
-            name = user.name
-            nickname = user.pubg_nickname
-            log_user_id = user.id
+        try:
+            group_id = request.form.get('group_id')
             
-            if not user.name:
+            # Определяем имя и никнейм
+            name = request.form.get('name', '').strip()
+            nickname = user.pubg_nickname if user else request.form.get('nickname', '').strip()
+            
+            # Проверка обязательных полей
+            if not name:
+                flash('Имя обязательно для заполнения', 'error')
+                return redirect(url_for('user.player_form', tournament_id=tournament_id))
+            
+            if not nickname:
+                flash('Никнейм обязателен для заполнения', 'error')
+                return redirect(url_for('user.player_form', tournament_id=tournament_id))
+
+            # Проверка на дубликат ника
+            existing_nickname = Player.query.filter_by(
+                tournament_id=tournament_id,
+                nickname=nickname
+            ).first()
+
+            if existing_nickname:
+                flash('Игрок с таким ником уже зарегистрирован на этот турнир.', 'error')
+                return redirect(url_for('user.player_form', tournament_id=tournament_id))
+
+            # Для групповых режимов
+            if tournament.mode in ['Дуо', 'Сквад']:
+                max_players = 4 if tournament.mode == 'Сквад' else 2
+                
+                # Создание новой группы, если не выбрана
+                if not group_id:
+                    max_group = db.session.query(func.max(PlayerGroup.group_number)) \
+                        .filter_by(tournament_id=tournament_id).scalar() or 0
+                    new_group = PlayerGroup(
+                        tournament_id=tournament_id,
+                        group_number=max_group + 1
+                    )
+                    db.session.add(new_group)
+                    db.session.flush()
+                    group_id = new_group.id
+                
+                # Проверка заполненности группы
+                group = PlayerGroup.query.get(group_id)
+                if group and len(group.players) >= max_players:
+                    flash('Выбранная группа уже заполнена', 'error')
+                    return redirect(url_for('user.player_form', tournament_id=tournament_id))
+
+            # Обновляем имя пользователя, если оно было изменено
+            if user and user.name != name:
                 user.name = name
                 db.session.commit()
-        else:
-            name = request.form.get('name')
-            nickname = request.form.get('nickname')
-            log_user_id = None  # гость
 
-        # Проверка на дубликат ника в текущем турнире
-        existing_player = Player.query.filter_by(
-            tournament_id=tournament_id,
-            nickname=nickname
-        ).first()
+            # Создаём игрока с привязкой к пользователю
+            new_player = Player(
+                tournament_id=tournament_id,
+                user_id=user.id if user else None,
+                group_id=group_id if tournament.mode in ['Дуо', 'Сквад'] else None,
+                name=name,
+                nickname=nickname
+            )
 
-        if existing_player:
-            flash('Игрок с таким ником уже зарегистрирован на этот турнир.', 'error')
+            # Логируем регистрацию
+            action = f"Игрок {name} (ник: {nickname}) зарегистрировался на турнир '{tournament.name}'"
+            log = AdminActionLog(
+                user_id=user.id if user else None,
+                action=action
+            )
+
+            db.session.add(new_player)
+            db.session.add(log)
+            db.session.commit()
+
+            session['last_registered_tournament'] = tournament_id
+            flash('Вы успешно зарегистрировались на турнир!', 'success')
+            return redirect(url_for('public.view_players_public', tournament_id=tournament_id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash('Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.', 'error')
             return redirect(url_for('user.player_form', tournament_id=tournament_id))
-
-        # Создаём игрока
-        new_player = Player(
-            tournament_id=tournament_id,
-            group_id=group_id if tournament.mode in ['Дуо', 'Сквад'] else None,
-            name=name,
-            nickname=nickname
-        )
-
-        # Логируем регистрацию
-        action = f"Игрок {new_player.name} (ник: {new_player.nickname}) зарегистрировался на турнир '{tournament.name}'"
-        log = AdminActionLog(
-            user_id=log_user_id,
-            action=action
-        )
-
-        db.session.add(new_player)
-        db.session.add(log)
-        db.session.commit()
-
-        session['last_registered_tournament'] = tournament_id
-        return redirect(url_for('public.view_players_public', tournament_id=tournament_id))
-
 
     # Для GET-запроса
     groups = []
@@ -493,5 +514,24 @@ def player_form(tournament_id):
         'public/tournaments/form.html',
         tournament=tournament,
         groups=groups,
-        max_players=max_players
+        max_players=max_players,
+        current_user=user
+    )
+
+    # Для GET-запроса
+    groups = []
+    max_players = None
+    if tournament.mode in ['Дуо', 'Сквад']:
+        groups = PlayerGroup.query \
+            .filter_by(tournament_id=tournament_id) \
+            .options(db.joinedload(PlayerGroup.players)) \
+            .all()
+        max_players = 4 if tournament.mode == 'Сквад' else 2
+
+    return render_template(
+        'public/tournaments/form.html',
+        tournament=tournament,
+        groups=groups,
+        max_players=max_players,
+        current_user=user  # Передаем пользователя в шаблон
     )

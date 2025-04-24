@@ -9,30 +9,63 @@
         <h1>Создать новый турнир</h1>
         
         <form method="POST">
-            <label for="name">Название турнира:</label>
-            <input type="text" id="name" name="name" required>
+            <!-- Основные параметры -->
+            <div class="form-section">
+                <h3>Основные параметры</h3>
+                
+                <label for="name">Название турнира:</label>
+                <input type="text" id="name" name="name" required>
+                
+                <label for="mode">Режим игры:</label>
+                <select id="mode" name="mode" required>
+                    <option value="Соло">Соло</option>
+                    <option value="Дуо">Дуо</option>
+                    <option value="Сквад">Сквад</option>
+                </select>
+                
+                <label for="maps_count">Количество карт:</label>
+                <input type="number" id="maps_count" name="maps_count" min="1" max="10" value="3" required>
+            </div>
             
-            <label for="reg_start">Начало регистрации:</label>
-            <input type="datetime-local" id="reg_start" name="reg_start" required>
+            <!-- Даты -->
+            <div class="form-section">
+                <h3>Даты проведения</h3>
+                
+                <label for="reg_start">Начало регистрации:</label>
+                <input type="datetime-local" id="reg_start" name="reg_start" required>
+                
+                <label for="reg_end">Окончание регистрации:</label>
+                <input type="datetime-local" id="reg_end" name="reg_end" required>
+                
+                <label for="tournament_date">Дата проведения турнира:</label>
+                <input type="datetime-local" id="tournament_date" name="tournament_date" required>
+            </div>
             
-            <label for="reg_end">Окончание регистрации:</label>
-            <input type="datetime-local" id="reg_end" name="reg_end" required>
+            <!-- Система подсчета очков -->
+            <div class="form-section">
+                <h3>Система подсчета очков</h3>
+                <p class="form-note">Оставьте поле пустым, если баллы не начисляются</p>
+                
+                <label for="kill_points">Очки за убийство:</label>
+                <input type="number" id="kill_points" name="kill_points" step="0.1" min="0">
+                
+                <label for="first_place_points">Очки за 1 место:</label>
+                <input type="number" id="first_place_points" name="first_place_points" step="0.1" min="0">
+                
+                <label for="second_place_points">Очки за 2 место:</label>
+                <input type="number" id="second_place_points" name="second_place_points" step="0.1" min="0">
+                
+                <label for="third_place_points">Очки за 3 место:</label>
+                <input type="number" id="third_place_points" name="third_place_points" step="0.1" min="0">
+                
+                <label for="damage_points">Очки за урон (за 100 урона):</label>
+                <input type="number" id="damage_points" name="damage_points" step="0.01" min="0">
+            </div>
             
-            <label for="tournament_date">Дата проведения турнира:</label>
-            <input type="datetime-local" id="tournament_date" name="tournament_date" required>
-            
-            <label for="mode">Режим игры:</label>
-            <select id="mode" name="mode" required>
-                <option value="Соло">Соло</option>
-                <option value="Дуо">Дуо</option>
-                <option value="Сквад">Сквад</option>
-            </select>
-            
-            <label for="scoring_system">Система начисления очков:</label>
-            <textarea id="scoring_system" name="scoring_system" rows="5" required></textarea>
-            
-            <button type="submit">Создать турнир</button>
-            <a href="{{ url_for('admin.admin') }}" class="button">Отмена</a>
+            <div class="form-actions">
+                <button type="submit" class="button">Создать турнир</button>
+                <a href="{{ url_for('admin.tournaments') }}" class="button button-secondary">Отмена</a>
+            </div>
         </form>
     </div>
 {% endblock %}
@@ -41,13 +74,13 @@
     <script>
         // Функция для форматирования даты в нужный для input формат
         function formatDateForInput(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
     
         // Текущая дата и время
@@ -66,4 +99,4 @@
         tournamentDate.setDate(now.getDate() + 15);
         document.getElementById('tournament_date').value = formatDateForInput(tournamentDate);
     </script>
-  {% endblock %}
+{% endblock %}

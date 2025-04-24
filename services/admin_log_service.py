@@ -6,5 +6,8 @@ def log_admin_action(action):
     user_id = session.get('user_logged')
     if user_id:
         log = AdminActionLog(user_id=user_id, action=action)
-        db.session.add(log)
-        db.session.commit()
+    else:
+        log = AdminActionLog(action=action)
+
+    db.session.add(log)
+    db.session.commit()

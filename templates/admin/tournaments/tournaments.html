@@ -18,16 +18,18 @@
                     <th>Регистрация</th>
                     <th>Дата турнира</th>
                     <th>Статус</th>
-                    <th>Участники</th>
-                    <th>Форма регистрации</th>
+                    <th>Количество участников</th>
                     {% if current_user.role == "admin" %}
                             <th>Действия</th>
                     {% endif %}
                 </tr>
                 {% for tournament in tournaments %}
-                <tr>
+                <tr style="cursor: pointer;" 
+                onmouseover="this.style.backgroundColor='#FF8C00'" 
+                onmouseout="this.style.backgroundColor='transparent'"
+                onclick="handleRowClick(event, '{{ tournament.id }}')">
                     <td>{{ tournament.name }}</td>
-                    <td>{{ tournament.mode }}</td>
+                    <td>{{ tournament.mode }} </br> Кол-во карт: {{tournament.maps_count}} </td>
                     <td>
                         {{ tournament.reg_start.strftime('%d.%m.%Y') }} -<br>
                         {{ tournament.reg_end.strftime('%d.%m.%Y') }}
@@ -41,15 +43,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{{ url_for('admin.view_players', tournament_id=tournament.id) }}" class="button">
-                            {{ tournament.players|length }} участников
-                        </a>
-                        
-                    </td>
-                    <td>
-                        <button onclick="copyRegistrationLink('{{ tournament.id }}')" class="button">
-                            Копировать ссылку
-                        </button>
+                        {{ tournament.players|length }}
                     </td>
                     {% if current_user.role == "admin" %}
                         <td>
@@ -107,18 +101,13 @@
 
 {% block script %}
 <script>
-    function copyRegistrationLink(tournamentId) {
-        fetch(`/admin/copy_link/${tournamentId}`)
-            .then(response => response.json())
-            .then(data => {
-                const temp = document.createElement('textarea');
-                temp.value = data.link;
-                document.body.appendChild(temp);
-                temp.select();
-                document.execCommand('copy');
-                document.body.removeChild(temp);
-                alert('Ссылка скопирована!');
-            });
+    // Нажатие на строчку
+    function handleRowClick(event, tournament_id) {
+        if(tournament_id) {
+            if (event.target.tagName !== 'BUTTON' && event.target.tagName !== 'I') {
+            window.location.href = "{{ url_for('admin.view_players', tournament_id = tournament_id) }}" + tournament_id;
+            }
+        }
     }
 
     let modalAction = null;

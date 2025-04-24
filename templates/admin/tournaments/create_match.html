@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>GB Admin - Создать матч</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Создать матч для турнира "{{ tournament.name }}"</h1>
+        
+        <form method="POST">
+            <div class="form-section">
+                <label for="map_number">Номер карты:</label>
+                <input type="number" id="map_number" name="map_number" 
+                       min="1" max="{{ tournament.maps_count }}" required>
+                <small>Введите номер карты от 1 до {{ tournament.maps_count }}</small>
+                
+                <label for="started_at">Дата и время начала:</label>
+                <input type="datetime-local" id="started_at" name="started_at" required>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="button">Создать матч</button>
+                <a href="{{ url_for('admin.view_players', tournament_id=tournament.id) }}" 
+                   class="button button-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        function getCurrentMoscowDateTimeString() {
+            const now = new Date();
+            return new Intl.DateTimeFormat('sv-SE', {
+                timeZone: 'Europe/Moscow',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).format(now).replace(' ', 'T');
+        }
+        
+        document.getElementById('started_at').value = getCurrentMoscowDateTimeString();
+    </script>
+{% endblock %}

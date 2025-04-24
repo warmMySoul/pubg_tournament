@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>GB Admin - Статистика матча</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Статистика матча</h1>
+        <h2>Турнир: {{ tournament.name }} | Карта {{ match.map_number }}</h2>
+        
+        <div class="match-info">
+            <p><strong>Начало:</strong> {{ match.started_at.strftime('%d.%m.%Y %H:%M') }}</p>
+            {% if match.ended_at %}
+                <p><strong>Окончание:</strong> {{ match.ended_at.strftime('%d.%m.%Y %H:%M') }}</p>
+            {% endif %}
+        </div>
+        
+        <form method="POST">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Игрок</th>
+                        <th>Ник</th>
+                        <th>Убийства</th>
+                        <th>Урон</th>
+                        <th>Место</th>
+                        <th>Очки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in tournament.players %}
+                        {% set stats = match.players_stats|selectattr('player_id', 'equalto', player.id)|first %}
+                        <tr>
+                            <td>{{ player.name }}</td>
+                            <td>{{ player.nickname }}</td>
+                            <td>
+                                <input type="number" name="kills_{{ player.id }}" 
+                                       value="{{ stats.kills if stats else 0 }}" min="0">
+                            </td>
+                            <td>
+                                <input type="number" step="1" name="damage_{{ player.id }}" 
+                                       value="{{ stats.damage_dealt if stats else 0 }}" min="0">
+                            </td>
+                            <td>
+                                <select name="placement_{{ player.id }}">
+                                    <option value="">-</option>
+                                    {% for i in range(1, 30) %}
+                                        <option value="{{ i }}" 
+                                            {% if stats and stats.placement == i %}selected{% endif %}>
+                                            {{ i }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                {{ stats.points|round(2) if stats else 0 }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="form-actions">
+                <button type="submit" class="button">Сохранить статистику</button>
+                <a href="{{ url_for('admin.view_players', tournament_id=tournament.id) }}" 
+                   class="button button-secondary">Назад к турниру</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
