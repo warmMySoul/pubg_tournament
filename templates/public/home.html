@@ -8,28 +8,123 @@
 <div class="container">
 
 
-    <div class="tournament-info">
-        <h2>О клане</h2>
-        <p>Golden Bulls — это команда преданных игроков PUBG, которые сражаются с умом, честью и стилем. Мы стремимся к
-            вершинам и поддерживаем друг друга в каждом бою.</p>
+    <div class="container_block" id="about_us">
+        <div class="recruitment-call">
+            <div class="recruitment-content">
+                <p class="recruitment-lead">Мы — <span class="clan-name">Golden Bulls</span>, сплочённое братство
+                    игроков PUBG, где каждый боец ценится не только за навыки, но и за дух команды. Здесь нет одиночек —
+                    только взаимовыручка, тактика и стремление к победе.</p>
 
-        <h3>Наш состав</h3>
-        <p>Участников клана: <strong>{{ member_count }}</strong></p>
+                <div class="why-us">
+                    <h3 class="why-us-title">🔹 Почему мы?</h3>
+                    <ul class="benefits-list">
+                        <li class="benefit-item"><span class="check-icon">✅</span> <strong>Командная игра</strong> — мы
+                            сражаемся вместе, а не просто бежим за фрагами.</li>
+                        <li class="benefit-item"><span class="check-icon">✅</span> <strong>Развитие</strong> —
+                            анализируем ошибки, делимся тактиками и растем как игроки.</li>
+                        <li class="benefit-item"><span class="check-icon">✅</span> <strong>Честность и уважение</strong>
+                            — никакого токсика, только здоровая атмосфера.</li>
+                        <li class="benefit-item"><span class="check-icon">✅</span> <strong>Активность</strong> —
+                            постоянно проводим турниры и собираемся на тренировки.</li>
+                    </ul>
+                </div>
 
-        <h3>Ближайшие турниры</h3>
-        {% if upcoming_tournaments %}
-        <ul>
-            {% for tournament in upcoming_tournaments %}
-            <li>
-                <strong>{{ tournament.name }}</strong> —
-                {{ tournament.tournament_date.strftime('%d.%m.%Y') }}
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>Пока нет запланированных турниров.</p>
-        {% endif %}
+                <p class="recruitment-cta">Если ты ищешь не просто клан, а <span class="highlight">настоящих
+                        союзников</span>, готовых поддержать в любом раунде, — бросай заявку. Вместе мы добьёмся
+                    большего!</p>
+
+                <p class="clan-signature"><span class="clan-name">Golden Bulls</span> — не просто название. Это стиль
+                    игры.</p>
+
+                <div class="join-button-container">
+                    <a href="/user/register" class="join_button">
+                        <button class="join-button">Готов доказать, что ты — один из нас?</button>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
+
+    {% if champions %}
+    <div class="container_block" id="champions">
+        <h2>Команды победителей:</h2>
+
+    </div>
+    {% endif %}
+
+    <div class="container_block" id="tournaments">
+        <h2>Турниры:</h2>
+        <div class="tournament_info">
+            {% if next_tournament %}
+            <div class="next_tournament">
+
+                <h3>Ближайший турнир</h3>
+                <strong>{{ next_tournament.name }}</strong> — {{ next_tournament.tournament_date.strftime('%d.%m.%Y') }}
+            </div>
+            {% endif %}
+
+            {% if last_tournament %}
+            <div class="last_tournament">
+                <h3>Прошлый турнир</h3>
+                <strong>{{ last_tournament.name }}</strong> — {{ last_tournament.tournament_date.strftime('%d.%m.%Y') }}
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <div class="container_block" id="members">
+        <h2>Cостав клана:</h2>
+        <div class="members_container">
+            <div class="member_list_container">
+                <h3>Колчиество участников (<strong>{{ members.count() }}</strong>):</h3>
+                <ul class="member_list">
+                    {% for member in members %}
+                    <li class="member-card">
+                        <div class="member-nickname">{{ member.pubg_nickname }}</div>
+                        <div class="member-info">
+                            {% if member.name %}
+                            <span>Имя: {{ member.name }}</span>
+                            {% endif %}
+                            {% if member.birthday %}
+                            <span>День рождения:
+                                {{ member.birthday.strftime('%d.%m.%Y') if member.birthday else 'Не указан' }}</span>
+                            {% endif %}
+                        </div>
+                        {% if member.role == "admin" or member.role == "moderator" %}
+                        <div class="member-role {{member.role}}">{{ member.role }}</div>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="member_best_container">
+                <h3>Лучшие показатели за неделю:</h3>
+                <!--Сюда вставить лучшие показатели за неделю/месяц-->
+                <ul class="member_list">
+                    {% for member in members %}
+                    <li class="member-card">
+                        <div class="member-nickname">{{ member.pubg_nickname }}</div>
+                        <div class="member-info">
+                            {% if member.name %}
+                            <span>Имя: {{ member.name }}</span>
+                            {% endif %}
+                            {% if member.birthday %}
+                            <span>День рождения:
+                                {{ member.birthday.strftime('%d.%m.%Y') if member.birthday else 'Не указан' }}</span>
+                            {% endif %}
+                        </div>
+                        {% if member.role == "admin" or member.role == "moderator" %}
+                        <div class="member-role {{member.role}}">{{ member.role }}</div>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 

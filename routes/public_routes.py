@@ -1,5 +1,7 @@
 from flask import Blueprint, request, session, redirect, url_for, flash, render_template
 from datetime import datetime
+
+from sqlalchemy import case, or_
 from models import User, RoleEnum, Tournament, Player
 from extensions.db_connection import db
 
@@ -11,12 +13,45 @@ public_bp = Blueprint('public', __name__)
 # Главная страница сайта
 @public_bp.route('/')
 def home():
-    member_count = User.query.filter(User.role == RoleEnum.CLAN_MEMBER).count()
-    upcoming_tournaments = Tournament.query.filter(Tournament.tournament_date >= datetime.now()) \
-                                           .order_by(Tournament.tournament_date).all()
+    # Создаем кастомный порядок сортировки
+    role_ordering = case(
+        {
+            RoleEnum.ADMIN: 1,
+            RoleEnum.MODERATOR: 2,
+            RoleEnum.CLAN_MEMBER: 3
+        },
+        value=User.role
+    )
+
+    members = User.query.filter(
+        or_(
+            User.role == RoleEnum.CLAN_MEMBER,
+            User.role == RoleEnum.ADMIN,
+            User.role == RoleEnum.MODERATOR
+        )
+    ).filter(
+        User.username != 'admin'
+    ).order_by(role_ordering)
+    now = datetime.now()
+
+    # Ближайший будущий турнир
+    next_tournament = Tournament.query.filter(
+        Tournament.tournament_date > now
+    ).order_by(
+        Tournament.tournament_date.asc()
+    ).first()
+
+    # Последний завершенный турнир
+    last_tournament = Tournament.query.filter(
+        Tournament.tournament_date <= now
+    ).order_by(
+        Tournament.tournament_date.desc()
+    ).first()
+
     return render_template('public/home.html',
-                           member_count=member_count,
-                           upcoming_tournaments=upcoming_tournaments)
+                           members=members,
+                           next_tournament=next_tournament,
+                           last_tournament=last_tournament)
 
 #Публичный просмотр деталей турнира
 @public_bp.route('/public/tournament/<tournament_id>')
