@@ -78,8 +78,8 @@
             <td>{{ user.pubg_nickname }}</td>
             <td>{{ user.role }}</td>
             <td>{{ user.name if user.name else '—' }}</td>
-            <td>{{ user.email }}</td>
             <td>{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</td>
+            <td>{{ user.email }}</td>
             <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
             <td>
                 {% if user.id != current_user.id and user.username != "admin" and current_user.role == "admin" %}
