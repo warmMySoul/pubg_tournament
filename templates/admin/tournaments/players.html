@@ -25,6 +25,7 @@
     <div class="actions">
         <a href="{{ url_for('user.player_form', tournament_id=tournament.id) }}" class="button">Форма регистрации</a>
         <a href="{{ url_for('admin.create_match', tournament_id=tournament.id) }}" class="button">Добавить матч</a>
+        <a href="{{ url_for('admin.export_tournament_data', tournament_id=tournament.id) }}" class="button">Экспорт в Excell</a>
     </div>
 
     <!-- Таблица матчей -->

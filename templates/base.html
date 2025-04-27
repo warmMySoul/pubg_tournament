@@ -6,6 +6,14 @@
     {% block title %}
     {% endblock %}
 
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+
+    <!-- Уведомления -->
+    <link href="static/lib/toastr/toastr.min.css" rel="stylesheet"/>
+    <link href="static/lib/toastr/toastr.css" rel="stylesheet"/>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
@@ -15,6 +23,30 @@
 </head>
 
 <body>
+
+    <!-- Уведомления toastr -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="static/lib/toastr/toastr.min.js"></script>
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": true,
+            "positionClass": "toast-bottom-left",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+          }
+    </script>
+
     <div class="main_container">
         <!-- Navbar -->
         <div class="navbar">
@@ -53,9 +85,19 @@
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
+            <script>
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        toastr.error('{{ message }}');
+                    {% elif category == 'warning' %}
+                        toastr.warning('{{ message }}');
+                    {% elif category == 'success' %}
+                        toastr.success('{{ message }}');
+                    {% else %}
+                        toastr.info('{{ message }}');
+                    {% endif %}
+                {% endfor %}
+            </script>
         {% endif %}
         {% endwith %}
 
@@ -98,6 +140,8 @@
             }
         });
     </script>
+
+    
 
     {% block script %}
     {% endblock %}

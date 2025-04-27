@@ -1,15 +1,194 @@
-  /* Адаптивность */
-  @media (max-width: 768px) {
-    .container {
-      padding: 15px;
-      margin: 15px;
-    }
-    
-    .actions, .admin-actions {
-      flex-direction: column;
-    }
-    
-    table {
-      font-size: 14px;
-    }
+/* Mobile-first адаптация стилей */
+@media screen and (max-width: 768px) {
+  /* Базовые настройки */
+  body {
+    padding: 0 10px;
+    font-size: 14px;
   }
+
+  /* Навбар */
+  .navbar {
+    height: auto;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 0;
+  }
+
+  .navigation_menu {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .navigation_menu a {
+    margin: 5px 0;
+    text-align: center;
+  }
+
+  .h1 {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  .navbar_auth {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* Контейнеры */
+  .container {
+    padding: 15px;
+    margin: 15px auto;
+  }
+
+  .container_block {
+    margin: 15px 0;
+    padding: 10px;
+  }
+
+  .tournament_info {
+    flex-direction: column;
+  }
+
+  .next_tournament, 
+  .last_tournament {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .members_container {
+    flex-direction: column;
+    max-height: none;
+  }
+
+  .member_list_container,
+  .member_best_container {
+    width: 100%;
+    margin: 5px 0;
+  }
+
+  /* Таблицы */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Формы */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="date"],
+  input[type="number"],
+  input[type="datetime-local"],
+  textarea,
+  select {
+    width: 95%;
+  }
+
+  /* Кнопки */
+  .button, button {
+    padding: 8px 15px;
+    margin: 3px;
+    font-size: 14px;
+  }
+
+  .button_dark {
+    padding: 12px 10px;
+    margin: 5px 0;
+  }
+
+  /* Модальные окна */
+  .modal-content {
+    width: 90%;
+    padding: 15px;
+  }
+
+  /* Пагинация */
+  .pagination-wrapper {
+    justify-content: center;
+  }
+
+  /* Карточки участников */
+  .member-card {
+    padding: 10px;
+  }
+
+  .member-nickname {
+    font-size: 1em;
+  }
+
+  .member-role {
+    position: static;
+    display: inline-block;
+    margin-top: 5px;
+  }
+
+  /* Блок "О клане" */
+  #about_us h2 {
+    font-size: 1.5rem;
+  }
+
+  .recruitment-call {
+    padding: 1rem;
+  }
+
+  .recruitment-lead {
+    font-size: 1rem;
+  }
+
+  .why-us-title {
+    font-size: 1.1rem;
+  }
+
+  .join-button {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Дополнительные адаптации для очень маленьких экранов */
+@media screen and (max-width: 480px) {
+  /* Навбар */
+  .navbar {
+    padding: 5px;
+  }
+
+  /* Заголовки */
+  h1, .h1 {
+    font-size: 20px;
+  }
+
+  h2, .h2 {
+    font-size: 18px;
+  }
+
+  h3, .h3 {
+    font-size: 16px;
+  }
+
+  /* Формы */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="date"],
+  input[type="number"],
+  input[type="datetime-local"],
+  textarea,
+  select {
+    width: 92%;
+    font-size: 14px;
+  }
+
+  /* Кнопки */
+  .button, button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* Карточки участников */
+  .member-info {
+    font-size: 13px;
+  }
+}

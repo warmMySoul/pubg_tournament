@@ -1,5 +1,7 @@
 from io import BytesIO
+import io
 import uuid
+import pandas as pd
 from zoneinfo import ZoneInfo
 from flask import Blueprint, flash, url_for, redirect, request, render_template, jsonify
 from datetime import datetime
@@ -18,6 +20,7 @@ from pubg_api.models.player import ParsedPlayerStats
 
 # Импорт PUBG API
 from pubg_api.client import PUBGApiClient
+from utils.helpers import generate_export_data
 client = PUBGApiClient()
 
 
@@ -99,6 +102,26 @@ def view_players(tournament_id):
     return render_template('admin/tournaments/players.html', 
                          tournament=tournament,
                          max_players=max_players)
+
+# Экспорт турнира в Excell
+@admin_bp.route('/tournament/<tournament_id>/export', methods=['GET'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def export_tournament_data(tournament_id):
+    tournament = Tournament.query.get_or_404(tournament_id)
+    
+    # Составляем данные для выгрузки
+    export_data = generate_export_data(tournament)
+
+    # Генерируем Excel в памяти
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        for sheet_name, df in export_data.items():
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+    output.seek(0)
+
+    # Отдаём файл пользователю
+    filename = f"{tournament.name}_выгрузка.xlsx"
+    return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 # api перемещения игроков между команд
 @admin_bp.route('/api/move_player', methods=['POST'])
