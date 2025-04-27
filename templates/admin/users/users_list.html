@@ -66,6 +66,7 @@
             <th>Роль</th>
             <th>Имя</th>
             <th>День рождения</th>
+            <th>Почта</th>
             <th>Дата регистрации</th>
             <th>Действия</th>
         </tr>
@@ -77,6 +78,7 @@
             <td>{{ user.pubg_nickname }}</td>
             <td>{{ user.role }}</td>
             <td>{{ user.name if user.name else '—' }}</td>
+            <td>{{ user.email }}</td>
             <td>{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</td>
             <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
             <td>
