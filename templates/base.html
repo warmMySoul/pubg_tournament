@@ -12,8 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 
     <!-- Уведомления -->
-    <link href="static/lib/toastr/toastr.min.css" rel="stylesheet"/>
-    <link href="static/lib/toastr/toastr.css" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='lib/toastr/toastr.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='lib/toastr/toastr.css') }}" rel="stylesheet"/>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
@@ -26,7 +26,7 @@
 
     <!-- Уведомления toastr -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="static/lib/toastr/toastr.min.js"></script>
+    <script src="{{ url_for('static', filename='lib/toastr/toastr.min.js') }}"></script>
     <script>
         toastr.options = {
             "closeButton": true,
