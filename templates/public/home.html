@@ -89,7 +89,7 @@
                             {% endif %}
                             {% if member.birthday %}
                             <span>День рождения:
-                                {{ member.birthday.strftime('%d.%m.%Y') if member.birthday else 'Не указан' }}</span>
+                                {{ member.birthday.strftime('%d.%m')  if member.birthday else 'Не указан' }}</span>
                             {% endif %}
                         </div>
                         {% if member.role == "admin" or member.role == "moderator" %}
@@ -109,10 +109,6 @@
                         <div class="member-info">
                             {% if member.name %}
                             <span>Имя: {{ member.name }}</span>
-                            {% endif %}
-                            {% if member.birthday %}
-                            <span>День рождения:
-                                {{ member.birthday.strftime('%d.%m.%Y') if member.birthday else 'Не указан' }}</span>
                             {% endif %}
                         </div>
                         {% if member.role == "admin" or member.role == "moderator" %}
