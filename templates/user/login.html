@@ -5,21 +5,22 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Вход в админ-панель</h1>
+    <div class="log_reg_container">
+        <h1>Вход в админ-панель</h1>
 
-    <form method="POST" action="{{ url_for('user.login') }}">
-        <label for="username">Логин:</label>
-        <input type="text" id="username" name="username" required>
+        <form method="POST" action="{{ url_for('user.login') }}">
+            <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+            <label for="username">Логин:</label>
+            <input type="text" id="username" name="username" required>
 
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" name="password" required>
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required>
 
-        <button type="submit">Войти</button>
+            <button type="submit">Войти</button>
 
-        <div class="forgot-password-link">
-            <a href="{{ url_for('user.forgot_password') }}">Забыли пароль?</a>
-        </div>
-    </form>
-</div>
+            <div class="forgot-password-link">
+                <a href="{{ url_for('user.forgot_password') }}">Забыли пароль?</a>
+            </div>
+        </form>
+    </div>
 {% endblock %}

@@ -48,10 +48,18 @@
     </script>
 
     <div class="main_container">
+        <div id="cookie-consent" class="cookie-consent">
+            <p>Мы используем cookies для улучшения работы сайта. Продолжая, вы соглашаетесь с их использованием.</p>
+            <button id="cookie-accept" class="cookie-btn">Принять</button>
+        </div>
+
         <!-- Navbar -->
         <div class="navbar">
 
-            <a href="{{ url_for('public.home') }}" class="h1">Golden Bulls</a>
+            <a href="{{ url_for('public.home') }}" class="h1">
+                <img class="logo" src="{{ url_for('static', filename='images/GB_mini_free.png') }}">
+                Golden Bulls
+            </a>
 
             <div class="navigation_menu">
                 <a href="/#about_us" class="nav_link">О нас</a>
@@ -77,8 +85,8 @@
             </div>
             {% else %}
             <div class="navbar_auth">
-                <a href="/user/login" class="button_dark">Вход</a>
-                <a href="/user/register" class="button_dark">Регистрация</a>
+                <a href="/user/login" class="button">Вход</a>
+                <a href="/user/register" class="button">Регистрация</a>
             </div>
             {% endif %}
         </div>
@@ -139,6 +147,23 @@
                 dropdown.style.display = 'none';
             }
         });
+
+        // Cookie
+        document.addEventListener('DOMContentLoaded', function() {
+            const consentBanner = document.getElementById('cookie-consent');
+            const acceptBtn = document.getElementById('cookie-accept');
+          
+            // Проверяем, давал ли пользователь согласие ранее
+            if (!localStorage.getItem('cookie_consent')) {
+              consentBanner.style.display = 'flex';
+            }
+          
+            // Обработка принятия
+            acceptBtn.addEventListener('click', function() {
+              localStorage.setItem('cookie_consent', 'accepted');
+              consentBanner.style.display = 'none';
+            });
+          });
     </script>
 
     

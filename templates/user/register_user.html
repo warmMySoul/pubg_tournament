@@ -6,21 +6,23 @@
 
 
 {% block content %}
-<div class="container">
+<div class="log_reg_container">
     <h1>Регистрация нового пользователя</h1>
 
     <form method="POST" action="{{ url_for('user.register_user') }}">
         <label for="username">Имя пользователя(логин):</label>
-        <input type="text" id="username" name="username" required>
+        <input type="text" id="username" name="username" placeholder="Login" required>
 
         <label for="email">Почта:</label>
+        <span><small>Используется для отправки кодов подтверждений</small></span>
         <input type="email" name="email" placeholder="Email" required>
+        
 
         <label for="pubg_nickname">Ник в PUBG:</label>
-        <input type="text" id="pubg_nickname" name="pubg_nickname" required>
+        <input type="text" id="pubg_nickname" name="pubg_nickname" placeholder="ivan@gmail.com" required>
 
         <label for="password">Пароль:</label>
-        <input type="password" id="password" name="password" minlength="6" maxlength="30" required>
+        <input type="password" id="password" name="password" minlength="6" placeholder="******" maxlength="30" required>
 
         <button type="submit" class="button">Зарегистрировать</button>
     </form>

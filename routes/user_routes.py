@@ -1,7 +1,7 @@
 from zoneinfo import ZoneInfo
 from flask import Blueprint, flash, url_for, redirect, session, request, render_template
 from datetime import datetime, timedelta
-from extensions.security import role_required, get_current_user, login_required, get_cipher
+from extensions.security import is_safe_url, role_required, get_current_user, login_required, get_cipher
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
 from pubg_api.models.player import ParsedPlayerStats
@@ -153,7 +153,6 @@ def profile():
                          masked_email=masked_email,
                          password_change_requested='password_change_data' in session)
 
-# Авторизация
 @user_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -164,6 +163,11 @@ def login():
         if user and check_password_hash(user.password, password):
             session['user_logged'] = user.id
             flash(f"Добро пожаловать, {user.username} ({user.role})", 'success')
+            
+            # Перенаправляем на next или на главную
+            next_url = request.form['next']
+            if next_url and is_safe_url(next_url):
+                return redirect(next_url)
             return redirect(url_for('public.home'))
         else:
             flash('Неверные учетные данные', 'error')
