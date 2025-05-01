@@ -6,6 +6,9 @@
     {% block title %}
     {% endblock %}
 
+    <!-- Иконки -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,8 +19,9 @@
     <link href="{{ url_for('static', filename='lib/toastr/toastr.css') }}" rel="stylesheet"/>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
@@ -55,11 +59,15 @@
 
         <!-- Navbar -->
         <div class="navbar">
-
+           
             <a href="{{ url_for('public.home') }}" class="h1">
                 <img class="logo" src="{{ url_for('static', filename='images/GB_mini_free.png') }}">
                 Golden Bulls
             </a>
+
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
 
             <div class="navigation_menu">
                 <a href="/#about_us" class="nav_link">О нас</a>
@@ -70,12 +78,12 @@
 
             {% if current_user %}
             <div class="navbar_profile_block">
-                <div class="navbar_profile" onmouseenter="showProfileMenu()" onclick="toggleProfileMenu()">
+                <div class="navbar_profile" onclick="toggleProfileMenu(event)">
                     <span class="nav_username">{{ current_user.username }}</span>
                     <i class="fas fa-user profile-icon"></i>
                 </div>
-
-                <div id="profileDropdown" class="profile-dropdown" onmouseleave="hideProfileMenu()">
+            
+                <div id="profileDropdown" class="profile-dropdown">
                     <a href="/user/profile">Профиль</a>
                     {% if current_user.role in ['admin', 'moderator'] %}
                     <a href="/admin">Админ-панель</a>
@@ -114,39 +122,37 @@
     </div>
 
     <script>
-        function toggleProfileMenu() {
+        function toggleProfileMenu(event) {
+            // Отменяем всплытие события, чтобы оно не достигло document.click
+            event.stopPropagation();
+            
             const dropdown = document.getElementById('profileDropdown');
             if (dropdown) {
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                // Закрываем все другие открытые меню
+                closeAllProfileMenus();
+                
+                // Переключаем текущее меню
+                dropdown.classList.toggle('show');
             }
         }
-
-        function showProfileMenu() {
-            const dropdown = document.getElementById('profileDropdown');
-            if (dropdown) {
-                dropdown.style.display = 'block';
-            }
+        
+        function closeAllProfileMenus() {
+            const allDropdowns = document.querySelectorAll('.profile-dropdown');
+            allDropdowns.forEach(dropdown => {
+                dropdown.classList.remove('show');
+            });
         }
-
-        function hideProfileMenu() {
-            const dropdown = document.getElementById('profileDropdown');
-            if (dropdown) {
-                // Небольшая задержка для плавного UX (если пользователь случайно выходит и сразу возвращается)
-                setTimeout(() => {
-                    dropdown.style.display = 'none';
-                }, 300);
-            }
-        }
-
-        // Дополнительно: закрывать меню при клике вне его области
-        document.addEventListener('click', function (event) {
-            const dropdown = document.getElementById('profileDropdown');
-            const icon = document.querySelector('.profile-icon');
-
-            if (dropdown && !dropdown.contains(event.target) && !icon.contains(event.target)) {
-                dropdown.style.display = 'none';
-            }
+        
+        // Закрытие dropdown при клике в любом месте страницы
+        document.addEventListener('click', function() {
+            closeAllProfileMenus();
         });
+        
+        // Предотвращаем закрытие при клике внутри меню
+        document.querySelector('.profile-dropdown').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+
 
         // Cookie
         document.addEventListener('DOMContentLoaded', function() {
@@ -166,7 +172,12 @@
           });
     </script>
 
-    
+    <script>
+        function toggleMobileMenu() {
+            const navbar = document.querySelector('.navbar');
+            navbar.classList.toggle('active');
+        }
+    </script>
 
     {% block script %}
     {% endblock %}
