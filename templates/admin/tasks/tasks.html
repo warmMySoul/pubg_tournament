@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>GB Admin - Планировщик задач</title>
+{% endblock %}
+
+{% block content %}
+<h2>Добавить новую задачу</h2>
+<form action="/admin/add_task" method="POST" style="margin-bottom: 30px;">
+    <input type="text" name="name" placeholder="Название задачи" required style="margin-right: 10px;">
+
+    <select name="function_name" required style="margin-right: 10px;">
+        {% for task in funcs %}
+        <option value="{{ task }}">{{ task }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="number" name="interval_minutes" min="1" placeholder="Интервал (мин)" required
+        style="margin-right: 10px; width: 120px;">
+
+    <button type="submit">Добавить</button>
+</form>
+
+<h3>Список задач</h3>
+<table border="1" cellpadding="10" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Функция</th>
+            <th>Интервал (мин)</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.name }}</td>
+            <td>{{ task.function_name }}</td>
+            <td>{{ task.interval_minutes }}</td>
+            <td>
+                {% if task.is_active %}
+                <strong style="color:green;">ВКЛ</strong>
+                {% else %}
+                <strong style="color:red;">ВЫКЛ</strong>
+                {% endif %}
+            </td>
+            <td>
+                <!-- Кнопка Вкл/Выкл -->
+                <form action="/admin/toggle_task/{{ task.id }}" method="POST" style="display:inline;">
+                    <button type="submit">
+                        {% if task.is_active %}Выключить{% else %}Включить{% endif %}
+                    </button>
+                </form>
+
+                <!-- Кнопка Запустить -->
+                <form action="/admin/run_task/{{ task.id }}" method="POST" style="display:inline;">
+                    <button type="submit">Запустить сейчас</button>
+                </form>
+
+
+                <!-- Кнопка Удалить -->
+                <form action="/admin/delete_task/{{ task.id }}" method="POST" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Удалить задачу?')">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

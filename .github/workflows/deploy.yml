@@ -19,24 +19,37 @@ jobs:
           script: |
             cd /root/pubg_tournament
 
+            # Обновляем код
             git restore .
             git pull
 
-            # server
-            echo "SECRET_KEY= ${{ secrets.SECRET_KEY }}" > secrets.env
-            
-            echo "ADMIN_PASS= ${{ secrets.ADMIN_PASS }}" >> secrets.env
+            # Настройка переменных окружения
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" > secrets.env
+            echo "ADMIN_PASS=${{ secrets.ADMIN_PASS }}" >> secrets.env
+            echo "PUBG_API_KEY=${{ secrets.PUBG_API_KEY }}" >> secrets.env
+            echo "FERNET_KEY=${{ secrets.FERNET_KEY }}" >> secrets.env
+            echo "MAIL_LOGIN=${{ secrets.MAIL_LOGIN }}" >> secrets.env
+            echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> secrets.env
+            echo "ADMIN_MAIL=${{ secrets.ADMIN_MAIL }}" >> secrets.env
 
-            echo "PUBG_API_KEY= ${{ secrets.PUBG_API_KEY }}" >> secrets.env
-
-            echo "FERNET_KEY= ${{ secrets.FERNET_KEY }}" >> secrets.env
-            
-            echo "MAIL_LOGIN= ${{ secrets.MAIL_LOGIN }}" >> secrets.env
-
-            echo "MAIL_PASS= ${{ secrets.MAIL_PASS }}" >> secrets.env
-
-            echo "ADMIN_MAIL= ${{ secrets.ADMIN_MAIL }}" >> secrets.env
-
+            # Активируем venv и устанавливаем зависимости
             source venv/bin/activate
             pip install -r requirements.txt
+
+            # Проверяем и инициализируем БД
+            export FLASK_APP=app.py
+            
+            # Если БД не существует
+            if [ ! -f "instance/tournament.db" ]; then
+              echo "Database not found, creating new one..."
+              flask db init
+              flask db migrate -m "Initial database creation"
+              flask db upgrade
+              
+            else
+              echo "Database exists, applying migrations..."
+              flask db upgrade
+            fi
+
+            # Перезапускаем сервис
             sudo systemctl restart pubg

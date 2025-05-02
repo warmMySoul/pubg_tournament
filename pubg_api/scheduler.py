@@ -1,12 +1,59 @@
-from apscheduler.schedulers.background import BackgroundScheduler
-from pubg_api.utils.update_all_player_stats import update_all_player_stats
+import importlib
+from flask_apscheduler import APScheduler
+from models import ScheduledTask
+from extensions.db_connection import db
+from pubg_api.tasks import *
+from flask import current_app
 
-def start_scheduler(app):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=lambda: update_all_player_stats(app), trigger='interval', hours=3)
-    scheduler.start()
+scheduler = APScheduler()
 
-#minutes=15 — каждые 15 минут
-#hours=3 — каждые 3 часа
-#days=1 — раз в день
-#seconds=10 — каждые 10 секунд (удобно для тестов)
+def init_scheduler(app):
+    scheduler.init_app(app)
+    
+    # Загружаем активные задачи из БД при старте
+    with app.app_context():
+        scheduler.start()
+        tasks = ScheduledTask.query.filter_by(is_active=True).all()
+        for task in tasks:
+            add_periodic_task(task,app)
+
+def get_task_function(function_name):
+    module = importlib.import_module(f'pubg_api.tasks.{function_name}')
+    return getattr(module, function_name)
+
+def add_periodic_task(task,app):
+    job_id = str(task.id)
+
+    # Удаляем старую, если есть
+    if scheduler.get_job(job_id):
+        scheduler.remove_job(job_id)
+
+    func = get_task_function(task.function_name)
+
+    scheduler.add_job(
+        id=job_id,
+        args=[app],
+        func=func,
+        trigger='interval',
+        minutes=task.interval_minutes,
+        replace_existing=True
+    )
+
+def remove_periodic_task(task):
+    job_id = str(task.id)
+    if scheduler.get_job(job_id):
+        scheduler.remove_job(job_id)
+
+def toggle_task(task, activate: bool):
+    task.is_active = activate
+    db.session.commit()
+
+    if activate:
+        add_periodic_task(task)
+    else:
+        remove_periodic_task(task)
+
+def run_task_now(task):
+    func = get_task_function(task.function_name)
+    with scheduler.app.app_context():
+        func()

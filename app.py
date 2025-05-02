@@ -1,96 +1,101 @@
 from flask import Flask
 from datetime import datetime
+from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash
-
 from dotenv import load_dotenv
 import os
 
-load_dotenv("secrets.env")  # Загрузить переменные окружения из .env файла
+def create_app():
+    load_dotenv("secrets.env")
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tournament.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # Получить SECRET_KEY из переменной окружения
-app.config['FERNET_KEY'] = os.getenv('FERNET_KEY')  # Для шифрования
+    app = Flask(__name__)
 
-# Конфигурация Flask-Mail
-app.config['MAIL_SERVER'] = 'smtp.mail.ru'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_LOGIN') 
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASS') 
-app.config['MAIL_TIMEOUT'] = 10 # 10 сек  
-
-# Проверка, если SECRET_KEY не загружен
-if not app.config['SECRET_KEY']:
-    raise ValueError("SECRET_KEY is not set in the environment variables")
+    # Основные настройки
+    app.config.update(
+        SQLALCHEMY_DATABASE_URI='sqlite:///tournament.db',
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SECRET_KEY=os.getenv('SECRET_KEY'),
+        FERNET_KEY=os.getenv('FERNET_KEY'),
 
 
-# Подключение к БД
-from extensions.db_connection import db
-db.init_app(app)
-
-# Подключение почты
-from extensions.mail_connect import mail
-mail.init_app(app)
-
-# Импорт моделей
-from models import *
-
-# Импорт логирования
-from services.admin_log_service import log_admin_action as log
-
-# Импорт утилитов
-from utils.helpers import registration_open as tournament_reg_is_open
-
-# Импорт инструментов безопасности (определение ролей и авторизованного пользователя)
-from extensions.security import get_current_user
-
-# Импорт кастомных страниц ошибок
-from errors.handlers import errors
-
-# Импорт роутов
-from routes.public_routes import public_bp
-from routes.admin_routes import admin_bp
-from routes.user_routes import user_bp
-
-
-# Регистрация Blueprints
-app.register_blueprint(public_bp)
-app.register_blueprint(admin_bp)
-app.register_blueprint(user_bp)
-app.register_blueprint(errors)
-
-# Добавляем в шаблоны
-@app.context_processor
-def utility_processor():
-    return dict(
-        registration_open=tournament_reg_is_open,
-        now=datetime.now(),
-        current_user=get_current_user()
+        # Почта
+        MAIL_SERVER='smtp.mail.ru',
+        MAIL_PORT=465,
+        MAIL_USE_SSL=True,
+        MAIL_USERNAME=os.getenv('MAIL_LOGIN'),
+        MAIL_PASSWORD=os.getenv('MAIL_PASS'),
+        MAIL_TIMEOUT=10,
+        
     )
 
-# Инициализация БД
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username='admin').first():
+    # Проверка ключей
+    if not app.config['SECRET_KEY']:
+        raise ValueError("SECRET_KEY is not set in the environment variables")
+
+    # Инициализация расширений
+    from extensions.db_connection import db
+    Migrate(app, db)
+    db.init_app(app)
+
+    from extensions.mail_connect import mail
+    mail.init_app(app)
+
+    # Регистрация Blueprint'ов
+    from routes.public_routes import public_bp
+    from routes.admin_routes import admin_bp
+    from routes.user_routes import user_bp
+    from errors.handlers import errors
+
+    app.register_blueprint(public_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(user_bp)
+    #app.register_blueprint(errors)
+
+    # Добавляем переменные в шаблоны
+    from utils.helpers import registration_open as tournament_reg_is_open
+    from extensions.security import get_current_user
+
+    @app.context_processor
+    def utility_processor():
+        return dict(
+            registration_open=tournament_reg_is_open,
+            now=datetime.now(),
+            current_user=get_current_user()
+        )
+
+    # Инициализация БД и создание администратора
+    from models import User, RoleEnum
+    with app.app_context():
+        db.create_all()
+        create_default_admin()
+
+    # Инициализация планировщика задач
+    from pubg_api.scheduler import init_scheduler
+    app.config['SCHEDULER_TIMEZONE'] = 'Europe/Moscow'
+    init_scheduler(app)
+
+    return app
+
+
+def create_default_admin():
+    from models import User, RoleEnum
+    from extensions.db_connection import db
+
+    admin_username = 'admin'
+    if not User.query.filter_by(username=admin_username).first():
         admin = User(
-            username='admin',
+            username=admin_username,
             password=generate_password_hash(os.getenv('ADMIN_PASS')),
             role=RoleEnum.ADMIN,
             pubg_nickname="admin_user",
-            email = os.getenv('ADMIN_MAIL'),
-            is_verified = True
+            email=os.getenv('ADMIN_MAIL'),
+            is_verified=True
         )
         db.session.add(admin)
         db.session.commit()
 
-# Импорт планировщика
-from pubg_api.scheduler import start_scheduler
+
+app = create_app()
 
 if __name__ == '__main__':
-
-    # Запуск планироващика
-    #start_scheduler(app)
-
-    app.run(debug=False)
+    app.run(debug=True)

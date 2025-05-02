@@ -5,32 +5,33 @@ from extensions.db_connection import db
 from datetime import datetime
 import time
 
-pubg_api = PUBGApiClient()
+from flask import Flask
 
 # Импорт логирования
 from services.admin_log_service import log_admin_action as log
 
-def update_all_player_stats(app):
-    with app.app_context():
-        # Правильный запрос для получения нужных пользователей
+pubg_api = PUBGApiClient()
+
+def update_all_player_stats(app: Flask):
+    print("Func is work!")
+    with app.app_context():  # Используем существующий app
+
         users = User.query.filter(
             User.role.in_(["admin", "moderator", "clan_member"])
         ).all()
         
         request_count = 0
-        total_users = len(users)-1
+        total_users = len(users)
         processed_users = 0
 
         for user in users:
             try:
-                # Пропускаем админа (если нужно)
                 if user.username == "admin":
                     continue
 
-                # Получаем кэш, если есть
                 cached = PlayerStats.query.filter_by(user_id=user.id).first()
 
-                # Если pubg_id ещё не сохранён — получаем его
+                # Получение pubg_id
                 if not cached or not cached.pubg_id:
                     if request_count >= 10:
                         time.sleep(60)
@@ -48,7 +49,7 @@ def update_all_player_stats(app):
 
                     db.session.commit()
 
-                # Получаем статистику по ID
+                # Получение статистики
                 if request_count >= 10:
                     time.sleep(60)
                     request_count = 0
@@ -59,15 +60,18 @@ def update_all_player_stats(app):
                 db.session.commit()
                 request_count += 1
 
-                processed_users += 1
+                processed_users += 1  # ✅ Увеличиваем счётчик
+
+                time.sleep(1)
 
             except Exception as e:
-                log(f"Ошибка обновления статистики для пользователя {user.username}: {str(e)}")
+                log(f"Ошибка обновления статистики для {user.username}: {str(e)}", True)
                 db.session.rollback()
-                processed_users += 1
                 continue
 
-            # Добавляем небольшую задержку между запросами
-            time.sleep(1)
-
-        log("Обновление статистики по участникам клана выполнено")
+        log("Обновление статистики по участникам клана прошло успешно", True)
+        return {
+            "status": "success",
+            "processed": processed_users,
+            "total": total_users
+        }

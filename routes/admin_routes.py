@@ -1,5 +1,8 @@
+from inspect import getmembers, getsourcefile, isfunction
 from io import BytesIO
 import io
+from pathlib import Path
+import pkgutil
 import uuid
 import pandas as pd
 from zoneinfo import ZoneInfo
@@ -9,7 +12,7 @@ from flask import send_file
 from openpyxl import Workbook
 from sqlalchemy import func
 from extensions.security import get_current_user, role_required
-from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User, Match, PlayerMatchStats
+from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User, Match, PlayerMatchStats, ScheduledTask
 from extensions.db_connection import db
 
 # Импорт логирования
@@ -17,6 +20,7 @@ from services.admin_log_service import log_admin_action as log
 
 from models.pubg_api_models import PlayerStats
 from pubg_api.models.player import ParsedPlayerStats
+from pubg_api.scheduler import *
 
 # Импорт PUBG API
 from pubg_api.client import PUBGApiClient
@@ -672,3 +676,106 @@ def user_profile(user_id):
                          stats=player_stats, 
                          updated_at=updated_at)
 
+# Страница со списком задач
+@admin_bp.route('/tasks')
+@role_required(RoleEnum.ADMIN)
+def tasks():
+    tasks_dir = Path("pubg_api/tasks")  # Путь к папке с задачами
+    task_functions = []
+
+    # Импортируем модуль tasks и получаем все функции
+    for module_info in pkgutil.iter_modules([str(tasks_dir)]):
+        
+        module_name = f"pubg_api.tasks.{module_info.name}"
+        try:
+            module = importlib.import_module(module_name)
+            
+            functions = getmembers(module, isfunction)
+            
+            for func_name, func_obj in functions:
+                if (
+                    not func_name.startswith("_") 
+                    and func_obj.__module__ == module_name
+                ):
+                    task_functions.append(func_name)
+        except Exception as e:
+            print(f"Ошибка в модуле {module_name}: {e}")
+
+    tasks = ScheduledTask.query.all()
+    return render_template('admin/tasks/tasks.html', tasks=tasks, funcs = task_functions)
+
+# Добавление новой задачи
+@admin_bp.route('/add_task', methods=['POST'])
+@role_required(RoleEnum.ADMIN)
+def add_task():
+    name = request.form['name']
+    function_name = request.form['function_name']
+    interval_minutes = int(request.form['interval_minutes'])
+    
+    # Сохраняем в БД
+    new_task = ScheduledTask(
+        name=name,
+        function_name=function_name,
+        interval_minutes=interval_minutes,
+        is_active=True
+    )
+    db.session.add(new_task)
+    db.session.commit()
+    
+    # Запускаем задачу динамически
+    add_periodic_task(new_task, current_app)
+    
+    return redirect('/admin/tasks')
+
+# Удаление задачи
+@admin_bp.route('/delete_task/<int:task_id>', methods=['POST'])
+@role_required(RoleEnum.ADMIN)
+def delete_task(task_id):
+    task = ScheduledTask.query.get_or_404(task_id)
+    
+    # Останавливаем и удаляем из APScheduler
+    remove_periodic_task(task)
+    
+    # Удаляем из БД
+    db.session.delete(task)
+    db.session.commit()
+    
+    return redirect('/admin/tasks')
+
+# Включение/выключение задачи
+@admin_bp.route('/toggle_task/<int:task_id>', methods=['POST'])
+@role_required(RoleEnum.ADMIN)
+def toggle_task_route(task_id):
+    task = ScheduledTask.query.get_or_404(task_id)
+    
+    # Переключаем состояние в БД + в APScheduler
+    toggle_task(task, not task.is_active)
+    
+    return redirect('/admin/tasks')
+
+# Ручной запуск задачи
+@admin_bp.route('/run_task/<int:task_id>', methods=['POST'])
+@role_required(RoleEnum.ADMIN)
+def run_task(task_id):
+    task = ScheduledTask.query.get_or_404(task_id)
+    from pubg_api.scheduler import run_task_now
+    run_task_now(task)
+    return redirect('/admin/tasks')
+
+# Текущие задачи
+@admin_bp.route('/show_jobs')
+@role_required(RoleEnum.ADMIN)
+def show_jobs():
+    from pubg_api.scheduler import scheduler
+    jobs = scheduler.get_jobs()
+    job_list = []
+
+    for job in jobs:
+        # Получаем следующую запланированную дату запуска через триггер
+        now = datetime.now(ZoneInfo("Europe/Moscow"))
+        next_run = job.trigger.get_next_fire_time(None, now)
+        job_list.append(
+            f"ID: {job.id}, \n Func: {job.func_ref}, \n Trigger: {job.trigger}, \n Next Run: {next_run or 'Не запланировано'}"
+        )
+
+    return "<br>".join(job_list)
