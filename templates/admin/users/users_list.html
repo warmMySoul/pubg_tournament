@@ -84,9 +84,9 @@
             <td>
                 {% if user.id != current_user.id and user.username != "admin" and current_user.role == "admin" %}
                 <button onclick='event.stopPropagation(); confirmDelete({{ user.id|tojson }})'>Удалить</button>
-                <i class="fas fa-pencil-alt" style="cursor:pointer; margin-left:10px;"
-                    onclick='event.stopPropagation(); editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
                 {% endif %}
+                <i class="fas fa-pencil-alt" style="cursor:pointer; margin-left:10px;"
+                onclick='event.stopPropagation(); editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
             </td>
         </tr>
         {% endfor %}

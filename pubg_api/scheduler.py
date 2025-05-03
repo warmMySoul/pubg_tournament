@@ -21,7 +21,7 @@ def get_task_function(function_name):
     module = importlib.import_module(f'pubg_api.tasks.{function_name}')
     return getattr(module, function_name)
 
-def add_periodic_task(task,app):
+def add_periodic_task(task, app):
     job_id = str(task.id)
 
     # Удаляем старую, если есть
@@ -44,16 +44,16 @@ def remove_periodic_task(task):
     if scheduler.get_job(job_id):
         scheduler.remove_job(job_id)
 
-def toggle_task(task, activate: bool):
+def toggle_task(task, activate: bool, app):
     task.is_active = activate
     db.session.commit()
 
     if activate:
-        add_periodic_task(task)
+        add_periodic_task(task, app)
     else:
         remove_periodic_task(task)
 
-def run_task_now(task):
+def run_task_now(task,app):
     func = get_task_function(task.function_name)
-    with scheduler.app.app_context():
-        func()
+    with app.app_context():
+        func(app)

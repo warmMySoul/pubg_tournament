@@ -68,4 +68,15 @@
         {% endfor %}
     </tbody>
 </table>
+
+<h3>Список текущих джобов</h3>
+<table border="1" cellpadding="10" cellspacing="0">
+    <thead>
+        {% for job in jobs %}
+        <tr>
+            <td>{{ job | safe }}</td>
+        </tr>
+        {% endfor %}
+    </thead>
+</table>
 {% endblock %}

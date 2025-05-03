@@ -682,6 +682,7 @@ def user_profile(user_id):
 def tasks():
     tasks_dir = Path("pubg_api/tasks")  # Путь к папке с задачами
     task_functions = []
+    job_list = [] # Список текущих задач в планировщике
 
     # Импортируем модуль tasks и получаем все функции
     for module_info in pkgutil.iter_modules([str(tasks_dir)]):
@@ -700,9 +701,21 @@ def tasks():
                     task_functions.append(func_name)
         except Exception as e:
             print(f"Ошибка в модуле {module_name}: {e}")
+    
+    from pubg_api.scheduler import scheduler
+    jobs = scheduler.get_jobs()
+
+    for job in jobs:
+        # Получаем следующую запланированную дату запуска через триггер
+        now = datetime.now(ZoneInfo("Europe/Moscow"))
+        next_run = job.trigger.get_next_fire_time(None, now)
+        formatted_date = next_run.strftime('%d.%m.%Y %H:%M:%S') if next_run else 'Не запланировано'
+        job_list.append(
+            f"ID: {job.id}<br> Функция: {job.func_ref}<br> Триггер: {job.trigger}<br> Следующий запуск: {formatted_date or 'Не запланировано'}"
+        )
 
     tasks = ScheduledTask.query.all()
-    return render_template('admin/tasks/tasks.html', tasks=tasks, funcs = task_functions)
+    return render_template('admin/tasks/tasks.html', tasks=tasks, funcs = task_functions, jobs = job_list)
 
 # Добавление новой задачи
 @admin_bp.route('/add_task', methods=['POST'])
@@ -749,7 +762,7 @@ def toggle_task_route(task_id):
     task = ScheduledTask.query.get_or_404(task_id)
     
     # Переключаем состояние в БД + в APScheduler
-    toggle_task(task, not task.is_active)
+    toggle_task(task, not task.is_active, current_app)
     
     return redirect('/admin/tasks')
 
@@ -759,23 +772,5 @@ def toggle_task_route(task_id):
 def run_task(task_id):
     task = ScheduledTask.query.get_or_404(task_id)
     from pubg_api.scheduler import run_task_now
-    run_task_now(task)
+    run_task_now(task, current_app)
     return redirect('/admin/tasks')
-
-# Текущие задачи
-@admin_bp.route('/show_jobs')
-@role_required(RoleEnum.ADMIN)
-def show_jobs():
-    from pubg_api.scheduler import scheduler
-    jobs = scheduler.get_jobs()
-    job_list = []
-
-    for job in jobs:
-        # Получаем следующую запланированную дату запуска через триггер
-        now = datetime.now(ZoneInfo("Europe/Moscow"))
-        next_run = job.trigger.get_next_fire_time(None, now)
-        job_list.append(
-            f"ID: {job.id}, \n Func: {job.func_ref}, \n Trigger: {job.trigger}, \n Next Run: {next_run or 'Не запланировано'}"
-        )
-
-    return "<br>".join(job_list)

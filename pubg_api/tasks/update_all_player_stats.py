@@ -13,7 +13,6 @@ from services.admin_log_service import log_admin_action as log
 pubg_api = PUBGApiClient()
 
 def update_all_player_stats(app: Flask):
-    print("Func is work!")
     with app.app_context():  # Используем существующий app
 
         users = User.query.filter(
@@ -60,7 +59,7 @@ def update_all_player_stats(app: Flask):
                 db.session.commit()
                 request_count += 1
 
-                processed_users += 1  # ✅ Увеличиваем счётчик
+                processed_users += 1 
 
                 time.sleep(1)
 
