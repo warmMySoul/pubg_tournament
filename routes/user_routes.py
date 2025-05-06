@@ -50,7 +50,8 @@ def profile():
                         cached_stats = PlayerStats(
                             user_id=user.id,
                             pubg_id=player.id,
-                            stats_json=player_stats.to_dict()
+                            stats_json=player_stats.to_dict(),
+                            match_ids=player.match_ids
                         )
                         db.session.add(cached_stats)
                         db.session.commit()

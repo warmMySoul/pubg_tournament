@@ -14,21 +14,34 @@
     <h3>Статистика PUBG (FPP)</h3>
     <h3>Обновлено: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
 
-    {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
-    {% if stats.stats.get(mode) %}
-    {% set values = stats.stats[mode] %}
-    <p><strong>{{ mode|upper }}</strong></p>
-    <p>Убийств: {{ values.kills }}</p>
-    <p>Побед: {{ values.wins }}</p>
-    <p>Поражений: {{ values.losses }}</p>
-    <p>Раундов сыграно: {{ values.rounds_played }}</p>
-    <p>Урон: {{ values.damage_dealt }}</p>
-    <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
-    <p>Хедшоты: {{ values.headshot_kills }}</p>
-    <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
-    <hr>
+        {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
+            {% if stats.stats.get(mode) %}
+            {% set values = stats.stats[mode] %}
+            <p><strong>{{ mode|upper }}</strong></p>
+            <p>Убийств: {{ values.kills }}</p>
+            <p>Побед: {{ values.wins }}</p>
+            <p>Поражений: {{ values.losses }}</p>
+            <p>Раундов сыграно: {{ values.rounds_played }}</p>
+            <p>Урон: {{ values.damage_dealt }}</p>
+            <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
+            <p>Хедшоты: {{ values.headshot_kills }}</p>
+            <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
+            <hr>
+
+            {% endif %}
+        {% endfor %}
+
+    {% if match_ids %}
+    <div class="matches-section">
+        <h4>Последние матчи</h4>
+        <ul>
+            {% for match_id in match_ids %}
+            <li><a href="../match/{{ match_id }}">{{ match_id }}</li></a>
+            {% endfor %}
+        </ul>
+    </div>
     {% endif %}
-    {% endfor %}
+
     {% else %}
     <p>Нет данных о статистике игрока.</p>
     {% endif %}

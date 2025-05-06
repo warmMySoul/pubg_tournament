@@ -16,9 +16,10 @@ from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, Us
 from extensions.db_connection import db
 
 # Импорт логирования
+from pubg_api.models import MatchData
 from services.admin_log_service import log_admin_action as log
 
-from models.pubg_api_models import PlayerStats
+from models.pubg_api_models import MatchStats, PlayerStats
 from pubg_api.models.player import ParsedPlayerStats
 from pubg_api.scheduler import *
 
@@ -103,7 +104,7 @@ def create_tournament():
 def view_players(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)
     max_players = 4 if tournament.mode == 'Сквад' else 2 if tournament.mode == 'Дуо' else None
-    return render_template('admin/tournaments/players.html', 
+    return render_template('admin/tournaments/tournament_info.html', 
                          tournament=tournament,
                          max_players=max_players)
 
@@ -253,12 +254,12 @@ def match_stats(match_id):
     
     if request.method == 'POST':
         try:
+            # Обработка формы остается без изменений
             for player in tournament.players:
                 kills = int(request.form.get(f'kills_{player.id}', 0))
                 damage = float(request.form.get(f'damage_{player.id}', 0))
                 placement = request.form.get(f'placement_{player.id}')
                 
-                # Ищем существующую статистику или создаем новую
                 stats = PlayerMatchStats.query.filter_by(
                     player_id=player.id,
                     match_id=match.id
@@ -271,12 +272,11 @@ def match_stats(match_id):
                     )
                     db.session.add(stats)
                 
-                # Обновляем статистику
                 stats.kills = kills
                 stats.damage_dealt = damage
                 stats.placement = int(placement) if placement else None
                 
-                # Рассчитываем очки
+                # Расчет очков остается без изменений
                 stats.points = 0
                 if tournament.kill_points:
                     stats.points += kills * tournament.kill_points
@@ -290,12 +290,10 @@ def match_stats(match_id):
                     elif placement == '3' and tournament.third_place_points:
                         stats.points += tournament.third_place_points
                 
-                # Обновляем общие очки игрока
                 player.total_points = db.session.query(
                     func.sum(PlayerMatchStats.points)
                     .filter(PlayerMatchStats.player_id == player.id)).scalar() or 0
             
-            # Помечаем матч как завершенный
             if not match.ended_at:
                 match.ended_at = datetime.now()
             
@@ -618,63 +616,88 @@ def user_profile(user_id):
     user = User.query.get_or_404(user_id)
     player_stats = None
     updated_at = None
+    match_ids = []
 
-    # Проверяем, есть ли сохраненные данные в PlayerStats
+    # Получаем или создаем запись в PlayerStats
     cached_stats = PlayerStats.query.filter_by(user_id=user.id).first()
     
-    if cached_stats:
-        # Если есть кешированная статистика, берем pubg_id из таблицы
+    # Обработка POST запроса (обновление статистики)
+    if request.method == 'POST':
         try:
-            player_stats = ParsedPlayerStats.from_json(cached_stats.stats_json)
-            updated_at = cached_stats.updated_at            
+            if not cached_stats:
+                cached_stats = PlayerStats(user_id=user.id)
+                db.session.add(cached_stats)
+            
+            # Получаем свежие данные из API
+            player = client.get_player_by_name(user.pubg_nickname)
+            if not player:
+                return jsonify({"success": False, "error": "Игрок не найден"}), 404
+            
+            stats = client.get_player_lifetime_stats_by_id(player.id)
+            
+            # Обновляем данные
+            cached_stats.pubg_id = player.id
+            cached_stats.stats_json = stats.to_dict() if stats else {}
+            cached_stats.match_ids = getattr(player, 'match_ids', [])
+            cached_stats.updated_at = datetime.now(ZoneInfo("Europe/Moscow"))
+            
+            db.session.commit()
+            
+            # Обновляем переменные для отображения
+            player_stats = ParsedPlayerStats.from_json(cached_stats.stats_json) if cached_stats.stats_json else None
+            match_ids = cached_stats.match_ids or []
+            updated_at = cached_stats.updated_at
+            
+            return jsonify({
+                "success": True,
+                "updated_at": updated_at.isoformat(),
+                "stats": player_stats.to_dict() if player_stats else {},
+                "match_ids": match_ids
+            })
+            
         except Exception as e:
-            flash(f"Возникли ошибки при загрузке статистики. Попробуйте позже.", 'warning')
+            db.session.rollback()
+            current_app.logger.error(f"Error updating stats: {str(e)}", exc_info=True)
+            return jsonify({"success": False, "error": str(e)}), 500
+    
+    # Обработка GET запроса
+    if cached_stats:
+        try:
+            player_stats = ParsedPlayerStats.from_json(cached_stats.stats_json) if cached_stats.stats_json else None
+            updated_at = cached_stats.updated_at
+            match_ids = cached_stats.match_ids or []
+        except Exception as e:
+            current_app.logger.error(f"Error loading stats: {str(e)}", exc_info=True)
+            flash("Ошибка при загрузке статистики", "error")
     else:
-        # Если нет кешированных данных, получаем через API
+        # Первоначальная загрузка данных, если их нет в БД
         try:
             player = client.get_player_by_name(user.pubg_nickname)
             if player:
-                try:
-                    player_stats = client.get_player_lifetime_stats_by_id(player.id)
-                    
-                    # Сохраняем данные в PlayerStats
-                    cached_stats = PlayerStats(
-                        user_id=user.id,
-                        pubg_id=player.id,
-                        stats_json=player_stats.to_dict()
-                    )
-                    db.session.add(cached_stats)
-                    db.session.commit()
-                    updated_at = cached_stats.updated_at
-                except Exception as e:
-                    db.session.rollback()
-                    flash(f"Статистика временно недоступна.", 'error')
+                stats = client.get_player_lifetime_stats_by_id(player.id)
+                
+                cached_stats = PlayerStats(
+                    user_id=user.id,
+                    pubg_id=player.id,
+                    stats_json=stats.to_dict() if stats else {},
+                    match_ids=getattr(player, 'match_ids', [])
+                )
+                db.session.add(cached_stats)
+                db.session.commit()
+                
+                player_stats = ParsedPlayerStats.from_json(cached_stats.stats_json) if cached_stats.stats_json else None
+                updated_at = cached_stats.updated_at
+                match_ids = cached_stats.match_ids or []
+                
         except Exception as e:
-            flash(f"Игрока с таким ником не найдено. Проверьте ник.", 'error')
-
-    if request.method == 'POST':
-        try:
-            # Получаем свежую статистику
-            stats = client.get_player_lifetime_stats_by_id(cached_stats.pubg_id)
-
-            cached_stats.stats_json = stats.to_dict()
-            cached_stats.updated_at = datetime.now(ZoneInfo("Europe/Moscow"))
-
-            db.session.commit()
-            flash(f"Статистика обновлена", 'success')
-            return jsonify({"success": True})
-
-        except Exception as e:
-                flash(f"Ошибка для пользователя {user.username}: {str(e)}")
-                db.session.rollback()
-                return jsonify({"success": False})
-        
-
+            current_app.logger.error(f"Error fetching initial stats: {str(e)}", exc_info=True)
+            flash(f"Ошибка при получении данных: {str(e)}", "error")
 
     return render_template('admin/users/user_profile.html', 
                          user=user, 
                          stats=player_stats, 
-                         updated_at=updated_at)
+                         updated_at=updated_at,
+                         match_ids=match_ids)
 
 # Страница со списком задач
 @admin_bp.route('/tasks')
@@ -711,7 +734,7 @@ def tasks():
         next_run = job.trigger.get_next_fire_time(None, now)
         formatted_date = next_run.strftime('%d.%m.%Y %H:%M:%S') if next_run else 'Не запланировано'
         job_list.append(
-            f"ID: {job.id}<br> Функция: {job.func_ref}<br> Триггер: {job.trigger}<br> Следующий запуск: {formatted_date or 'Не запланировано'}"
+            f"ID: {job.id}<br> Функция: {job.name}<br> Триггер: {job.trigger}<br> Следующий запуск: {formatted_date or 'Не запланировано'}"
         )
 
     tasks = ScheduledTask.query.all()
@@ -774,3 +797,105 @@ def run_task(task_id):
     from pubg_api.scheduler import run_task_now
     run_task_now(task, current_app)
     return redirect('/admin/tasks')
+
+# Просмотр деталей матча
+@admin_bp.route('/match/<match_id>', methods=['GET'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def match_details(match_id):
+    try:
+        # Проверяем кеш в БД
+        db_match = MatchStats.query.filter_by(match_id=match_id).first()
+        
+        if db_match:
+            # Используем данные из БД
+            match_data = MatchData(db_match.data_json)
+        else:
+            # Загружаем из API если нет в кеше
+            try:
+                match_data = client.get_match_by_id(match_id)
+                if not match_data.raw_data or 'data' not in match_data.raw_data:
+                    flash("Матч не найден", "danger")
+                    return redirect(url_for('admin.admin'))
+            except Exception as e:
+                flash("Ошибка загрузки матча", "danger")
+                current_app.logger.error(str(e))
+                return redirect(url_for('admin.admin'))
+            
+            try:
+                # Сохраняем в БД
+                new_match = MatchStats(
+                    match_id=match_id,
+                    data_json=match_data.raw_data,
+                    processed_at=datetime.now(ZoneInfo("Europe/Moscow"))
+                )
+                db.session.add(new_match)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Ошибка сохранения матча: {str(e)}")
+                flash("Данные матча не сохранены в БД", "warning")
+        
+        # Получаем статистику игрока если указан
+        player_name = request.args.get('player')
+        player_stats = None
+        
+        if player_name:
+            player_stats = match_data.get_detailed_player_stats(player_name)
+        else:
+            player_name = ""
+        
+        return render_template('public/matches/match_details.html', 
+                            match=match_data,
+                            player_stats=player_stats,
+                            player_name=player_name)
+                            
+    except Exception as e:
+        flash("Ошибка при загрузке данных матча", "error")
+
+# Загрузка статистики по матчу в турнир через id матча
+@admin_bp.route('/match/load_api_stats', methods=['POST'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def load_api_stats():
+    match_id = request.form.get('match_id')
+    current_match_id = request.form.get('current_match_id')
+    
+    if not match_id:
+        return jsonify({'error': 'Не указан ID матча'}), 400
+    
+    try:
+        # Получаем текущий матч из БД
+        current_match = Match.query.get_or_404(current_match_id)
+        tournament = current_match.tournament
+        
+        # Получаем данные матча из API
+        match_data = client.get_match_by_id(match_id)
+        if not match_data.raw_data or 'data' not in match_data.raw_data:
+            return jsonify({'error': 'Матч не найден'}), 404
+        
+        # Собираем статистику для игроков турнира
+        players_stats = []
+        tournament_player_names = {p.nickname.lower(): p for p in tournament.players}
+        
+        for participant in match_data.participants:
+            player_name = participant.get("name", "").lower()
+            if player_name in tournament_player_names:
+                stats = participant.get("stats", {})
+                player = tournament_player_names[player_name]
+                
+                players_stats.append({
+                    'player_id': player.id,
+                    'kills': stats.get('kills', 0),
+                    'damage': stats.get('damage_dealt', 0),
+                    'placement': stats.get('win_place', 0)
+                })
+        
+        return jsonify({
+            'success': True,
+            'players_stats': players_stats,
+            'api_match_id': match_data.id,
+            'map_name': match_data.map_name
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Ошибка загрузки статистики: {str(e)}")
+        return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500

@@ -17,13 +17,30 @@
 
     <p><strong>Режим:</strong> {{ tournament.mode }}</p>
     <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
-    <h3>Начисление очков:</h3>
-    <p><strong>За убийство:</strong> {{ tournament.kill_points }} очков</p>
-    <p><strong>За 100 урона:</strong> {{ tournament.damage_points }} очков</p>
-    <p><strong>За 1 место:</strong> {{ tournament.first_place_points }} очков</p>
-    <p><strong>За 2 место:</strong> {{ tournament.second_place_points }} очков</p>
-    <p><strong>За 3 место:</strong> {{ tournament.third_place_points }} очков</p>
     <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
+    <div class="scoring-info">
+        <h3>Начисление баллов:</h3>
+        <table class="scoring-table">
+            <thead>
+                <tr>
+                    <th>1 убийство</th>
+                    <th>100 урона</th>
+                    <th>1 место</th>
+                    <th>2 место</th>
+                    <th>3 место</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ tournament.kill_points or 0 }} б.</td>
+                    <td>{{ tournament.damage_points or 0 }} б.</td>
+                    <td>{{ tournament.first_place_points or 0 }} б.</td>
+                    <td>{{ tournament.second_place_points or 0 }} б.</td>
+                    <td>{{ tournament.third_place_points or 0 }} б.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 
     {% if tournament.mode in ['Дуо', 'Сквад'] %}

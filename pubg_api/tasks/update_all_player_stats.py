@@ -64,7 +64,7 @@ def update_all_player_stats(app: Flask):
                 time.sleep(1)
 
             except Exception as e:
-                log(f"Ошибка обновления статистики для {user.username}: {str(e)}", True)
+                log(f"Ошибка обновления статистики для {user.pubg_nickname}: {str(e)}", True)
                 db.session.rollback()
                 continue
 

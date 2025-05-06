@@ -173,7 +173,6 @@ button {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    margin: 5px;
 }
 
 .button:hover,
@@ -319,6 +318,11 @@ label {
     margin: 15px 0 5px;
     color: var(--gold);
     font-weight: bold;
+}
+
+input[type="radio"]
+{
+    margin-right: 16px;
 }
 
 input[type="text"],
@@ -605,7 +609,6 @@ select:focus {
     color: var(--white);
     z-index: 1000;
     display: none;
-    /* Скрыто по умолчанию */
 }
 
 .cookie-btn {
@@ -615,4 +618,85 @@ select:focus {
     padding: 6px 8px;
     margin: 8px;
     cursor: pointer;
+}
+
+
+/* Таблица очков */
+.scoring-info {
+    display: inline-block;
+    width: 650px;
+}
+
+.scoring-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.scoring-table th,
+.scoring-table td {
+    padding: 8px;
+    text-align: center;
+    border-left: 1px solid var(--black);
+    border-right: 1px solid var(--black);
+}
+
+/* Убираем левую границу у первого элемента */
+.scoring-table th:first-child,
+.scoring-table td:first-child {
+    border-left: none;
+}
+
+/* Убираем правую границу у последнего элемента */
+.scoring-table th:last-child,
+.scoring-table td:last-child {
+    border-right: none;
+}
+
+.scoring-table th {
+    font-weight: bold;
+    /* Легкий фон для заголовков */
+}
+
+/* Скругление верхних углов */
+.scoring-table thead tr:first-child th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.scoring-table thead tr:first-child th:last-child {
+    border-top-right-radius: 12px;
+}
+
+/* Скругление нижних углов */
+.scoring-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+
+.scoring-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+.group-option, .group-option * {
+    display: flex;   
+    margin: 8px;
+}
+
+/* player-info */
+.player-info {
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    width: 400px;
+    text-align: center;
+}
+
+.player-info .nickname{
+    font-size: 18px;
+    font-weight: 800;
+    padding: 8px 0;
+    margin: 0;
+    background-color: var(--gold);
+    border-top-right-radius: 12px;
+    border-top-left-radius: 12px;
+    color: var(--dark-gray);
 }

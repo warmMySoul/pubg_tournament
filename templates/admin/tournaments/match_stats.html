@@ -7,6 +7,15 @@
 {% block content %}
 <div class="container">
     <h1>Статистика матча</h1>
+
+    <div class="api-load-section">
+        <label for="api_match_id">Загрузить данные из матча PUBG</label>
+        <input type="text" id="api_match_id" placeholder="Id матча PUBG">
+        <input type="hidden" id="current_match_id" value="{{ match.id }}">
+        <button id="load_api_stats" class="button">Загрузить данные</button>
+        <div id="api_status" class="status-message"></div>
+    </div>
+
     <h2>Турнир: {{ tournament.name }} | Карта {{ match.map_number }}</h2>
 
     <div class="match-info">
@@ -16,7 +25,7 @@
         {% endif %}
     </div>
 
-    <form method="POST">
+    <form method="POST" id="stats_form">
         <table class="stats-table">
             <thead>
                 <tr>
@@ -31,28 +40,22 @@
             <tbody>
                 {% for player in tournament.players %}
                 {% set stats = match.players_stats|selectattr('player_id', 'equalto', player.id)|first %}
-                <tr>
+                <tr data-player-id="{{ player.id }}" data-player-nick="{{ player.nickname.lower() }}">
                     <td>{{ player.name }}</td>
                     <td>{{ player.nickname }}</td>
                     <td>
-                        <input type="number" name="kills_{{ player.id }}" value="{{ stats.kills if stats else 0 }}"
-                            min="0">
+                        <input type="number" name="kills_{{ player.id }}" 
+                               value="{{ stats.kills if stats else 0 }}" min="0" class="kills-input">
                     </td>
                     <td>
                         <input type="number" step="1" name="damage_{{ player.id }}"
-                            value="{{ stats.damage_dealt if stats else 0 }}" min="0">
+                               value="{{ stats.damage_dealt if stats else 0 }}" min="0" class="damage-input">
                     </td>
                     <td>
-                        <select name="placement_{{ player.id }}">
-                            <option value="">-</option>
-                            {% for i in range(1, 30) %}
-                            <option value="{{ i }}" {% if stats and stats.placement == i %}selected{% endif %}>
-                                {{ i }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                        <input type="number" name="placement_{{ player.id }}"
+                               value="{{ stats.placement if stats else 0 }}" min="1" class="placement-input">
                     </td>
-                    <td>
+                    <td class="points-cell">
                         {{ stats.points|round(2) if stats else 0 }}
                     </td>
                 </tr>
@@ -63,8 +66,64 @@
         <div class="form-actions">
             <button type="submit" class="button">Сохранить статистику</button>
             <a href="{{ url_for('admin.view_players', tournament_id=tournament.id) }}"
-                class="button button-secondary">Назад к турниру</a>
+               class="button button-secondary">Назад к турниру</a>
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loadButton = document.getElementById('load_api_stats');
+    const apiMatchId = document.getElementById('api_match_id');
+    const currentMatchId = document.getElementById('current_match_id');
+    const statusDiv = document.getElementById('api_status');
+    
+    loadButton.addEventListener('click', function() {
+        const matchId = apiMatchId.value.trim();
+        if (!matchId) {
+            showStatus('Введите ID матча', 'error');
+            return;
+        }
+        
+        showStatus('Загрузка данных...', 'loading');
+        
+        fetch('/admin/match/load_api_stats', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `match_id=${encodeURIComponent(matchId)}&current_match_id=${encodeURIComponent(currentMatchId.value)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showStatus(data.error, 'error');
+                return;
+            }
+            
+            // Заполняем форму данными из API
+            data.players_stats.forEach(stats => {
+                const row = document.querySelector(`tr[data-player-id="${stats.player_id}"]`);
+                if (row) {
+                    row.querySelector('.kills-input').value = stats.kills;
+                    row.querySelector('.damage-input').value = Math.round(stats.damage);
+                    row.querySelector('.placement-input').value = stats.placement;
+                    
+                    // Можно добавить автоматический расчет очков если нужно
+                }
+            });
+            
+            showStatus(`Данные матча ${data.api_match_id} (${data.map_name}) успешно загружены`, 'success');
+        })
+        .catch(error => {
+            showStatus('Ошибка при загрузке данных: ' + error, 'error');
+        });
+    });
+    
+    function showStatus(message, type) {
+        statusDiv.textContent = message;
+        statusDiv.className = 'status-message ' + type;
+    }
+});
+</script>
 {% endblock %}

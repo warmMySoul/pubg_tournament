@@ -9,7 +9,7 @@ from models import Player, PlayerStats
 # Импорт логирования
 from services.admin_log_service import log_admin_action as log
 
-from pubg_api.models import Player, ParsedPlayerStats
+from pubg_api.models import Player, ParsedPlayerStats, MatchData
 
 load_dotenv("secrets.env")
 
@@ -88,7 +88,7 @@ class PUBGApiClient:
             raise PUBGApiException(f"Игрок с именем '{player_name}' не найден.")
         return Player(data[0])
     
-    # Получить статистик за все время по нику игрока
+    # Получить статистику за все время по нику игрока
     def get_player_lifetime_stats_by_id(self, player_id: str, shard="steam") -> PlayerStats:
         endpoint = f"/shards/{shard}/players/{player_id}/seasons/lifetime"
         data = self._get(endpoint)
@@ -96,6 +96,7 @@ class PUBGApiClient:
 
 
     # Получить матч по ID
-    def get_match_by_id(self, match_id, shard="steam"):
+    def get_match_by_id(self, match_id, shard="steam") -> MatchData:
         endpoint = f"/shards/{shard}/matches/{match_id}"
-        return self._get(endpoint)
+        data = self._get(endpoint)
+        return MatchData(data)

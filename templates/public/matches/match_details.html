@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>GB Admin - Матч {{ match.id }}</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Детали матча</h1>
+    
+    <div class="match-header">
+        <div class="match-info">
+            <p><strong>ID:</strong> {{ match.id }}</p>
+            <p><strong>Режим:</strong> {{ match.game_mode|upper }}</p>
+            <p><strong>Карта:</strong> {{ match.map_name|replace('_', ' ')|title }}</p>
+            <p><strong>Дата:</strong> {{ match.created_at}}</p>
+            <p><strong>Длительность:</strong> {{ (match.duration // 60) }} мин</p>
+        </div>
+        
+    </div>
+
+    <div class="match-tabs">
+        <button class="tab-button active" onclick="openTab(event, 'overview')">Обзор</button>
+        <button class="tab-button" onclick="openTab(event, 'players')">Игроки</button>
+    </div>
+    <br>
+    <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
+
+    <div id="overview" class="tab-content" style="display: block;">
+        <h2>Общая статистика</h2>
+        {% if player_stats %}
+        <div class="player-stats">
+            <h4>Статистика игрока: {{ player_name }}</h4>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Место - </span>
+                    <span class="stat-value">{{ player_stats.win_place }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Убийства - </span>
+                    <span class="stat-value">{{ player_stats.kills }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Урон - </span>
+                    <span class="stat-value">{{ player_stats.damage_dealt|round }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Дистанция - </span>
+                    <span class="stat-value">{{ ((player_stats.ride_distance + player_stats.walk_distance)/1000)|round(1) }} км</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Выжил - </span>
+                    <span class="stat-value">{{ (player_stats.time_survived//60) }} мин</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Хедшоты - </span>
+                    <span class="stat-value">{{ player_stats.headshot_kills }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <div id="players" class="tab-content">
+        <h3>Участники матча</h3>
+        <input type="text" id="playerSearch" placeholder="Поиск игрока..." class="search-input">
+        
+        <table class="players-table">
+            <thead>
+                <tr>
+                    <th>Игрок</th>
+                    <th>Убийства</th>
+                    <th>Урон</th>
+                    <th>Место</th>
+                    <th>Команда</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for participant in match.participants | sort(attribute='stats.win_place')%}
+                <tr>
+                    <td>{{ participant.name }}</td>
+                    <td>{{ participant.stats.kills }}</td>
+                    <td>{{ participant.stats.damage_dealt|round }}</td>
+                    <td>{{ participant.stats.win_place }}</td>
+                    
+                        <td>
+                        {% if participant.stats.team_rank != 0 %}
+                            {{ participant.stats.team_rank }}
+                        {% endif %}
+                        </td>
+                    <td>
+                        <a href="{{ url_for('admin.match_details', match_id=match.id, player=participant.name) }}" 
+                           class="button small">
+                            Статистика
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+
+    function openTab(evt, tabName) {
+        const tabContents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabContents.length; i++) {
+            tabContents[i].style.display = "none";
+        }
+
+        const tabButtons = document.getElementsByClassName("tab-button");
+        for (let i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+        }
+
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    // Поиск игроков
+    document.getElementById('playerSearch').addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.players-table tbody tr');
+        
+        rows.forEach(row => {
+            const name = row.cells[0].textContent.toLowerCase();
+            row.style.display = name.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}
