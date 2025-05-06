@@ -251,14 +251,6 @@ button:hover {
     overflow-y: auto;
 }
 
-.member_best_container {
-    margin: 5px;
-    border: 2px solid var(--light-gray);
-    border-radius: 8px;
-    padding: 8px;
-    width: 50%;
-    overflow-y: auto;
-}
 
 /* Заголовки */
 h1,

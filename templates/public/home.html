@@ -7,7 +7,7 @@
 {% block content %}
 <div class="container">
 
-    {% if not current_user %}
+    
     <div class="container_block" id="about_us">
         <div class="recruitment-call">
             <div class="recruitment-content">
@@ -35,16 +35,17 @@
 
                 <p class="clan-signature"><span class="clan-name">Golden Bulls</span> — не просто название. Это стиль
                     игры.</p>
-
+                {% if not current_user %}
                 <div class="join-button-container">
                     <a href="/user/register" class="join_button">
                         <button class="join-button">Готов доказать, что ты — один из нас?</button>
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
-    {% endif %}
+    
 
     {% if champions %}
     <div class="container_block" id="champions">
@@ -61,6 +62,12 @@
 
                 <h3>Ближайший турнир</h3>
                 <strong>{{ next_tournament.name }}</strong> — {{ next_tournament.tournament_date.strftime('%d.%m.%Y') }}
+                {% if current_user %}
+                    {% if current_user.role in ['admin', 'moderator','clan_member'] %}
+                        <br><br>
+                        <a href="{{url_for('user.player_form',tournament_id=next_tournament.id)}}" class="button">Записаться</a>
+                    {% endif %}
+                {% endif %}
             </div>
             {% endif %}
 
@@ -91,25 +98,6 @@
                             {% if member.birthday %}
                             <span>День рождения:
                                 {{ member.birthday.strftime('%d.%m')  if member.birthday else 'Не указан' }}</span>
-                            {% endif %}
-                        </div>
-                        {% if member.role == "admin" or member.role == "moderator" %}
-                        <div class="member-role {{member.role}}">{{ member.role }}</div>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="member_best_container">
-                <h3>Лучшие показатели за неделю:</h3>
-                <!--Сюда вставить лучшие показатели за неделю/месяц-->
-                <ul class="member_list">
-                    {% for member in members %}
-                    <li class="member-card">
-                        <div class="member-nickname">{{ member.pubg_nickname }}</div>
-                        <div class="member-info">
-                            {% if member.name %}
-                            <span>Имя: {{ member.name }}</span>
                             {% endif %}
                         </div>
                         {% if member.role == "admin" or member.role == "moderator" %}
