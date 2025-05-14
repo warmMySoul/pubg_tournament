@@ -724,8 +724,7 @@ def tasks():
                     task_functions.append(func_name)
         except Exception as e:
             print(f"Ошибка в модуле {module_name}: {e}")
-    
-    from pubg_api.scheduler import scheduler
+
     jobs = scheduler.get_jobs()
 
     for job in jobs:
@@ -794,7 +793,6 @@ def toggle_task_route(task_id):
 @role_required(RoleEnum.ADMIN)
 def run_task(task_id):
     task = ScheduledTask.query.get_or_404(task_id)
-    from pubg_api.scheduler import run_task_now
     run_task_now(task, current_app)
     return redirect('/admin/tasks')
 

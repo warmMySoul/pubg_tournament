@@ -148,11 +148,6 @@
             closeAllProfileMenus();
         });
         
-        // Предотвращаем закрытие при клике внутри меню
-        document.querySelector('.profile-dropdown').addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
-
 
         // Cookie
         document.addEventListener('DOMContentLoaded', function() {

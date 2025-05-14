@@ -12,7 +12,8 @@ def init_scheduler(app):
     
     # Загружаем активные задачи из БД при старте
     with app.app_context():
-        scheduler.start()
+        if not scheduler.running:
+            scheduler.start()
         tasks = ScheduledTask.query.filter_by(is_active=True).all()
         for task in tasks:
             add_periodic_task(task,app)
