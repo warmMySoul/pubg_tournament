@@ -40,8 +40,8 @@
 	ADMIN_PASS=<admin_pass>		# пароль суперюзера
 	FERNET_KEY=<fernet_key>		# ключ шифрования
 	MAIL_LOGIN=<mail_login>		# логин от почты mail.ru для рассылок
-	PASSWORD=<password>			# пароль от учетки сервера, на котором запускаете проект
-	PUBG_API_KEY=<pubg_api_key> # ключ к [API](https://documentation.pubg.com/en/api-keys.html)
+	PASSWORD=<password>		# пароль от учетки сервера, на котором запускаете проект
+	PUBG_API_KEY=<pubg_api_key>	# ключ к [API](https://documentation.pubg.com/en/api-keys.html)
 	SECRET_KEY=<secret_key>		# ключ для запуска проекта 
 	USERNAME=<username> 		# логин от учетки сервера, на котором запускаете проект
 	```
