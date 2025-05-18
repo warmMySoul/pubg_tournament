@@ -393,7 +393,6 @@ h3,
 h4,
 .h4 {
     color: var(--gold);
-    text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
     font-family: 'Obrazec2', "Mulish", sans-serif;
     letter-spacing: 2px;
 }
