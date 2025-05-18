@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import session, redirect, url_for, flash, request
+from flask import jsonify, session, redirect, url_for, flash, request
 from cryptography.fernet import Fernet
 from flask import current_app
 from models import User
@@ -16,15 +16,23 @@ def is_safe_url(target):
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
-# Проверка авторизации пользователя
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not get_current_user():
-            flash('Для доступа к данной странице необходимо авторизоваться', 'error')
-            # Сохраняем URL, на который пытался зайти пользователь
-            next_url = request.url
-            return redirect(url_for('user.login', next=next_url))
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                # Для AJAX-запросов возвращаем JSON
+                return jsonify({
+                    'success': False,
+                    'message': 'Для выполнения этого действия необходимо авторизоваться',
+                    'login_required': True,
+                    'redirect': url_for('public.home')  # или другая страница
+                }), 401
+            else:
+                # Для обычных запросов делаем редирект
+                flash('Для доступа к данной странице необходимо авторизоваться', 'error')
+                next_url = request.url
+                return redirect(url_for('public.home') + f'?login_required=1&next={next_url}')
         return f(*args, **kwargs)
     return decorated_function
 

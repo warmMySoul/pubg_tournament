@@ -12,18 +12,19 @@
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap"
+        rel="stylesheet">
 
     <!-- Уведомления -->
-    <link href="{{ url_for('static', filename='lib/toastr/toastr.min.css') }}" rel="stylesheet"/>
-    <link href="{{ url_for('static', filename='lib/toastr/toastr.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='lib/toastr/toastr.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='lib/toastr/toastr.css') }}" rel="stylesheet" />
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='images/logo_gold.png') }}" type="image/x-icon">
 </head>
 
 <body>
@@ -48,7 +49,7 @@
             "hideEasing": "linear",
             "showMethod": "fadeIn",
             "hideMethod": "fadeOut"
-          }
+        }
     </script>
 
     <div class="main_container">
@@ -59,9 +60,9 @@
 
         <!-- Navbar -->
         <div class="navbar">
-           
+
             <a href="{{ url_for('public.home') }}" class="h1">
-                <img class="logo" src="{{ url_for('static', filename='images/GB_mini_free.png') }}">
+                <img class="logo" src="{{ url_for('static', filename='images/logo_gold.png') }}">
                 Golden Bulls
             </a>
 
@@ -82,7 +83,7 @@
                     <span class="nav_username">{{ current_user.username }}</span>
                     <i class="fas fa-user profile-icon"></i>
                 </div>
-            
+
                 <div id="profileDropdown" class="profile-dropdown">
                     <a href="/user/profile">Профиль</a>
                     {% if current_user.role in ['admin', 'moderator'] %}
@@ -93,78 +94,219 @@
             </div>
             {% else %}
             <div class="navbar_auth">
-                <a href="/user/login" class="button">Вход</a>
-                <a href="/user/register" class="button">Регистрация</a>
+                <a href="#" class="button" id="loginButton">Войти</a>
             </div>
             {% endif %}
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <script>
-                {% for category, message in messages %}
-                    {% if category == 'error' %}
-                        toastr.error('{{ message }}');
-                    {% elif category == 'warning' %}
-                        toastr.warning('{{ message }}');
-                    {% elif category == 'success' %}
-                        toastr.success('{{ message }}');
-                    {% else %}
-                        toastr.info('{{ message }}');
-                    {% endif %}
-                {% endfor %}
-            </script>
+        <script>
+            {% for category, message in messages %} 
+                {%if category == 'error' %}
+                    toastr.error('{{ message }}'); 
+                {% elif category == 'warning' %}
+                    toastr.warning('{{ message }}'); 
+                {% elif category == 'success' %}
+                    toastr.success('{{ message }}'); 
+                {% else %}
+                    toastr.info('{{ message }}'); 
+                {% endif %} 
+            {% endfor %}
+        </script>
         {% endif %}
         {% endwith %}
 
         {% block content %}
         {% endblock %}
+
+        <!-- Модальное для авторизации -->
+        <div id="loginModal" class="modal_log_reg">
+            <div class="modal-content_log_reg">
+                <span class="close">&times;</span>
+
+                <div class="auth-tabs">
+                    <button class="tab-button active" data-tab="login">Авторизация</button>
+                    <button class="tab-button" data-tab="register">Регистрация</button>
+                </div>
+
+                <div id="login-tab" class="auth-tab-content active">
+                    <div class="log_reg_container">
+                        <h1>Авторизация</h1>
+
+                        <form method="POST" action="{{ url_for('user.login') }}" id="loginForm">
+                            <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+                            <label for="username">Логин:</label>
+                            <input type="text" id="username" name="username" required>
+
+                            <label for="password">Пароль:</label>
+                            <input type="password" id="password" name="password" required>
+
+                            <button type="submit">Войти</button>
+
+                            <div class="forgot-password-link">
+                                <a href="#" onclick="event.preventDefault(); closeLoginModal(); openForgotPasswordModal();">Забыли пароль?</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="register-tab" class="auth-tab-content">
+                    <div class="log_reg_container">
+                        <h1>Регистрация</h1>
+
+                        <form method="POST" action="{{ url_for('user.register_user') }}" onsubmit="return validateRegisterForm()" id="registerForm">
+                            <label for="reg_username">Имя пользователя(логин):</label>
+                            <input type="text" id="reg_username" name="username" placeholder="Login" required 
+                                pattern="[a-zA-Z0-9_.]+" title="Только английские буквы, цифры, _ и .">
+                            <small id="reg_usernameError" class="error-message">
+                                Логин может содержать только латинские буквы, цифры, символы _ и .
+                            </small>
+
+                            <label for="email">Почта:</label>
+                            <span class="hint">Используется для отправки кодов подтверждений</span>
+                            <input type="email" name="email" placeholder="ivan@gmail.com" required>
+                            
+                            <label for="pubg_nickname">Ник в PUBG:</label>
+                            <input type="text" id="pubg_nickname" name="pubg_nickname" placeholder="" required>
+
+                            <label for="reg_password">Пароль:</label>
+                            <input type="password" id="reg_password" name="password" placeholder="******" required>
+                            
+                            <div id="passwordRequirements">
+                                <p>Требования к паролю:</p>
+                                <ul>
+                                    <li id="reg_lengthReq">Длина от 6 до 30 символов</li>
+                                    <li id="reg_charsReq">Только латинские буквы, цифры и _!.,</li>
+                                    <li id="reg_upperReq">Минимум одна заглавная буква</li>
+                                </ul>
+                            </div>
+
+                            <button type="submit" class="button">Зарегистрироваться</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Модальное окно подтверждения email -->
+    <div id="verifyEmailModal" class="modal_log_reg">
+        <div class="modal-content_log_reg" style="max-width: 400px;">
+            <span class="close" onclick="closeVerifyModal()">&times;</span>
+            <h2>Подтверждение Email</h2>
+            
+            <form id="verifyEmailForm">
+                <label for="verification_code">Код подтверждения:</label>
+                <input type="text" id="verification_code" name="verification_code" required>
+                
+                <div class="button-group">
+                    <button type="submit" class="button">Подтвердить</button>
+                    <button type="button" class="button secondary" onclick="resendVerificationCode()">Отправить код повторно</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно восстановления пароля (шаг 1) -->
+    <div id="forgotPasswordModal" class="modal_log_reg">
+        <div class="modal-content_log_reg" style="max-width: 500px;">
+            <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
+            <h2>Восстановление пароля</h2>
+            
+            <form id="forgotPasswordForm">
+                <label for="forgot_username">Логин:</label>
+                <input type="text" id="forgot_username" name="username" required>
+
+                <label for="forgot_email">Email:</label>
+                <input type="email" id="forgot_email" name="email" required>
+
+                <div class="button-group">
+                    <button type="submit" class="button">Отправить код</button>
+                    <button type="button" class="button secondary" onclick="closeForgotPasswordModal(); openLoginModal()">Назад к авторизации</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно сброса пароля (шаг 2) -->
+    <div id="resetPasswordModal" class="modal_log_reg">
+        <div class="modal-content_log_reg" style="max-width: 500px;">
+            <span class="close" onclick="closeResetPasswordModal()">&times;</span>
+            <h2>Сброс пароля</h2>
+            
+            <form id="resetPasswordForm">
+                <label for="reset_code">Код подтверждения:</label>
+                <input type="text" id="reset_code" name="verification_code" required>
+                <small class="hint">Введите код, отправленный на ваш email</small>
+
+                <label for="new_password">Новый пароль:</label>
+                <input type="password" id="new_password" name="new_password" minlength="6" maxlength="30" required>
+                <div id="passwordResetRequirements">
+                    <p>Требования к паролю:</p>
+                    <ul>
+                        <li id="reset_lengthReq">Длина от 6 до 30 символов</li>
+                        <li id="reset_charsReq">Только латинские буквы, цифры и _!.,</li>
+                        <li id="reset_upperReq">Минимум одна заглавная буква</li>
+                    </ul>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="button">Установить пароль</button>
+                    <button type="button" class="button secondary" onclick="resendResetCode()">Отправить код повторно</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='js/log_reg_modal.js') }}" ></script>
+    
+    <script type="text/javascript" src="{{ url_for('static', filename='js/join_form.js') }}" ></script>
 
     <script>
         function toggleProfileMenu(event) {
             // Отменяем всплытие события, чтобы оно не достигло document.click
             event.stopPropagation();
-            
+
             const dropdown = document.getElementById('profileDropdown');
             if (dropdown) {
                 // Закрываем все другие открытые меню
                 closeAllProfileMenus();
-                
+
                 // Переключаем текущее меню
                 dropdown.classList.toggle('show');
             }
         }
-        
+
         function closeAllProfileMenus() {
             const allDropdowns = document.querySelectorAll('.profile-dropdown');
             allDropdowns.forEach(dropdown => {
                 dropdown.classList.remove('show');
             });
         }
-        
+
         // Закрытие dropdown при клике в любом месте страницы
-        document.addEventListener('click', function() {
+        document.addEventListener('click', function () {
             closeAllProfileMenus();
         });
-        
+
 
         // Cookie
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const consentBanner = document.getElementById('cookie-consent');
             const acceptBtn = document.getElementById('cookie-accept');
-          
+
             // Проверяем, давал ли пользователь согласие ранее
             if (!localStorage.getItem('cookie_consent')) {
-              consentBanner.style.display = 'flex';
+                consentBanner.style.display = 'flex';
             }
-          
+
             // Обработка принятия
-            acceptBtn.addEventListener('click', function() {
-              localStorage.setItem('cookie_consent', 'accepted');
-              consentBanner.style.display = 'none';
+            acceptBtn.addEventListener('click', function () {
+                localStorage.setItem('cookie_consent', 'accepted');
+                consentBanner.style.display = 'none';
             });
-          });
+        });
     </script>
 
     <script>

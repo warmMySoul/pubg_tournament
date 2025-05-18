@@ -13,7 +13,7 @@
 
 /* Scrollbar */
 * {
-    scrollbar-color: var(--light-gray) var(--light-gold);
+    scrollbar-color: var(--light-gold) var(--light-gray);
     scrollbar-width: thin;
     font-family: "Mulish", sans-serif;
     font-optical-sizing: auto;
@@ -182,6 +182,7 @@ button {
 .button:hover,
 button:hover {
     background: linear-gradient(to bottom, var(--light-gold), var(--semi-light-gold));
+    color: var(--black);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
@@ -198,14 +199,137 @@ button:hover {
     margin: 30px 0;
 }
 
-.log_reg_container {
-    margin: auto;
-    margin-top: 8%;
-    width: 30vw;
-    border-radius: 8px;
-    border: 1px solid var(--dark-gold);
-    padding: 32px;
+
+/* Модальное окно авторизации/регистрации */
+.modal_log_reg {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    align-items: center; 
+    justify-content: center;
 }
+
+.modal-content_log_reg  {
+    background-color: var(--black);
+    padding: 20px;
+    border: 3px solid var(--dark-gold);
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+    margin: 0;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: var(--gold);
+    text-decoration: none;
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background: var(--light-gray);
+    flex: 1;
+    margin: 0 12px;
+    padding: 10px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--white);
+    transition: all 0.3s;
+}
+
+.tab-button.active {
+    border-bottom-color: var(--gold);
+    font-weight: bold;
+}
+
+.auth-tab-content {
+    display: none;
+}
+
+.auth-tab-content.active {
+    display: block;
+}
+
+.error-message {
+    color: red;
+    display: none;
+    margin-bottom: 10px;
+}
+
+.hint {
+    font-size: 14px;
+    color: var(--white);
+    display: block;
+    margin-bottom: 5px;
+}
+
+#passwordRequirements{
+    text-align: left;
+
+}
+
+    /* Стили для группы кнопок */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.button.secondary {
+    background: var(--light-gray);
+    color: var(--white);
+}
+
+.button.secondary:hover {
+    background-color: var(--dark-gray);
+}
+
+    /* Стили для формы заявки в клан */
+.checkbox-container {
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-container input {
+    margin-right: 10px;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px solid var(--dark-gold);
+    border-radius: 4px;
+    background-color: var(--light-gray);
+    color: var(--white);
+    font-size: 16px;
+    resize: vertical;
+    min-height: 100px;
+}
+/**/
+
 
 .tournament_info {
     display: flex;
@@ -320,7 +444,8 @@ input[type="number"],
 input[type="datetime-local"],
 textarea,
 select {
-    width: 98%;
+    box-sizing: border-box;
+    width: 100%;
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid var(--dark-gold);
@@ -370,9 +495,9 @@ select:focus {
 }
 
 .modal-content {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: var(--dark-gray);
     padding: 20px;
-    border: 2px solid white;
+    border: 2px solid var(--white);
     border-radius: 15px;
     text-align: center;
 }
@@ -581,13 +706,25 @@ select:focus {
 }
 
 .join_button {
-    background: linear-gradient(to right, var(--semi-light-gold), var(--gold));
-    color: var(--black);
+    background: linear-gradient(to right, var(--light-gray), var(--dark-gray));
+    color: var(--white);
     padding: 0.8rem 1.8rem;
+    border: solid 2px var(--dark-gold);
     border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
     margin: 0 auto;
+    text-align: center;
+}
+
+/* Стили для динамических полей */
+#applicant_know_from_optional {
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+label[for="applicant_know_from_optional"] {
+    margin-top: 10px;
 }
 
 
@@ -699,4 +836,18 @@ select:focus {
 .item-image{
     object-fit: contain;
     max-height: 100%;
+}
+
+/*Карточка статистики*/
+.user_stats{
+    display: flex;
+    gap: 32px;
+}
+
+.stat_card{
+    border: solid 2px var(--gold);
+    border-radius: 12px;
+    padding: 4px 16px;
+    background: var(--light-gray);
+    width: 100%;
 }

@@ -19,6 +19,21 @@ def send_verification_email(email, code):
     )
     mail.send(msg)
 
+def send_email(to, subject, body):
+    """Отправляет email с указанной темой и содержимым"""
+    try:
+        msg = Message(
+            subject=subject,
+            sender=current_app.config['MAIL_USERNAME'],
+            recipients=[to],
+            body=body
+        )
+        mail.send(msg)
+        current_app.logger.info(f"Email отправлен успешно: {subject}")
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Ошибка при отправке email: {str(e)}")
+
 def is_code_valid(saved_code, saved_expiry, entered_code):
     """Проверяет, совпадает ли код и не истек ли срок."""
     if not saved_code or not saved_expiry:

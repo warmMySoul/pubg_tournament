@@ -35,7 +35,7 @@
                 </div>
 
                 <div class="recruitment-image">
-                    <img class="item-image" src="{{ url_for('static', filename='images/golden_bull_img.png') }}" alt="">
+                    <img class="item-image" src="{{ url_for('static', filename='images/solder_no_bg.png') }}" alt="">
                 </div>
                 
                 <div class="recruitment-join">
@@ -47,9 +47,15 @@
                     <p class="clan-signature"><span class="clan-name">Golden Bulls</span> — не просто название. Это стиль
                     игры.</p>
 
-                    {% if not current_user or current_user.role == "guest"%}
-                        <a href="/user/register" class="join_button button">
-                            Зарегистрироваться
+                    {% if not current_user%}
+                        <h3 style="text-align:center">
+                            Авторизуйтесь для подачи заявки на вступление в клан
+                        </h3>
+                    {% endif %}
+
+                    {% if current_user.role == "guest"%}
+                        <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
+                            Подать заявку на вступление в клан
                         </a>
                     {% endif %}
                 </div>
@@ -123,6 +129,46 @@
         </div>
     </div>
 
+</div>
+
+<!-- Модальное окно заявки в клан -->
+<div id="joinClanModal" class="modal_log_reg">
+    <div class="modal-content_log_reg" style="max-width: 600px;">
+        <span class="close" onclick="closeJoinClanModal()">&times;</span>
+        <h2>Заявка на вступление в клан</h2>
+        
+        <form id="joinClanForm">
+            <label for="applicant_name">Имя:</label>
+            <input type="text" id="applicant_name" name="name" required>
+            
+            <label for="applicant_birthday">Дата рождения:</label>
+            <input type="date" id="applicant_birthday" name="birthday" required>
+            
+            <label for="applicant_info">Информация о себе:</label>
+            <small class="hint">Расскажите почему вы хотите вступить в клан Golden Bulls и как часто вы играете</small>
+            <textarea id="applicant_info" name="info" rows="5" required></textarea>
+
+            <label for="applicant_from">Откуда узнали о нас:</label>
+            <select name="know_from" id="applicant_from" required>
+                <option value="friend">От друга/знакомого</option>
+                <option value="public">Из рекламы</option>
+                <option value="other">Другое</option>
+            </select>
+
+            <label for="applicant_know_from_optional">Ник друга/знакомого:</label>
+            <input type="text" id="applicant_know_from_optional" name="know_from_optional">
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="agree_rules" name="agree_rules" required>
+                <label for="agree_rules">Ознакомился с правилами клана и обязуюсь их соблюдать в случае удовлетворения моей кандидатуры</label>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="button">Отправить заявку</button>
+                <button type="button" class="button secondary" onclick="closeJoinClanModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 

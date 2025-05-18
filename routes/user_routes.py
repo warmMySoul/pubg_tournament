@@ -1,11 +1,11 @@
 from zoneinfo import ZoneInfo
-from flask import Blueprint, flash, url_for, redirect, session, request, render_template
+from flask import Blueprint, flash, jsonify, url_for, redirect, session, request, render_template
 from datetime import datetime, timedelta
 from extensions.security import is_safe_url, role_required, get_current_user, login_required, get_cipher
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
 from pubg_api.models.player import ParsedPlayerStats
-from services.verification_service import generate_verification_code, send_verification_email
+from services.verification_service import generate_verification_code, send_email, send_verification_email
 from utils.helpers import mask_email, registration_open as tournament_reg_is_open
 from models import RoleEnum, User, Tournament, Player, PlayerGroup, AdminActionLog, PlayerStats
 from extensions.db_connection import db
@@ -154,26 +154,46 @@ def profile():
                          masked_email=masked_email,
                          password_change_requested='password_change_data' in session)
 
-@user_bp.route('/login', methods=['GET', 'POST'])
+# Авторизация
+@user_bp.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    try:
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
         user = User.query.filter_by(username=username).first()
 
-        if user and check_password_hash(user.password, password):
-            session['user_logged'] = user.id
-            flash(f"Добро пожаловать, {user.username} ({user.role})", 'success')
-            
-            # Перенаправляем на next или на главную
-            next_url = request.form['next']
-            if next_url and is_safe_url(next_url):
-                return redirect(next_url)
-            return redirect(url_for('public.home'))
-        else:
-            flash('Неверные учетные данные', 'error')
+        if not user or not check_password_hash(user.password, password):
+            return jsonify({
+                'success': False,
+                'message': 'Неверные учетные данные'
+            }), 401
 
-    return render_template('user/login.html')
+        # Успешная авторизация
+        session['user_logged'] = user.id
+        next_url = request.form.get('next', '')
+
+        # Проверка безопасного URL для перенаправления
+        if next_url and is_safe_url(next_url):
+            redirect_url = next_url
+        else:
+            redirect_url = url_for('public.home')
+
+        return jsonify({
+            'success': True,
+            'message': f"Добро пожаловать, {user.username} ({user.role})",
+            'redirect': redirect_url,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'role': user.role
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Произошла ошибка при авторизации: {str(e)}'
+        }), 500
 
 # Выход
 @user_bp.route('/logout')
@@ -184,118 +204,135 @@ def logout():
     return redirect(url_for('public.home'))
 
 # Регистрация
-@user_bp.route('/register', methods=['GET', 'POST'])
+@user_bp.route('/register', methods=['POST'])
 def register_user():
-    # Инициализация шифровальщика
     cipher = get_cipher()
 
-    if request.method == 'POST':
-        try:
-            username = request.form.get('username', '').strip()
-            password = request.form.get('password', '').strip()
-            pubg_nickname = request.form.get('pubg_nickname', '').strip()
-            email = request.form.get('email', '').strip().lower()  # Нормализуем email
+    try:
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        pubg_nickname = request.form.get('pubg_nickname', '').strip()
+        email = request.form.get('email', '').strip().lower()
 
-            # Валидация данных
-            if not all([username, password, pubg_nickname, email]):
-                flash('Все поля обязательны для заполнения', 'error')
-                return render_template('user/register_user.html')
+        # Валидация данных
+        if not all([username, password, pubg_nickname, email]):
+            return jsonify({
+                'success': False, 
+                'message': 'Все поля обязательны для заполнения'
+            }), 400
 
-            # Проверка уникальности
-            if User.query.filter_by(username=username).first():
-                flash('Это имя пользователя уже занято', 'error')
-            elif User.query.filter_by(email=email).first():
-                flash('Этот email уже используется', 'error')
-            else:
-                # Сохраняем данные в сессию до подтверждения email
-                session['temp_user'] = {
-                    'username': username,
-                    'password': generate_password_hash(password),
-                    'pubg_nickname': pubg_nickname,
-                    'email': email
-                }
+        # Проверка уникальности
+        if User.query.filter_by(username=username).first():
+            return jsonify({
+                'success': False,
+                'message': 'Это имя пользователя уже занято'
+            }), 400
 
-                # Генерация, шифрование и сохранение кода
-                verification_code = generate_verification_code()
-                encrypted_code = cipher.encrypt(verification_code.encode())
-                session['encrypted_code'] = encrypted_code
-                session['code_expires'] = (datetime.now(ZoneInfo("Europe/Moscow")) + timedelta(minutes=5)).isoformat()
+        if User.query.filter_by(email=email).first():
+            return jsonify({
+                'success': False,
+                'message': 'Этот email уже используется'
+            }), 400
 
-                # Отправка письма
-                send_verification_email(email, verification_code)
-                flash('Код подтверждения отправлен на ваш email', 'success')
-                return redirect(url_for('user.verify_email'))
+        # Сохраняем данные в сессию до подтверждения email
+        session['temp_user'] = {
+            'username': username,
+            'password': generate_password_hash(password),
+            'pubg_nickname': pubg_nickname,
+            'email': email
+        }
 
-        except Exception as e:
-            flash('Произошла ошибка при регистрации', 'error')
+        # Генерация, шифрование и сохранение кода
+        verification_code = generate_verification_code()
+        encrypted_code = cipher.encrypt(verification_code.encode())
+        session['encrypted_code'] = encrypted_code
+        session['code_expires'] = (datetime.now(ZoneInfo("Europe/Moscow")) + timedelta(minutes=5)).isoformat()
 
-    return render_template('user/register_user.html')
-
-# Подтверждение почты
-@user_bp.route('/verify-email', methods=['GET', 'POST'])
-def verify_email():
-    # Инициализация шифровальщика
-    cipher = get_cipher()
-
-    # Проверяем, есть ли временные данные пользователя
-    if 'temp_user' not in session:
-        flash('Сессия истекла или не найдена. Пожалуйста, зарегистрируйтесь снова.', 'error')
-        return redirect(url_for('user.register_user'))
-
-    if request.method == 'POST':
-        entered_code = request.form.get('verification_code', '').strip()
+        # Отправка письма
+        send_verification_email(email, verification_code)
         
-        # Проверяем наличие и срок действия кода
-        try:
-            encrypted_code = session.get('encrypted_code')
-            expires = datetime.fromisoformat(session.get('code_expires', ''))
-            
-            if not encrypted_code:
-                flash('Код подтверждения не найден', 'error')
-                return redirect(url_for('user.register_user'))
-                
-            if datetime.now(ZoneInfo("Europe/Moscow")) > expires:
-                flash('Срок действия кода истек', 'error')
-                return redirect(url_for('user.register_user'))
-                
-            # Расшифровываем и сравниваем код
-            decrypted_code = cipher.decrypt(encrypted_code).decode()
-            
-            if decrypted_code == entered_code:
-                # Создаем пользователя
-                temp_user = session['temp_user']
-                new_user = User(
-                    username=temp_user['username'],
-                    password=temp_user['password'],
-                    pubg_nickname=temp_user['pubg_nickname'],
-                    email=temp_user['email'],
-                    is_verified=True
-                )
-                
-                try:
-                    db.session.add(new_user)
-                    db.session.commit()
-                    
-                    # Очищаем сессию
-                    session.pop('temp_user', None)
-                    session.pop('encrypted_code', None)
-                    session.pop('code_expires', None)
-                    
-                    flash('Email подтвержден! Вы успешно зарегистрированы.', 'success')
-                    log(f'Зарегистрирован новый пользователь - {new_user.username} ({new_user.pubg_nickname})')
-                    return redirect(url_for('user.login'))
-                    
-                except Exception as db_error:
-                    db.session.rollback()
-                    flash('Ошибка при создании пользователя', 'error')
-                    
-            else:
-                flash('Неверный код подтверждения', 'error')
-                
-        except Exception as e:
-            flash('Ошибка при проверке кода', 'error')
+        return jsonify({
+            'success': True,
+            'message': 'Код подтверждения отправлен на ваш email',
+            'redirect': url_for('public.home')  # Перенаправление после подтверждения
+        })
 
-    return render_template('user/verify_email.html')
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Произошла ошибка при регистрации: {str(e)}'
+        }), 500
+
+
+# Подтверждение email (AJAX версия)
+@user_bp.route('/verify-email', methods=['POST'])
+def verify_email_ajax():
+    cipher = get_cipher()
+    
+    if 'temp_user' not in session:
+        return jsonify({
+            'success': False,
+            'message': 'Сессия истекла или не найдена. Пожалуйста, зарегистрируйтесь снова.'
+        }), 400
+
+    entered_code = request.form.get('verification_code', '').strip()
+    
+    try:
+        encrypted_code = session.get('encrypted_code')
+        expires = datetime.fromisoformat(session.get('code_expires', ''))
+        
+        if not encrypted_code:
+            return jsonify({
+                'success': False,
+                'message': 'Код подтверждения не найден'
+            }), 400
+            
+        if datetime.now(ZoneInfo("Europe/Moscow")) > expires:
+            return jsonify({
+                'success': False,
+                'message': 'Срок действия кода истек'
+            }), 400
+            
+        decrypted_code = cipher.decrypt(encrypted_code).decode()
+        
+        if decrypted_code == entered_code:
+            temp_user = session['temp_user']
+            new_user = User(
+                username=temp_user['username'],
+                password=temp_user['password'],
+                pubg_nickname=temp_user['pubg_nickname'],
+                email=temp_user['email'],
+                is_verified=True
+            )
+            
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Очищаем сессию
+            session.pop('temp_user', None)
+            session.pop('encrypted_code', None)
+            session.pop('code_expires', None)
+            
+            # Авторизуем пользователя сразу после подтверждения
+            session['user_logged'] = new_user.id
+            
+            return jsonify({
+                'success': True,
+                'message': 'Регистрация завершена успешно!',
+                'redirect': url_for('public.home')
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Неверный код подтверждения'
+            }), 400
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Ошибка при подтверждении email: {str(e)}'
+        }), 500
 
 # Переотправка кода на почту
 @user_bp.route('/resend-code', methods=['GET'])
@@ -320,86 +357,98 @@ def resend_code():
         # Отправка письма
         send_verification_email(temp_user['email'], new_code)
         flash('Новый код отправлен! Проверьте почту.', 'success')
-        return redirect(url_for('user.verify_email'))
+        return redirect(url_for('user.verify_email_ajax'))
     
     except Exception as e:
         flash('Произошла ошибка при отправке кода', 'error')
         return redirect(url_for('user.register_user'))
 
 # Восстановление пароля - шаг 1 (запрос)
-@user_bp.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
-
-    # Инициализация шифровальщика
+@user_bp.route('/forgot-password', methods=['POST'])
+def forgot_password_ajax():
     cipher = get_cipher()
-
-    if request.method == 'POST':
-        username = request.form.get('username').strip()
-        email = request.form.get('email').strip().lower()
-        
-        user = User.query.filter_by(username=username, email=email).first()
-        
-        if user:
-            # Генерация и отправка кода
-            verification_code = generate_verification_code()
-            encrypted_code = cipher.encrypt(verification_code.encode())
-            
-            session['password_reset'] = {
-                'user_id': user.id,
-                'encrypted_code': encrypted_code,
-                'expires': (datetime.now(ZoneInfo("Europe/Moscow")) + timedelta(minutes=30)).isoformat()
-            }
-            
-            send_verification_email(user.email, verification_code)
-            flash('Код подтверждения отправлен на вашу почту', 'success')
-            return redirect(url_for('user.reset_password'))
-        else:
-            flash('Пользователь с такими данными не найден', 'error')
     
-    return render_template('user/forgot_password.html')
+    username = request.form.get('username', '').strip()
+    email = request.form.get('email', '').strip().lower()
+    
+    user = User.query.filter_by(username=username, email=email).first()
+    
+    if not user:
+        return jsonify({
+            'success': False,
+            'message': 'Пользователь с такими данными не найден'
+        }), 404
+    
+    # Генерация и отправка кода
+    verification_code = generate_verification_code()
+    encrypted_code = cipher.encrypt(verification_code.encode())
+    
+    session['password_reset'] = {
+        'user_id': user.id,
+        'encrypted_code': encrypted_code,
+        'expires': (datetime.now(ZoneInfo("Europe/Moscow")) + timedelta(minutes=30)).isoformat()
+    }
+    
+    send_verification_email(user.email, verification_code)
+    
+    return jsonify({
+        'success': True,
+        'message': 'Код подтверждения отправлен на вашу почту'
+    })
 
-# Восстановление пароля - шаг 2 (ввод кода и нового пароля)
-@user_bp.route('/reset-password', methods=['GET', 'POST'])
-def reset_password():
-
-    # Инициализация шифровальщика
+# Восстановление пароля - шаг 2 (Смена пароля)
+@user_bp.route('/reset-password', methods=['POST'])
+def reset_password_ajax():
     cipher = get_cipher()
-
+    
     reset_data = session.get('password_reset')
     if not reset_data:
-        flash('Сессия истекла или не найдена', 'error')
-        return redirect(url_for('user.forgot_password'))
+        return jsonify({
+            'success': False,
+            'message': 'Сессия истекла или не найдена'
+        }), 400
     
-    if request.method == 'POST':
-        entered_code = request.form.get('verification_code')
-        new_password = request.form.get('new_password')
-        
-        if datetime.now(ZoneInfo("Europe/Moscow")) > datetime.fromisoformat(reset_data['expires']):
-            flash('Срок действия кода истек', 'error')
-            return redirect(url_for('user.forgot_password'))
-        
-        try:
-            decrypted_code = cipher.decrypt(reset_data['encrypted_code']).decode()
-            if decrypted_code == entered_code:
-                if len(new_password) < 6 or len(new_password) > 30:
-                    flash('Пароль должен быть от 6 до 30 символов', 'error')
-                    return redirect(url_for('user.reset_password'))
-                
-                user = User.query.get(reset_data['user_id'])
-                user.password = generate_password_hash(new_password)
-                db.session.commit()
-                
-                session.pop('password_reset', None)
-                flash('Пароль успешно изменён. Теперь вы можете войти.', 'success')
-                log(f"Пользователь {user.username} восстановил пароль")
-                return redirect(url_for('user.login'))
-            else:
-                flash('Неверный код подтверждения', 'error')
-        except Exception as e:
-            flash('Ошибка при проверке кода', 'error')
+    entered_code = request.form.get('verification_code', '').strip()
+    new_password = request.form.get('new_password', '').strip()
     
-    return render_template('user/reset_password.html')
+    if datetime.now(ZoneInfo("Europe/Moscow")) > datetime.fromisoformat(reset_data['expires']):
+        return jsonify({
+            'success': False,
+            'message': 'Срок действия кода истек'
+        }), 400
+    
+    if len(new_password) < 6 or len(new_password) > 30:
+        return jsonify({
+            'success': False,
+            'message': 'Пароль должен быть от 6 до 30 символов'
+        }), 400
+    
+    try:
+        decrypted_code = cipher.decrypt(reset_data['encrypted_code']).decode()
+        if decrypted_code == entered_code:
+            user = User.query.get(reset_data['user_id'])
+            user.password = generate_password_hash(new_password)
+            db.session.commit()
+            
+            session.pop('password_reset', None)
+            log(f"Пользователь {user.username} восстановил пароль")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Пароль успешно изменён. Теперь вы можете войти.'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Неверный код подтверждения'
+            }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Ошибка при проверке кода'
+        }), 500
 
+# Форма регистрации на турнир
 @user_bp.route('/form/<tournament_id>', methods=['GET', 'POST'])
 @login_required
 def player_form(tournament_id):
@@ -523,20 +572,60 @@ def player_form(tournament_id):
         current_user=user
     )
 
-    # Для GET-запроса
-    groups = []
-    max_players = None
-    if tournament.mode in ['Дуо', 'Сквад']:
-        groups = PlayerGroup.query \
-            .filter_by(tournament_id=tournament_id) \
-            .options(db.joinedload(PlayerGroup.players)) \
-            .all()
-        max_players = 4 if tournament.mode == 'Сквад' else 2
+# Подача заявки в клан
+@user_bp.route('/join-clan-request', methods=['POST'])
+@login_required
+def join_clan_request():
+    try:
+        # Проверяем, что пользователь авторизован (декоратор уже проверил)
+        user = get_current_user()
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': 'Пользователь не найден'
+            }), 401
 
-    return render_template(
-        'public/tournaments/form.html',
-        tournament=tournament,
-        groups=groups,
-        max_players=max_players,
-        current_user=user  # Передаем пользователя в шаблон
-    )
+        name = request.form.get('name', '').strip()
+        birthday = request.form.get('birthday', '').strip()
+        info = request.form.get('info', '').strip()
+        know_from = request.form.get('know_from_optional', '').strip()
+        agree_rules = request.form.get('agree_rules') == 'on'
+
+        # Проверка обязательных полей
+        if not all([name, birthday, info]) or not agree_rules:
+            return jsonify({
+                'success': False,
+                'message': 'Все поля обязательны для заполнения'
+            }), 400
+
+        # Формирование содержимого письма
+        email_body = f"""
+        Новая заявка на вступление в клан:
+        
+        Пользователь: {user.username} (ID: {user.id})
+        Имя: {name}
+        Дата рождения: {birthday}
+        Информация о себе: {info}
+        Узнал о клане из/от: {know_from}
+        Согласие с правилами: {'Да' if agree_rules else 'Нет'}
+        
+        Дата подачи заявки: {datetime.now(ZoneInfo("Europe/Moscow")).strftime('%Y-%m-%d %H:%M')}
+        """
+
+        # Отправка письма
+        send_email(
+            to="pasha.kozhinov.95@gmail.com",
+            subject=f"Новая заявка в клан от {user.username}",
+            body=email_body
+        )
+
+        return jsonify({
+            'success': True,
+            'message': 'Ваша заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Произошла ошибка при отправке заявки: {str(e)}'
+        }), 500
