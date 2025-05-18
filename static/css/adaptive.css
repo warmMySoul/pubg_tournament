@@ -4,7 +4,6 @@
   /* Базовые настройки */
   body {
     padding: 0 10px;
-    font-size: 14px;
   }
 
   /* Навбар */
@@ -143,8 +142,6 @@
   .button,
   button {
     padding: 8px 15px;
-    margin: 3px;
-    font-size: 14px;
   }
 
   .button_dark {
@@ -168,9 +165,6 @@
     padding: 10px;
   }
 
-  .member-nickname {
-    font-size: 1em;
-  }
 
   .member-role {
     position: static;
@@ -178,36 +172,23 @@
     margin-top: 5px;
   }
 
-  /* Блок "О клане" */
-  #about_us h2 {
-    font-size: 1.5rem;
-  }
-
-  .recruitment-call {
-    padding: 1rem;
-  }
-
-  .recruitment-lead {
-    font-size: 1rem;
-  }
-
-  .why-us-title {
-    font-size: 1.1rem;
-  }
-
-  .join-button {
-    padding: 0.7rem 1.5rem;
-    font-size: 0.9rem;
-  }
-
   .log_reg_container {
     margin: auto;
     margin-top: 8%;
-    width: 80vw;
     border-radius: 8px;
     border: 1px solid var(--dark-gold);
     padding: 32px;
 }
+
+.recruitment-content{
+  flex-direction: column;
+}
+
+.user_stats{
+  flex-direction: column;
+  width: 90%;
+}
+
 }
 
 /* Дополнительные адаптации для очень маленьких экранов */
@@ -218,21 +199,6 @@
     padding: 5px;
   }
 
-  /* Заголовки */
-  h1,
-  .h1 {
-    font-size: 20px;
-  }
-
-  h2,
-  .h2 {
-    font-size: 18px;
-  }
-
-  h3,
-  .h3 {
-    font-size: 16px;
-  }
 
   /* Формы */
   input[type="text"],
@@ -250,8 +216,7 @@
   /* Кнопки */
   .button,
   button {
-    padding: 6px 12px;
-    font-size: 13px;
+    font-size: 16px;
   }
 
   /* Карточки участников */

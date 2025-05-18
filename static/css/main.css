@@ -11,11 +11,23 @@
     --white: #FBFBFB;
 }
 
+@font-face {
+    font-family: 'Obrazec2';
+    src: url('/static/fonts/obrazec_2_0/Obrazec-2.ttf') format('ttf'),
+         url('/static/fonts/obrazec_2_0/Obrazec-2.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Finlandica';
+    src: url('/static/fonts/finlandica/finlandica-regularWeb.ttf') format('ttf'),
+         url('/static/fonts/finlandica/finlandica-regularWeb.woff') format('woff');
+}
+
 /* Scrollbar */
 * {
     scrollbar-color: var(--light-gold) var(--light-gray);
     scrollbar-width: thin;
-    font-family: "Mulish", sans-serif;
+    font-family: "Finlandica", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;
 }
@@ -377,9 +389,13 @@ h1,
 h2,
 .h2,
 h3,
-.h3 {
+.h3,
+h4,
+.h4 {
     color: var(--gold);
     text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+    font-family: 'Obrazec2', "Mulish", sans-serif;
+    letter-spacing: 2px;
 }
 
 /* Таблицы */
@@ -624,7 +640,7 @@ select:focus {
 
 .recruitment-content div {
     display: flex;
-    width: 536px;
+    width: 100%;
     padding: 16px;
     height: 462px;
     background-color: var(--light-gray);
@@ -647,7 +663,7 @@ select:focus {
     font-size: 16px;
     line-height: 1.6;
     text-align: center;
-    width: 1100px;
+    width: 100%;
     margin: 32px auto;
 }
 
@@ -709,12 +725,14 @@ select:focus {
     background: linear-gradient(to right, var(--light-gray), var(--dark-gray));
     color: var(--white);
     padding: 0.8rem 1.8rem;
+    font-size: 18px;
     border: solid 2px var(--dark-gold);
     border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin: 0 auto;
+    margin: 12px auto;
     text-align: center;
+    display: block;
 }
 
 /* Стили для динамических полей */

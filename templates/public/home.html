@@ -47,21 +47,22 @@
                     <p class="clan-signature"><span class="clan-name">Golden Bulls</span> — не просто название. Это стиль
                     игры.</p>
 
-                    {% if not current_user%}
-                        <h3 style="text-align:center">
-                            Авторизуйтесь для подачи заявки на вступление в клан
-                        </h3>
-                    {% endif %}
-
-                    {% if current_user.role == "guest"%}
-                        <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
-                            Подать заявку на вступление в клан
-                        </a>
-                    {% endif %}
+                    
                 </div>
 
                 
             </div>
+                {% if not current_user%}
+                    <p style="text-align:center; text-decoration: underline; font-size: 18px">
+                        Авторизуйтесь для подачи заявки на вступление в клан
+                    </p>
+                {% endif %}
+
+                {% if current_user.role == "guest"%}
+                    <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
+                        Подать заявку на вступление в клан
+                    </a>
+                {% endif %}
         </div>
     </div>
     
