@@ -189,6 +189,16 @@
   width: 90%;
 }
 
+.cookie-consent{
+  font-size: 12px;
+  width: 100%;
+  margin: 8px;
+}
+
+.cookie-btn {
+  margin: auto 0;
+  height: 32px;
+}
 }
 
 /* Дополнительные адаптации для очень маленьких экранов */
