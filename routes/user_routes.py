@@ -614,7 +614,7 @@ def join_clan_request():
 
         # Отправка письма
         send_email(
-            to="pasha.kozhinov.95@gmail.com",
+            to="goldenbulls.requests@gmail.com",
             subject=f"Новая заявка в клан от {user.username}",
             body=email_body
         )

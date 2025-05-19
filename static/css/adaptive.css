@@ -199,6 +199,14 @@
   margin: auto 0;
   height: 32px;
 }
+
+.modal-content_log_reg {
+  width: 95%;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 15px;
+}
 }
 
 /* Дополнительные адаптации для очень маленьких экранов */
