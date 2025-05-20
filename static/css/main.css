@@ -66,7 +66,7 @@ scroll-behavior: smooth;
     justify-content: space-between;
     align-items: center;
     background-color: var(--dark-gray);
-    border-radius: 0 0 16px 16px;
+    border-radius: 0 0 8px 8px;
     border: 2px solid var(--dark-gold);
     padding: 0 16px;
     position: sticky;
@@ -405,6 +405,19 @@ textarea {
     overflow-y: auto;
 }
 
+.member_count {
+    display: flex;
+    justify-content: space-between;
+}
+
+.member_count_value {
+    font-size: 18px;
+    padding: 4px 16px;
+    border-radius: 8px;
+    background-color: var(--gold);
+    color: var(--black);
+}
+
 /*FAQ*/
 .faq-container {
     margin-top: 20px;
@@ -485,7 +498,7 @@ h3, .h3{
 }
 
 h4, .h4{
-    font-size: 18px;
+    font-size: 21px;
 }
 
 /* Таблицы */
@@ -736,6 +749,7 @@ select:focus {
     background-color: var(--light-gray);
     flex-direction: column;
     justify-content: space-between;
+    border-radius: 8px;
 }
 
 .container_block h2 {
