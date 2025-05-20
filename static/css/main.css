@@ -46,6 +46,7 @@ body {
     max-width: 1648px;
     margin: 0 auto;
     background-color: var(--black);
+    background-image: url("/static/images/bg.png");
     color: var(--white);
     padding: 0;
     line-height: 1.6;
@@ -366,6 +367,7 @@ textarea {
     flex: 1;
     box-sizing: border-box;
     display: flex;
+    background-color: var(--black);
 }
 
 .matches_img{
@@ -403,6 +405,7 @@ textarea {
     padding: 16px;
     width: 100%;
     overflow-y: auto;
+    background-color: var(--black);
 }
 
 .member_count {
@@ -424,7 +427,7 @@ textarea {
 }
     
 .faq-item {
-    border: 1px solid #ddd;
+    border: 3px solid var(--dark-gray);
     border-radius: 5px;
     margin-bottom: 10px;
     overflow: hidden;
