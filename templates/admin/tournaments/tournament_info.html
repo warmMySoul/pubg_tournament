@@ -15,21 +15,25 @@
     <div class="scoring-info">
         <h3>Начисление баллов:</h3>
         <table class="scoring-table">
-            <thead>
-                <tr>
-                    <th>1 убийство</th>
-                    <th>100 урона</th>
-                    <th>1 место</th>
-                    <th>2 место</th>
-                    <th>3 место</th>
-                </tr>
-            </thead>
             <tbody>
                 <tr>
+                    <td>1 убийство</td>
                     <td>{{ tournament.kill_points or 0 }} б.</td>
+                </tr>
+                <tr>
+                    <td>100 урона</td>
                     <td>{{ tournament.damage_points or 0 }} б.</td>
+                </tr>
+                <tr>
+                    <td>1 место</td>
                     <td>{{ tournament.first_place_points or 0 }} б.</td>
+                </tr>
+                <tr>
+                    <td>2 место</td>
                     <td>{{ tournament.second_place_points or 0 }} б.</td>
+                </tr>
+                <tr>
+                    <td>3 место</td>
                     <td>{{ tournament.third_place_points or 0 }} б.</td>
                 </tr>
             </tbody>

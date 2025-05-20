@@ -10,7 +10,6 @@
 
     <div class="admin-actions">
         <a href="{{url_for('admin.tournaments')}}" class="button">Турниры</a>
-        <a href="#" class="button">Чемпионы</a>
         <a href="{{url_for('admin.users_list')}}" class="button">Пользователи</a>
         <a href="{{url_for('admin.view_logs')}}" class="button">Журнал действий</a>
         {% if current_user.username == 'admin' %}

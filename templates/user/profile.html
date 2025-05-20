@@ -6,90 +6,98 @@
 
 {% block content %}
 <div class="container">
-    <h1>Профиль пользователя {{ user.pubg_nickname or '' }}</h1>
-
-    {% if stats %}
-    <h2>Статистика PUBG за все время</h2>
-    <h3>Обновлено: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
-
-    <div class="user_stats">
-        {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
-            {% if stats.stats.get(mode) %}
-            {% set values = stats.stats[mode] %}
-            <div class="stat_card">
-                <h3><strong>{{ mode|upper }}</strong></h3>
-                <p>Убийств: {{ values.kills }}</p>
-                <p>Побед: {{ values.wins }}</p>
-                <p>Игр сыграно: {{ values.rounds_played }}</p>
-                <p>Урон: {{ values.damage_dealt }}</p>
-                <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
-                <p>Хедшоты: {{ values.headshot_kills }}</p>
-                <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
-            </div>
-            {% endif %}
-        {% endfor %}
-    </div>
-
-    {% else %}
-    <p>Нет данных о статистике игрока.</p>
-    {% endif %}
     
+    <div class="profile_container">
+        <div class="container_left">
+            <h1>Профиль пользователя {{ user.pubg_nickname or '' }}</h1>
+            
+            <form method="post">
+                <input type="hidden" name="action" value="update_profile">
 
+                <label>Логин (нельзя изменить):</label>
+                <input type="text" value="{{ user.username }}" disabled>
+
+                <label>Email:</label>
+                <input type="text" value="{{ masked_email }}" disabled>
+
+                <label>Имя:</label>
+                <input type="text" name="name" value="{{ user.name or '' }}">
+
+                <label>PUBG Никнейм:</label>
+                <input type="text" name="pubg_nickname" value="{{ user.pubg_nickname or '' }}" disabled>
+                <small>Если вы сменили никнейм в PUBG - сообщите администраторам</small>
+
+                <label>Дата рождения:</label>
+                <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
+
+                <hr>
+
+                <button type="submit" class="button">Сохранить изменения профиля</button>
+            </form>
+
+            <h3>Смена пароля</h3>
+
+            {% if not password_change_requested %}
+            <form method="post">
+                <input type="hidden" name="action" value="request_password_change">
+
+                <label>Текущий пароль:</label>
+                <input type="password" name="current_password" required>
+
+                <label>Новый пароль:</label>
+                <input type="password" name="new_password" minlength="6" maxlength="30" required>
+
+                <p><small>После отправки формы вам будет отправлен код подтверждения на email</small></p>
+
+                <button type="submit" class="button">Запросить смену пароля</button>
+            </form>
+            {% else %}
+            <form method="post">
+                <input type="hidden" name="action" value="confirm_password_change">
+
+                <label>Код подтверждения:</label>
+                <input type="text" name="verification_code" required>
+                <small>Введите код, отправленный на ваш email</small>
+
+                <button type="submit" class="button">Подтвердить смену пароля</button>
+                <a href="{{ url_for('user.profile') }}" class="button">Отмена</a>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="container_right">
+            {% if stats %}
+            <h2>Статистика PUBG за все время</h2>
+            <h3>Обновлено: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
+
+            <div class="user_stats">
+                {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
+                    {% if stats.stats.get(mode) %}
+                    {% set values = stats.stats[mode] %}
+                    <div class="stat_card">
+                        <h3><strong>{{ mode|upper }}</strong></h3>
+                        <p>Убийств: {{ values.kills }}</p>
+                        <p>Побед: {{ values.wins }}</p>
+                        <p>Игр сыграно: {{ values.rounds_played }}</p>
+                        <p>Урон: {{ values.damage_dealt }}</p>
+                        <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
+                        <p>Хедшоты: {{ values.headshot_kills }}</p>
+                        <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <p>Нет данных о статистике игрока.</p>
+            {% endif %}
+    
+        </div>
+
+    </div>
    
 
-
-    <form method="post">
-        <input type="hidden" name="action" value="update_profile">
-
-        <label>Логин (нельзя изменить):</label>
-        <input type="text" value="{{ user.username }}" disabled>
-
-        <label>Email:</label>
-        <input type="text" value="{{ masked_email }}" disabled>
-
-        <label>Имя:</label>
-        <input type="text" name="name" value="{{ user.name or '' }}">
-
-        <label>PUBG Никнейм:</label>
-        <input type="text" name="pubg_nickname" value="{{ user.pubg_nickname or '' }}" disabled>
-        <small>Если вы сменили никнейм в PUBG - сообщите администраторам</small>
-
-        <label>Дата рождения:</label>
-        <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
-
-        <hr>
-
-        <button type="submit" class="button">Сохранить изменения профиля</button>
-    </form>
-
-    <h3>Смена пароля</h3>
-
-    {% if not password_change_requested %}
-    <form method="post">
-        <input type="hidden" name="action" value="request_password_change">
-
-        <label>Текущий пароль:</label>
-        <input type="password" name="current_password" required>
-
-        <label>Новый пароль:</label>
-        <input type="password" name="new_password" minlength="6" maxlength="30" required>
-
-        <p><small>После отправки формы вам будет отправлен код подтверждения на email</small></p>
-
-        <button type="submit" class="button">Запросить смену пароля</button>
-    </form>
-    {% else %}
-    <form method="post">
-        <input type="hidden" name="action" value="confirm_password_change">
-
-        <label>Код подтверждения:</label>
-        <input type="text" name="verification_code" required>
-        <small>Введите код, отправленный на ваш email</small>
-
-        <button type="submit" class="button">Подтвердить смену пароля</button>
-        <a href="{{ url_for('user.profile') }}" class="button">Отмена</a>
-    </form>
-    {% endif %}
+    
 
 </div>
 {% endblock %}

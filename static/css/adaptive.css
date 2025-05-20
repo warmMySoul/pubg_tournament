@@ -6,6 +6,19 @@
     padding: 0 10px;
   }
 
+  h1 {
+    font-size: 3em;
+    margin: 0.67em 0;
+  }
+
+  h2, .h2 {
+   font-size: 36px;
+  }
+
+  h3, .h3 {
+    font-size: 24px;
+  }
+
   /* Навбар */
   .navbar {
     height: auto;
@@ -115,13 +128,13 @@
 
   .member_list_container,
   .member_best_container {
+    box-sizing: border-box;
     width: 100%;
     margin: 5px 0;
   }
 
   /* Таблицы */
   table {
-    display: block;
     overflow-x: auto;
     white-space: nowrap;
   }
@@ -206,6 +219,33 @@
   max-height: 90vh;
   overflow-y: auto;
   padding: 15px;
+}
+
+.next_tournament, .last_tournament {
+  flex-direction: column;
+}
+.matches_img {
+  width: 100%;
+}
+
+.player-info {
+width: 100%;
+}
+
+.scoring-info {
+    width: 100%;
+}
+
+.scoring-table {
+  white-space: nowrap; /* Запрещаем перенос текста */
+}
+        
+.scoring-table td {
+  padding: 8px 12px; /* Увеличиваем отступы для мобильных */
+}
+
+.profile_container{
+  flex-direction: column-reverse;
 }
 }
 

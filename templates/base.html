@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Иконки -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" href="{{ url_for('static', filename='images/logo_gold.png') }}" type="image/x-icon">
 </head>
@@ -69,9 +71,9 @@
 
             <div class="navigation_menu">
                 <a href="/#about_us" class="nav_link">О нас</a>
-                <a href="/#champions" class="nav_link">Чемпионы</a>
                 <a href="/#tournaments" class="nav_link">Турниры</a>
                 <a href="/#members" class="nav_link">Состав клана</a>
+                <a href="/#FAQ" class="nav_link">FAQ</a>
             </div>
 
             {% if current_user %}

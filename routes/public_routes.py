@@ -1,3 +1,4 @@
+from zoneinfo import ZoneInfo
 from flask import Blueprint, request, session, redirect, url_for, flash, render_template
 from datetime import datetime
 
@@ -67,5 +68,5 @@ def view_players_public(tournament_id):
     return render_template('public/tournaments/players_public.html', 
                          tournament=tournament, 
                          players=players,
-                         just_registered=just_registered,
-                         max_players=max_players)
+                         max_players=max_players,
+                         now=datetime.now(ZoneInfo("Europe/Moscow")))

@@ -77,24 +77,46 @@
     <div class="container_block" data-aos="fade-right" id="tournaments">
         <h2>Турниры:</h2>
         <div class="tournament_info">
+
             {% if next_tournament %}
             <div class="next_tournament">
+                <img class="matches_img" src="{{ url_for('static', filename='images/matches.png') }}">
+                <div class="tournament_card_info">
+                    <h3 class="h3_mgb8">Ближайший турнир</h3>
+                    <p>
+                        <strong class="h4">{{ next_tournament.name }}</strong> <br>
+                        <strong>Дата проведения</strong> - {{ next_tournament.tournament_date.strftime('%d.%m.%Y') }} <br>
+                        <strong>Начало регистрации</strong> - {{ next_tournament.reg_start }}<br>
+                        <strong>Начало регистрации</strong> - {{ next_tournament.reg_end}}<br>
+                        <strong>Режим игры</strong> - {{ next_tournament.mode }}<br>
+                        <strong>Количество карт</strong> - {{ next_tournament.maps_count }}<br>
+                    </p>
+                
 
-                <h3>Ближайший турнир</h3>
-                <strong>{{ next_tournament.name }}</strong> — {{ next_tournament.tournament_date.strftime('%d.%m.%Y') }}
-                {% if current_user %}
-                    {% if current_user.role in ['admin', 'moderator','clan_member'] %}
-                        <br><br>
-                        <a href="{{url_for('user.player_form',tournament_id=next_tournament.id)}}" class="button">Записаться</a>
+                    {% if current_user %}
+                        {% if current_user.role in ['admin', 'moderator','clan_member'] %}
+                            <a href="{{url_for('user.player_form',tournament_id=next_tournament.id)}}" class="button">Записаться</a>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
+                </div>
             </div>
             {% endif %}
 
             {% if last_tournament %}
             <div class="last_tournament">
-                <h3>Прошлый турнир</h3>
-                <strong>{{ last_tournament.name }}</strong> — {{ last_tournament.tournament_date.strftime('%d.%m.%Y') }}
+                <img class="matches_img" src="{{ url_for('static', filename='images/matches.png') }}">
+                <div class="tournament_card_info">
+                    <h3 class="h3_mgb8">Прошлый турнир</h3>
+                    <p>
+                        <strong class="h4">{{ last_tournament.name }}</strong><br>
+                        <strong>Дата проведения</strong> - {{ last_tournament.tournament_date.strftime('%d.%m.%Y') }}<br>
+                        <strong>Режим игры</strong> - {{ last_tournament.mode }}<br>
+                        <strong>Количество карт</strong> - {{ last_tournament.maps_count }}<br>
+                    </p>
+                
+
+                    <a href="{{url_for('public.view_players_public',tournament_id=last_tournament.id)}}" class="button">Посмотреть детали турнира</a>
+                </div>
             </div>
             {% endif %}
 
@@ -125,6 +147,81 @@
                         {% endif %}
                     </li>
                     {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container_block" data-aos="fade-right" id="FAQ">
+    <h2>FAQ:</h2>
+    <div class="faq-container">
+        <!-- Вопрос 1 -->
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Как вступить в клан?</span>
+                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
+            </div>
+            <div class="faq-answer">
+                <p>Чтобы вступить в клан, вам необходимо:</p>
+                <ol>
+                    <li>Зарегистрироваться на нашем сайте</li>
+                    <li>Заполнить заявку на вступление через кнопку "Подать заявку"</li>
+                    <li>Дождаться рассмотрения вашей заявки администрацией</li>
+                    <li>После одобрения вы получите уведомление и инструкции на почту</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Вопрос 2 -->
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Какие требования к участникам?</span>
+                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
+            </div>
+            <div class="faq-answer">
+                <p>Основные требования:</p>
+                <ul>
+                    <li>Возраст от 16 лет</li>
+                    <li>Регулярное участие в играх и турнирах</li>
+                    <li>Отсутствие банов и читов в истории аккаунта</li>
+                    <li>Готовность соблюдать правила клана</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Вопрос 3 -->
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Как часто проводятся турниры?</span>
+                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
+            </div>
+            <div class="faq-answer">
+                <p>Мы проводим турниры с разной периодичностью:</p>
+                <ul>
+                    <li>Еженедельные мини-турниры (по выходным)</li>
+                    <li>Месячные чемпионаты</li>
+                    <li>Сезонные турниры с призовым фондом (4 раза в год)</li>
+                </ul>
+                <p>Актуальная информация всегда доступна в разделе "Турниры"</p>
+            </div>
+        </div>
+
+        <!-- Вопрос 4 -->
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Какие правила поведения в клане?</span>
+                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
+            </div>
+            <div class="faq-answer">
+                <p>Основные правила:</p>
+                <ul>
+                    <li>Запрещено использование читов и багов</li>
+                    <li>Запрещено токсичное поведение и оскорбления</li>
+                    <li>Обязательно участие в командных играх</li>
+                    <li>Активность не реже 2 раз в неделю</li>
+                    <li>Соблюдение спортивного духа</li>
+                    <li>Присутствие в канале клана в дискорде во время игры</li>
                 </ul>
             </div>
         </div>
@@ -172,5 +269,18 @@
     </div>
 </div>
 
-
+<script>
+    function toggleFaq(questionElement) {
+        const faqItem = questionElement.parentElement;
+        faqItem.classList.toggle('active');
+        
+        // Закрываем другие открытые вопросы
+        const allFaqItems = document.querySelectorAll('.faq-item');
+        allFaqItems.forEach(item => {
+            if (item !== faqItem && item.classList.contains('active')) {
+                item.classList.remove('active');
+            }
+        });
+    }
+</script>
 {% endblock %}

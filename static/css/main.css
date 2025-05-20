@@ -189,6 +189,7 @@ button {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
 .button:hover,
@@ -211,6 +212,14 @@ button:hover {
     margin: 30px 0;
 }
 
+
+.container_left{
+    width: 100%;
+}
+
+.container_right {
+    width: 100%;
+}
 
 /* Модальное окно авторизации/регистрации */
 .modal_log_reg {
@@ -356,6 +365,20 @@ textarea {
     padding: 16px;
     flex: 1;
     box-sizing: border-box;
+    display: flex;
+}
+
+.matches_img{
+    max-height: 310px;
+    border-radius: 16px;
+    margin-right: 16px;
+}
+
+.tournament_card_info{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
 }
 
 /* Если нужно, чтобы при одном элементе он занимал всю ширину */
@@ -377,11 +400,59 @@ textarea {
     margin: 5px;
     border: 2px solid var(--light-gray);
     border-radius: 8px;
-    padding: 8px;
-    width: 50%;
+    padding: 16px;
+    width: 100%;
     overflow-y: auto;
 }
 
+/*FAQ*/
+.faq-container {
+    margin-top: 20px;
+}
+    
+.faq-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+    
+.faq-question {
+    padding: 15px;
+    background-color: var(--light-gray);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+    
+.faq-question:hover {
+    background-color: var(--dark-gray);
+}
+    
+.faq-arrow {
+    font-size: 18px;
+    transition: transform 0.3s;
+}
+    
+.faq-answer {
+    padding: 0 15px;
+    background-color: var(--dark-gray);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease;
+}
+    
+.faq-item.active .faq-answer {
+    padding: 15px;
+    max-height: 500px;
+}
+    
+.faq-item.active .faq-arrow {
+    transform: rotate(180deg);
+}
 
 /* Заголовки */
 h1,
@@ -395,6 +466,26 @@ h4,
     color: var(--gold);
     font-family: 'Obrazec2', "Mulish", sans-serif;
     letter-spacing: 2px;
+}
+
+h1, .h1{
+    font-size: 48px;
+}
+
+h2, .h2{
+    font-size: 36px;
+}
+
+h3, .h3{
+    font-size: 24px;
+}
+
+.h3_mgb8 {
+    margin-bottom: 8px;
+}
+
+h4, .h4{
+    font-size: 18px;
 }
 
 /* Таблицы */
@@ -721,8 +812,8 @@ select:focus {
 }
 
 .join_button {
-    background: linear-gradient(to right, var(--light-gray), var(--dark-gray));
-    color: var(--white);
+    background: linear-gradient(to right, var(--high-light-gold), var(--light-gold));
+    color: var(--black);
     padding: 0.8rem 1.8rem;
     font-size: 18px;
     border: solid 2px var(--dark-gold);
@@ -777,13 +868,23 @@ label[for="applicant_know_from_optional"] {
 }
 
 .scoring-table {
+    width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     border-radius: 16px;
     overflow: hidden;
+    background-color: var(--light-gray);
+    border: 1px solid var(--dark-gold);
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
-.scoring-table th,
+.scoring-table tbody {
+    display: table;
+    width: 100%;
+}
+
 .scoring-table td {
     padding: 8px;
     text-align: center;
@@ -858,6 +959,7 @@ label[for="applicant_know_from_optional"] {
 /*Карточка статистики*/
 .user_stats{
     display: flex;
+    flex-direction: column;
     gap: 32px;
 }
 
@@ -867,4 +969,10 @@ label[for="applicant_know_from_optional"] {
     padding: 4px 16px;
     background: var(--light-gray);
     width: 100%;
+    box-sizing: border-box;
+}
+
+.profile_container {
+    display: flex;
+    gap: 16px;
 }
