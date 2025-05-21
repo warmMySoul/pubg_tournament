@@ -58,41 +58,42 @@
 
     <h2>Список пользователей</h2>
     {% if users %}
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Логин</th>
-            <th>Ник в PUBG</th>
-            <th>Роль</th>
-            <th>Имя</th>
-            <th>День рождения</th>
-            <th>Почта</th>
-            <th>Дата регистрации</th>
-            <th>Действия</th>
-        </tr>
-        {% for user in users %}
-        <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#FF8C00'"
-            onmouseout="this.style.backgroundColor='transparent'" onclick="handleRowClick(event, {{ user.id }})">
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.pubg_nickname }}</td>
-            <td>{{ user.role }}</td>
-            <td>{{ user.name if user.name else '—' }}</td>
-            <td>{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
-            <td>
-                {% if user.id != current_user.id and user.username != "admin" and current_user.role == "admin" %}
-                <button onclick='event.stopPropagation(); confirmDelete({{ user.id|tojson }})'>Удалить</button>
-                {% endif %}
-                {% if user.username != "admin" and current_user.role == "admin" %}
-                    <i class="fas fa-pencil-alt" style="cursor:pointer; margin-left:10px;"onclick='event.stopPropagation(); editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
-                {% endif %}
-                
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+        <ul class="user_list">    
+            {% for user in users %}
+                <li class="member-card" style="cursor: pointer;" onmouseover="this.style.backgroundColor='var(--dark-gray)'"
+            onmouseout="this.style.backgroundColor='var(--light-gray)'" onclick="handleRowClick(event, {{ user.id }})">
+                    <div class="user-nickname">{{ user.pubg_nickname }}</div>
+                    <div class="user-info">
+                        <div class="text_group_flex">
+                            <span>ID: {{ user.id }}</span>
+                            <span>Логин: {{ user.username }}</span>
+                        </div>
+                        
+                        <div class="text_group_flex">
+                            <span>Имя: {{ user.name if user.name else '—' }}</span>
+                            <span>День рождения:{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</span>
+                        </div>
+                        <div class="text_group_flex">
+                            <span>Email: {{ user.email }}</span>
+                            <span>Дата регистрации: {{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</span>
+                        </div>
+                    </div>
+                    <div class="member-card-right_block">
+                        {% if user.role == "admin" or user.role == "moderator" or user.role == "clan_member" %}
+                            <div class="member-role {{user.role}}">{{ user.role }}</div>
+                        {% endif %}
+                        {% if user.id != current_user.id and user.username != "admin" and current_user.role == "admin" %}
+                            <button onclick='event.stopPropagation(); confirmDelete({{ user.id|tojson }})'>Удалить</button>
+                        {% endif %}
+                        {% if user.username != "admin" and current_user.role == "admin" %}
+                            <i class="fas fa-pencil-alt edit_btn" style="cursor:pointer; margin-left:10px;" 
+                            onclick='event.stopPropagation(); editUser({{ user.id }}, "{{ user.pubg_nickname }}", "{{ user.name or '' }}", "{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}", "{{ user.role }}")'></i>
+                        {% endif %}
+                    </div>
+                    
+                </li>
+            {% endfor %}
+        </ul>
     {% endif %}
 
     <!-- Пагинация с сохранением фильтров -->

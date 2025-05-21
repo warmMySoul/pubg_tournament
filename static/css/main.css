@@ -112,8 +112,21 @@ scroll-behavior: smooth;
 }
 
 .navbar_profile_block {
+    display: flex;
     margin: 8px;
+    align-items: center;
 }
+
+.links {
+    margin-right: 32px;
+    display: flex;
+    gap: 16px;
+}
+
+.links a img {
+    margin-top: 8px;
+}
+
 
 .navbar_profile {
     cursor: pointer;
@@ -578,9 +591,6 @@ select {
     resize: none;
 }
 
-select {
-    width: 99%;
-}
 
 input:focus,
 textarea:focus,
@@ -674,6 +684,7 @@ select:focus {
 }
 
 .collapsible-content {
+    background-color: var(--dark-gray);
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out;
@@ -694,11 +705,30 @@ select:focus {
     transform: rotate(180deg);
 }
 
-/*member_list*/
+/*member_list & user_list*/
 
-.member_list {
+.member_list, .user_list {
     list-style: none;
     padding: 0;
+}
+
+.member-card-right_block {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.text_group_flex{
+    display: flex;
+    flex-direction: column;
+}
+
+.edit_btn {
+    padding: 12px;
+    text-align: center;
+    margin-right: 8px;
+    color: var(--black);
+    background: var(--gold);
+    border-radius: 8px;
 }
 
 .member-card {
@@ -710,10 +740,22 @@ select:focus {
     list-style-type: none;
 }
 
+.user-nickname{
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 5px;
+    color: var(--gold);
+}
+
 .member-nickname {
     font-weight: bold;
     font-size: 1.2em;
     margin-bottom: 5px;
+}
+
+.user-info{
+    display: flex;
+    gap: 30px;
 }
 
 .member-info {
@@ -735,6 +777,10 @@ select:focus {
 
 .moderator {
     background: #9455be;
+}
+
+.clan_member{
+    background-color: #6ea4f5;
 }
 
 /* Стили для блока "О клане" */
