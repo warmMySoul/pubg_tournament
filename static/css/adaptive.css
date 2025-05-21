@@ -178,13 +178,6 @@
     padding: 10px;
   }
 
-
-  .member-role {
-    position: static;
-    display: inline-block;
-    margin-top: 5px;
-  }
-
   .log_reg_container {
     margin: auto;
     margin-top: 8%;
@@ -246,6 +239,25 @@ width: 100%;
 
 .profile_container{
   flex-direction: column-reverse;
+}
+
+.links {
+  margin-right: 0px;
+}
+
+.user-info {
+  flex-direction: column;
+  gap: 5px;
+}
+
+.matches-section{
+  overflow-y: auto;
+  max-height: 80vh;
+  border: 1px solid var(--light-gray);
+  border-radius: 8px;
+  margin-top: 8px;
+  padding: 6px;
+
 }
 }
 

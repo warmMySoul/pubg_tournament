@@ -158,6 +158,7 @@ scroll-behavior: smooth;
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
+    top: 72px;
 }
 
 .profile-dropdown a {
