@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Закрытие при клике вне модального окна
+    /*
     document.querySelectorAll('.modal_log_reg').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -320,4 +321,5 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    */
 });
