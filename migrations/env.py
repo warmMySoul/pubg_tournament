@@ -17,13 +17,13 @@ logger = logging.getLogger('alembic.env')
 from models import (
     RoleEnum, Tournament, PlayerGroup, 
     Player, AdminActionLog, User,
-    Match, PlayerMatchStats, ScheduledTask, MatchStats
+    Match, PlayerMatchStats, ScheduledTask, MatchStats, JoinRequests
 )
 from extensions.db_connection import db
 
 # Принудительная регистрация моделей
 _ = [RoleEnum, Tournament, PlayerGroup, Player, 
-     AdminActionLog, User, Match, PlayerMatchStats, ScheduledTask, MatchStats]
+     AdminActionLog, User, Match, PlayerMatchStats, ScheduledTask, MatchStats, JoinRequests]
 
 # Настройка метаданных
 target_metadata = db.metadata
@@ -47,7 +47,7 @@ def get_metadata():
     from models import (
         RoleEnum, Tournament, PlayerGroup,
         Player, AdminActionLog, User,
-        Match, PlayerMatchStats, ScheduledTask, MatchStats
+        Match, PlayerMatchStats, ScheduledTask, MatchStats, JoinRequests
     )
     return db.metadata
 

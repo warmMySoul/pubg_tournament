@@ -6,6 +6,7 @@ class RoleEnum():
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     CLAN_MEMBER = 'clan_member'
+    CLAN_FRIEND = "clan_friend"
     GUEST = 'guest'
 
     def __str__(self):

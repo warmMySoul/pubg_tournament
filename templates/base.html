@@ -24,6 +24,7 @@
     <!-- Иконки -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" href="{{ url_for('static', filename='images/logo_gold.png') }}" type="image/x-icon">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
 </head>
 
 <body>
@@ -78,16 +79,33 @@
 
             {% if current_user %}
             <div class="navbar_profile_block">
-                {% if current_user.role in ['admin', 'moderator','clan_member'] %}
+                {% if current_user.role in ['admin', 'moderator', 'clan_member', 'clan_friend'] %}
                     <div class="links">
                         <a class="link_ds" target="_blank" href="https://discord.gg/goldenbulls"><img width="36" height="36" src="{{ url_for('static', filename='images/discord.png') }}" alt="discord-logo--v1"/></a>
                         <a class="link_tg" target="_blank" href="https://t.me/+zDtlgXelVX03YWEy"><img width="32" height="32" src="{{ url_for('static', filename='images/telegram.png') }}" alt="telegram-app"/></a>
                     </div>
                 {% endif %}
 
+                {% set role_translations = {
+                    'admin': 'Админ',
+                    'moderator': 'Модератор',
+                    'clan_member': 'Член клана',
+                    'clan_friend': 'Друг клана',
+                    'guest': 'Гость'
+                } %}
+
+                {% if current_user.role in ['admin', 'moderator'] %}
+                    <a href="/admin" class="button">Админ-панель</a>
+                {% endif %}
+
                 <div class="navbar_profile" onclick="toggleProfileMenu(event)">
-                    <span class="nav_username">{{ current_user.username }}</span>
                     <i class="fas fa-user profile-icon"></i>
+                    <span class="nav_username">{{ current_user.username }}</span>
+                    {% if current_user %}
+                        <div class="user-role">
+                            {{ role_translations[current_user.role] }}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div id="profileDropdown" class="profile-dropdown">

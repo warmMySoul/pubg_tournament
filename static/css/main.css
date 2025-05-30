@@ -13,13 +13,23 @@
 
 @font-face {
     font-family: 'Obrazec2';
-    src: url('/static/fonts/obrazec_2_0/Obrazec-2.ttf') format('ttf'),
+    src: url('/static/fonts/obrazec_2_0/Obrazec-2.ttf') format('truetype'),
          url('/static/fonts/obrazec_2_0/Obrazec-2.woff') format('woff');
 }
 
 @font-face {
+    font-family: 'Accid';
+    src: url('/static/fonts/accid/accid.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'MPLUSRounded';
+    src: url('/static/fonts/MPLUSRounded/MPLUSRounded1c-Medium.ttf') format('truetype');
+}
+
+@font-face {
     font-family: 'Finlandica';
-    src: url('/static/fonts/finlandica/finlandica-regularWeb.ttf') format('ttf'),
+    src: url('/static/fonts/finlandica/finlandica-regularWeb.ttf') format('truetype'),
          url('/static/fonts/finlandica/finlandica-regularWeb.woff') format('woff');
 }
 
@@ -130,6 +140,16 @@ scroll-behavior: smooth;
 
 .navbar_profile {
     cursor: pointer;
+    padding: 4px 8px;
+    border: 2px solid transparent;
+    margin-left: 4px;
+}
+
+.navbar_profile:hover {
+    border: 2px solid var(--gold);
+    background-color: var(--light-gray);
+    border-radius: 8px;
+    box-sizing: border-box;
 }
 
 .nav_username {
@@ -494,8 +514,8 @@ h3,
 h4,
 .h4 {
     color: var(--gold);
-    font-family: 'Obrazec2', "Mulish", sans-serif;
-    letter-spacing: 2px;
+    font-family: 'Accid', 'Obrazec2', "Mulish", sans-serif;
+    letter-spacing: 1px;
 }
 
 h1, .h1{
@@ -599,6 +619,15 @@ select:focus {
     outline: none;
     border-color: var(--orange);
     box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+}
+
+.small_link{
+    display: inline-block;
+    margin: auto 0;
+    text-decoration: underline;
+    color: var(--white);
+    width: 100%;
+    text-align: center;
 }
 
 /* Добавляем новые стили для статусов */
@@ -776,6 +805,15 @@ select:focus {
     font-size: 0.8em;
 }
 
+.user-role{
+    background: #4CAF50;
+    color: var(--white);
+    margin: 0 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    text-align: center;
+}
+
 .moderator {
     background: #9455be;
 }
@@ -783,6 +821,14 @@ select:focus {
 .clan_member{
     background-color: #6ea4f5;
 }
+
+.clan_friend{
+    background-color: #d18725;
+}
+
+
+
+
 
 /* Стили для блока "О клане" */
 .recruitment-content {
@@ -804,7 +850,7 @@ select:focus {
 
 .container_block h2 {
     color: var(--gold);
-    font-size: 64px;
+    font-size: 48px;
     margin: 0;
     font-weight: 600;
     text-align: center;
@@ -887,6 +933,28 @@ select:focus {
     margin: 12px auto;
     text-align: center;
     display: block;
+}
+
+.join_request{
+    text-align: center;
+    font-size: 18px;
+    width: 100%;
+    background-color: var(--light-gold);
+    border-radius: 8px;
+    padding: 8px 0;
+    color: var(--black);
+}
+
+.rq_decline
+{
+    background-color: #F44336;
+    color: var(--white);
+}
+
+.rq_accepted
+{
+    background-color: #4CAF50;
+    color: var(--white);
 }
 
 /* Стили для динамических полей */
@@ -1039,4 +1107,43 @@ label[for="applicant_know_from_optional"] {
 .profile_container {
     display: flex;
     gap: 16px;
+}
+
+.admin-actions{
+  display: flex;
+  gap: 8px;
+}
+
+/*Заявки в клан*/
+.join_requests_actual {
+    padding: 16px;
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    margin: 16px 0;
+    background-color: var(--light-gray);
+}
+
+.join_request_card  {
+    padding: 16px;
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    margin: 16px 0;
+    background-color: var(--dark-gray);
+    display: flex;
+    justify-content: space-between;
+}
+
+.join_request_card_conrol
+{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    min-width: 20%;
+    align-items: center;
+}
+
+.join_request_card_conrol_buttons{
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
 }

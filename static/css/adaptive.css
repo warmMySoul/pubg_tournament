@@ -45,7 +45,7 @@
   }
 
   .navbar_profile{
-    border-radius: 16px;
+    border-radius: 8px;
     background-color: #333333;
   }
 
@@ -258,6 +258,14 @@ width: 100%;
   margin-top: 8px;
   padding: 6px;
 
+}
+
+.join_request_card {
+  flex-direction: column;
+}
+
+.admin-actions{
+  flex-direction: column;
 }
 }
 

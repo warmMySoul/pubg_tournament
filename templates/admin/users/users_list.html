@@ -20,14 +20,16 @@
                 <!-- Фильтр по роли -->
                 <label for="role_filter">Роль:</label>
                 <select name="role_filter" id="role_filter" class="form-control">
-                    <option value="all" {% if current_filters.role_filter == 'all' %}selected{% endif %}>Все</option>
+                    <option value="all" {% if current_filters.role_filter == 'all' %}selected{% endif %}>Все пользователи</option>
                     <option value="admins" {% if current_filters.role_filter == 'admins' %}selected{% endif %}>
-                        Администраторы</option>
+                        Администратор</option>
                     <option value="moderators" {% if current_filters.role_filter == 'moderators' %}selected{% endif %}>
-                        Модераторы</option>
+                        Модератор</option>
                     <option value="clan_members"
-                        {% if current_filters.role_filter == 'clan_members' %}selected{% endif %}>Члены клана</option>
-                    <option value="guests" {% if current_filters.role_filter == 'guests' %}selected{% endif %}>Гости
+                        {% if current_filters.role_filter == 'clan_members' %}selected{% endif %}>Член клана</option>
+                    <option value="clan_friend"
+                        {% if current_filters.role_filter == 'clan_friend' %}selected{% endif %}>Друг клана</option>
+                    <option value="guests" {% if current_filters.role_filter == 'guests' %}selected{% endif %}>Гость
                     </option>
                 </select>
 
@@ -79,7 +81,7 @@
                         </div>
                     </div>
                     <div class="member-card-right_block">
-                        {% if user.role == "admin" or user.role == "moderator" or user.role == "clan_member" %}
+                        {% if user.role in ['admin', 'moderator', 'clan_member', 'clan_friend'] %}
                             <div class="member-role {{user.role}}">{{ user.role }}</div>
                         {% endif %}
                         {% if user.id != current_user.id and user.username != "admin" and current_user.role == "admin" %}
@@ -162,6 +164,7 @@
                     <option value="admin">Админ</option>
                     <option value="moderator">Модератор</option>
                     <option value="clan_member">Участник клана</option>
+                    <option value="clan_friend">Друг клана</option>
                     <option value="guest">Гость</option>
                 </select>
                 <div style="margin-top:10px;">

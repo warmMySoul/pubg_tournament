@@ -10,9 +10,9 @@ from flask import Blueprint, flash, url_for, redirect, request, render_template,
 from datetime import datetime
 from flask import send_file
 from openpyxl import Workbook
-from sqlalchemy import func
+from sqlalchemy import case, func
 from extensions.security import get_current_user, role_required
-from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User, Match, PlayerMatchStats, ScheduledTask
+from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User, Match, PlayerMatchStats, ScheduledTask, JoinRequests, RqStatusEnum
 from extensions.db_connection import db
 
 # Импорт логирования
@@ -35,7 +35,10 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @admin_bp.route('/')
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def admin():
-    return render_template('admin/admin.html')
+    join_requests = JoinRequests.query.filter_by(status = RqStatusEnum.REVIEW).all()
+
+    return render_template('admin/admin.html',
+                           join_requests=join_requests)
 
 # Турниры
 @admin_bp.route('/tournaments')
@@ -515,6 +518,8 @@ def users_list():
         query = query.filter(User.role == RoleEnum.MODERATOR)
     elif role_filter == 'clan_members':
         query = query.filter(User.role == RoleEnum.CLAN_MEMBER)
+    elif role_filter == 'clan_friend':
+        query = query.filter(User.role == RoleEnum.CLAN_FRIEND)
     elif role_filter == 'guests':
         query = query.filter(User.role == RoleEnum.GUEST)
     
@@ -896,4 +901,122 @@ def load_api_stats():
         
     except Exception as e:
         current_app.logger.error(f"Ошибка загрузки статистики: {str(e)}")
+        return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
+    
+# Список всех заявкок на вступление в клан
+@admin_bp.route('/join_requests', methods=['GET'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def join_requests():
+    try:
+        # Создаем кастомный порядок сортировки
+        status_ordering = case(
+            {
+                RqStatusEnum.REVIEW: 1,
+                RqStatusEnum.DECLINED: 2,
+                RqStatusEnum.ACCEPTED: 3
+            },
+            value=JoinRequests.status
+        )
+        
+        join_requests = JoinRequests.query.order_by(status_ordering).order_by(JoinRequests.created_at.asc()).all()
+
+    except Exception as e:
+        return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
+
+    return render_template('admin/join_requests/all_requests.html',
+                           join_requests=join_requests)
+
+# API запрос для обновления заявки в клан
+@admin_bp.route('/api/join_requests', methods=['GET'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def api_join_requests():
+    try:
+        status_ordering = case(
+            {
+                RqStatusEnum.REVIEW: 1,
+                RqStatusEnum.DECLINED: 2,
+                RqStatusEnum.ACCEPTED: 3
+            },
+            value=JoinRequests.status
+        )
+        
+        join_requests = JoinRequests.query.order_by(status_ordering).order_by(JoinRequests.created_at.asc()).all()
+        
+        # Преобразуем данные в JSON-формат
+        requests_data = []
+        for req in join_requests:
+            requests_data.append({
+                'id': req.id,
+                'username': req.user.username,
+                'status': req.status,
+                'created_at': req.created_at.strftime('%d.%m.%Y %H:%M:%S'),
+                # Добавьте другие нужные поля
+            })
+            
+        return jsonify(requests_data)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Принятие заявки в клан
+@admin_bp.route('/accept_join_request/<int:join_request_id>', methods=['POST'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def accept_join_request(join_request_id):
+    try:
+        user = get_current_user()
+        join_request = JoinRequests.query.get_or_404(join_request_id)
+        join_request.status = RqStatusEnum.ACCEPTED
+        join_request.moderator_id = user.id
+        join_request.moderate_at = datetime.now(ZoneInfo("Europe/Moscow"))
+
+        join_request.user.role = RoleEnum.CLAN_MEMBER
+        
+        db.session.flush()
+        log(f"{user.username} принял заявку в клан от {join_request.user.username}")
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f"Заявка от {join_request.user.username} принята!",
+            'request_id': join_request_id,
+            'new_status': 'Принята',
+            'moderator': user.username
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    
+
+# Отклонение заявки в клан
+@admin_bp.route('/decline_join_request/<int:join_request_id>', methods=['POST'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def decline_join_request(join_request_id):
+    try:
+        user = get_current_user()
+        reason = request.json.get('reason')
+        
+        if not reason:
+            return jsonify({'error': 'Укажите причину отказа'}), 400
+            
+        join_request = JoinRequests.query.get_or_404(join_request_id)
+        join_request.status = RqStatusEnum.DECLINED
+        join_request.moderator_id = user.id
+        join_request.moderate_at = datetime.now(ZoneInfo("Europe/Moscow"))
+        join_request.reason = reason
+        
+        db.session.flush()
+        log(f"{user.username} отклонил заявку в клан от {join_request.user.username}")
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f"Заявка от {join_request.user.username} отклонена",
+            'request_id': join_request_id,
+            'new_status': 'Отклонена',
+            'moderator': user.username,
+            'reason': reason
+        })
+
+    except Exception as e:
         return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500

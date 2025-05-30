@@ -1,32 +1,21 @@
 {% extends 'base.html' %}
 
 {% block title %}
-<title>GB Admin - Панель администратора</title>
+<title>GB Admin - Заявки в клан</title>
 {% endblock %}
 
-{% block content %}
-<div class="container">
-    <h1>Админ-панель</h1>
-
-    <div class="admin-actions">
-        <a href="{{url_for('admin.tournaments')}}" class="button">Турниры</a>
-        <a href="{{url_for('admin.users_list')}}" class="button">Пользователи</a>
-        <a href="{{url_for('admin.view_logs')}}" class="button">Журнал действий</a>
-        {% if current_user.username == 'admin' %}
-            <a href="{{url_for('admin.tasks')}}" class="button">Планировщик задач</a>
-        {% endif %}
-    </div>
-
-    <div class="join_requests_actual">
-        <h3>Заявки в клан</h3>
+{% block content %}   
+    <div class="container">  
+        <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>   
         {% if join_requests %}
             {% for join_request in join_requests %}
-                <div class="join_request_card" id="request-{{ join_request.id }}">
+                <div class="join_request_card" id="request-{{ join_request.id }}" style="border-color: {% if join_request.status == 'Принята' %}#4CAF50{% elif join_request.status == 'Отклонена' %}#F44336{% endif %}">
                     <div class="join_request_card_info">
                         <a class="h4" href="{{url_for('admin.user_profile', user_id=join_request.user.id )}}">
                             {{join_request.user.username}}
                         </a>
                         <p>
+                            <strong>№:</strong> {{join_request.id}} <br>
                             <strong>Имя:</strong> {{join_request.user.name}} <br>
                             <strong>Ник:</strong> {{join_request.user.pubg_nickname}} <br>
                             <strong>Инфо:</strong> {{join_request.user_info}} <br>
@@ -34,24 +23,30 @@
                             <strong>Заявку подали:</strong> {{join_request.created_at.strftime('%d.%m.%Y %H:%M:%S')}}
                         </p>
                     </div>
+                    
                     <div class="join_request_card_conrol">
-                        {% if join_request.desired_role %}
-                            <p>Принять в клан?</p>
+                        {% if join_request.status == "На рассмотрении" %}
+                            {% if join_request.desired_role %}
+                                <p>Принять в клан?</p>
+                            {% else %}
+                                <p>Сделать другом клана?</p>
+                            {% endif %}
+                            <div class="join_request_card_conrol_buttons">
+                                <button onclick="processAccept({{ join_request.id }})" class="button"><i class="fi fi-rr-check"></i></button>
+                                <button onclick="showDeclineModal({{ join_request.id }})" class="button"><i class="fi fi-rr-cross"></i></button>
+                            </div>
                         {% else %}
-                            <p>Сделать другом клана?</p>
+                            <span>{{join_request.status}}</span>
+                            <span>{{join_request.moderator.username}}</span>
+                            <span>{{join_request.reason}}</span>
                         {% endif %}
-                        <div class="join_request_card_conrol_buttons">
-                            <button onclick="processAccept({{ join_request.id }})" class="button"><i class="fi fi-rr-check"></i></button>
-                            <button onclick="showDeclineModal({{ join_request.id }})" class="button"><i class="fi fi-rr-cross"></i></button>
-                        </div>
                     </div>
+                    
                 </div>
             {% endfor %}
         {% endif %}
-        <a href="{{url_for('admin.join_requests')}}" class="button">Все заявки</a>
-    </div>
 
-    <!-- Модальное окно для причины отказа -->
+        <!-- Модальное окно для причины отказа -->
         <div id="declineModal" class="modal" style="display:none">
             <div class="modal-content">
                 <span class="close" onclick="closeModal()">&times;</span>
@@ -60,7 +55,7 @@
                 <button onclick="processDecline()" class="button">Подтвердить</button>
             </div>
         </div>
-</div>
+    </div>
 
 <script>
 // Глобальные переменные для модального окна
@@ -173,4 +168,5 @@ function updateRequestCard(data) {
     card.querySelector('.join_request_card_conrol').innerHTML = controlHtml;
 }
 </script>
+
 {% endblock %}

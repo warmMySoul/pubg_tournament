@@ -55,13 +55,51 @@
                 {% if not current_user%}
                     <p style="text-align:center; text-decoration: underline; font-size: 18px">
                         Авторизуйтесь для подачи заявки на вступление в клан
-                    </p>
-                {% endif %}
-
-                {% if current_user.role == "guest"%}
-                    <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
-                        Подать заявку на вступление в клан
-                    </a>
+                    </p>                    
+                {% else %}
+                    {% if join_request %}
+                        {% if join_request.status == "Принята" %}
+                            <p class="join_request rq_accepted">
+                                <i class="fi fi-rr-checkbox"></i>
+                                Ваша заявка на вступление в клан <strong>принята</strong>. Добро пожаловать в клан Golden Bulls!
+                            </p>
+                        {% endif %}
+                        {% if join_request.status == "Отклонена" %}
+                            <p class="join_request rq_decline">
+                                <i class="fi fi-rr-rectangle-xmark"></i>
+                                Ваша заявка на вступление в клан <strong>отклонена</strong> по причине: {{join_request.reason}} <br>
+                                Вы сможете подать заявку повторно через месяц.
+                            </p>
+                            {% if (datetime_now - join_request.created_at).days > 30 %}
+                                <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
+                                    Подать повторно заявку на вступление в клан
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        {% if join_request.status == "На рассмотрении" %}
+                            <p class="join_request rq_review">
+                                <i class="fi fi-rr-hourglass-start"></i>
+                                Ваша заявка на вступление в клан находится на рассмотрении модераторов
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        {% if current_user.role == 'guest' %}
+                            <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
+                                Подать заявку на вступление в клан
+                            </a>
+                            <!--
+                            <a href="#" class="join_button button" style="margin-bottom: 0;">
+                                Хочу стать другом клана
+                            </a>
+                            <a href="#" class="small_link"><small>Что может друг клана?</small></a>
+                            -->
+                        {% endif %}
+                        {% if current_user.role == 'clan_friend' %}
+                            <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
+                                Подать заявку на вступление в клан
+                            </a>
+                        {% endif %}
+                    {% endif %}
                 {% endif %}
         </div>
     </div>
@@ -94,7 +132,7 @@
                 
 
                     {% if current_user %}
-                        {% if current_user.role in ['admin', 'moderator','clan_member'] %}
+                        {% if current_user.role in ['admin', 'moderator', 'clan_member'] %}
                             <a href="{{url_for('user.player_form',tournament_id=next_tournament.id)}}" class="button">Записаться</a>
                         {% endif %}
                     {% endif %}
@@ -114,8 +152,11 @@
                         <strong>Количество карт</strong> - {{ last_tournament.maps_count }}<br>
                     </p>
                 
-
-                    <a href="{{url_for('public.view_players_public',tournament_id=last_tournament.id)}}" class="button">Посмотреть детали турнира</a>
+                    {% if current_user %}
+                        {% if current_user.role in ['admin', 'moderator', 'clan_member', 'clan_friend'] %}
+                            <a href="{{url_for('public.view_players_public',tournament_id=last_tournament.id)}}" class="button">Посмотреть детали турнира</a>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
@@ -241,18 +282,30 @@
         
         <form id="joinClanForm">
             <label for="applicant_name">Имя:</label>
-            <input type="text" id="applicant_name" name="name" required>
+            <input type="text" id="applicant_name"
+            {% if current_user %}
+                {% if current_user.name %}
+                    value="{{ current_user.name}}"
+                {% endif %}
+            {% endif %}
+            name="name" required>
             
             <label for="applicant_birthday">Дата рождения:</label>
-            <input type="date" id="applicant_birthday" name="birthday" required>
+            <input type="date" id="applicant_birthday"
+            {% if current_user %}
+                {% if current_user.birthday %}
+                    value="{{ current_user.birthday.strftime('%Y-%m-%d') }}"
+                {% endif %}
+            {% endif %}
+            name="birthday" required>
             
-            <label for="applicant_info">Информация о себе:</label>
-            <small class="hint">Расскажите почему вы хотите вступить в клан Golden Bulls и как часто вы играете</small>
-            <textarea id="applicant_info" name="info" rows="5" required></textarea>
+            <label for="applicant_info">Расскажите о себе:</label>
+            <small class="hint">- почему вы хотите вступить в клан Golden Bulls <br> - какой уровень в PUBG <br> - как часто вы играете</small>
+            <textarea id="applicant_info" name="info" rows="5" maxlength="480" required></textarea>
 
             <label for="applicant_from">Откуда узнали о нас:</label>
             <select name="know_from" id="applicant_from" required>
-                <option value="friend">От друга/знакомого</option>
+                <option value="friend" selected>От друга/знакомого</option>
                 <option value="public">Из рекламы</option>
                 <option value="other">Другое</option>
             </select>

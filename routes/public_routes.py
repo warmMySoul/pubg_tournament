@@ -3,7 +3,8 @@ from flask import Blueprint, request, session, redirect, url_for, flash, render_
 from datetime import datetime
 
 from sqlalchemy import case, or_
-from models import User, RoleEnum, Tournament, Player
+from extensions.security import get_current_user
+from models import User, RoleEnum, Tournament, Player, JoinRequests, RqStatusEnum
 from extensions.db_connection import db
 
 # Импорт логирования
@@ -14,6 +15,13 @@ public_bp = Blueprint('public', __name__)
 # Главная страница сайта
 @public_bp.route('/')
 def home():
+
+    user = get_current_user()
+    if user:
+        join_request = JoinRequests.query.filter_by(user_id = user.id).order_by(JoinRequests.created_at.desc()).first()
+    else:
+        join_request = None
+
     # Создаем кастомный порядок сортировки
     role_ordering = case(
         {
@@ -49,10 +57,14 @@ def home():
         Tournament.tournament_date.desc()
     ).first()
 
+    datetime_now = datetime.now()
+
     return render_template('public/home.html',
                            members=members,
                            next_tournament=next_tournament,
-                           last_tournament=last_tournament)
+                           last_tournament=last_tournament,
+                           join_request=join_request,
+                           datetime_now=datetime_now)
 
 #Публичный просмотр деталей турнира
 @public_bp.route('/public/tournament/<tournament_id>')

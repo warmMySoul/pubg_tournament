@@ -7,7 +7,7 @@ from sqlalchemy import func
 from pubg_api.models.player import ParsedPlayerStats
 from services.verification_service import generate_verification_code, send_email, send_verification_email
 from utils.helpers import mask_email, registration_open as tournament_reg_is_open
-from models import RoleEnum, User, Tournament, Player, PlayerGroup, AdminActionLog, PlayerStats
+from models import RoleEnum, User, Tournament, Player, PlayerGroup, AdminActionLog, PlayerStats, JoinRequests, RqStatusEnum
 from extensions.db_connection import db
 
 # Импорт PUBG API
@@ -185,7 +185,8 @@ def login():
             'user': {
                 'id': user.id,
                 'username': user.username,
-                'role': user.role
+                'role': user.role,
+                'birthday': user.birthday if (user.birthday) else None
             }
         })
 
@@ -614,10 +615,26 @@ def join_clan_request():
 
         # Отправка письма
         send_email(
-            to="goldenbulls.requests@gmail.com",
+            to="goldenbulls.requests@mail.ru",
             subject=f"Новая заявка в клан от {user.username}",
             body=email_body
         )
+
+        new_join_rq = JoinRequests(
+                        user_id = user.id,
+                        user_info = info,
+                        know_from = know_from,
+                        desired_role = 1,
+                        status = RqStatusEnum.REVIEW
+                    )
+        
+        if not user.name: 
+            user.name = name
+        if not user.birthday:
+            user.birthday = birthday
+
+        db.session.add(new_join_rq)
+        db.session.commit()
 
         return jsonify({
             'success': True,
@@ -627,5 +644,5 @@ def join_clan_request():
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Произошла ошибка при отправке заявки: {str(e)}'
+            'message': f'Произошла ошибка при отправке заявки, {e}'
         }), 500
