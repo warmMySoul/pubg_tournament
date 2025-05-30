@@ -620,6 +620,14 @@ def join_clan_request():
             body=email_body
         )
 
+        try:
+            birthday_date = datetime.strptime(birthday, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'message': 'Неверный формат даты рождения. Используйте формат ГГГГ-ММ-ДД'
+            }), 400
+
         new_join_rq = JoinRequests(
                         user_id = user.id,
                         user_info = info,
@@ -644,5 +652,5 @@ def join_clan_request():
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Произошла ошибка при отправке заявки, {e}'
+            'message': f'Произошла ошибка при отправке заявки, сообщите администратору об ошибке'
         }), 500
