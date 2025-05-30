@@ -1020,3 +1020,23 @@ def decline_join_request(join_request_id):
 
     except Exception as e:
         return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
+    
+# Удаление заявки в клан
+@admin_bp.route('/delete_join_request/<int:join_request_id>', methods=['POST'])
+@role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
+def delete_join_request(join_request_id):
+    try:
+        user = get_current_user()
+        join_request = JoinRequests.query.get_or_404(join_request_id)
+        
+        
+        log(f"{user.username} принял заявку в клан от {join_request.user.username}")
+        db.session.delete(join_request)
+        db.session.commit()
+
+        return jsonify({
+            'success': True
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
