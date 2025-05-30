@@ -639,7 +639,7 @@ def join_clan_request():
         if not user.name: 
             user.name = name
         if not user.birthday:
-            user.birthday = birthday
+            user.birthday = birthday_date
 
         db.session.add(new_join_rq)
         db.session.commit()
