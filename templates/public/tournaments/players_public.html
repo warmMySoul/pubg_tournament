@@ -46,7 +46,7 @@
     {% if tournament_end < current_time %}
         <div class="winner" data-aos="fade-right">
             <h2>Победитель:</h2>
-            {% if tournament.mode == 'Solo' %}
+            {% if tournament.mode == 'Соло' %}
                 {% set winner = players|sort(attribute='total_points', reverse=True)|first %}
                 {% if winner %}
                     <div class="winner-card">

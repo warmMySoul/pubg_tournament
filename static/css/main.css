@@ -393,6 +393,19 @@ textarea {
     /* Отступ между элементами */
 }
 
+.winner-card {
+    border: 2px solid var(--dark-gold);
+    border-radius: 8px;
+    text-align: center;
+
+}
+
+.winner-card h3 {
+    background-color: var(--gold);
+    color: var(--black);
+    padding: 8px 0;
+}
+
 .next_tournament,
 .last_tournament {
     border: 2px solid var(--light-gray);
@@ -1070,6 +1083,7 @@ label[for="applicant_know_from_optional"] {
     border-radius: 16px;
     width: 400px;
     text-align: center;
+    margin-bottom: 8px;
 }
 
 .player-info .nickname{

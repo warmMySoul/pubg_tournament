@@ -2,7 +2,7 @@ from zoneinfo import ZoneInfo
 from flask import Blueprint, request, session, redirect, url_for, flash, render_template
 from datetime import datetime
 
-from sqlalchemy import case, or_
+from sqlalchemy import and_, case, or_
 from extensions.security import get_current_user
 from models import User, RoleEnum, Tournament, Player, JoinRequests, RqStatusEnum
 from extensions.db_connection import db
@@ -45,7 +45,10 @@ def home():
 
     # Ближайший будущий турнир
     next_tournament = Tournament.query.filter(
-        Tournament.tournament_date > now
+    and_(
+        Tournament.tournament_date > now,
+        Tournament.reg_end > now
+    )
     ).order_by(
         Tournament.tournament_date.asc()
     ).first()
