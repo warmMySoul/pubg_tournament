@@ -7,7 +7,7 @@ from sqlalchemy import func
 from pubg_api.models.player import ParsedPlayerStats
 from services.verification_service import generate_verification_code, send_email, send_verification_email
 from utils.helpers import mask_email, registration_open as tournament_reg_is_open
-from models import RoleEnum, User, Tournament, Player, PlayerGroup, AdminActionLog, PlayerStats, JoinRequests, RqStatusEnum
+from models import RoleEnum, User, Tournament, Player, PlayerGroup, AdminActionLog, PlayerStats, JoinRequests, RqStatusEnum, IPStatusEnum
 from extensions.db_connection import db
 
 # Импорт PUBG API
@@ -16,7 +16,7 @@ client = PUBGApiClient()
 
 
 # Импорт логирования
-from services.admin_log_service import log_admin_action as log
+from services.admin_log_service import log_admin_action as log, log_ip
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -172,6 +172,9 @@ def login():
         session['user_logged'] = user.id
         next_url = request.form.get('next', '')
 
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+        log_ip(IPStatusEnum.LOGIN, ip_address)
+
         # Проверка безопасного URL для перенаправления
         if next_url and is_safe_url(next_url):
             redirect_url = next_url
@@ -193,7 +196,7 @@ def login():
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Произошла ошибка при авторизации: {str(e)}'
+            'message': f'Произошла ошибка при авторизации. Повторите позже'
         }), 500
 
 # Выход
@@ -233,6 +236,12 @@ def register_user():
             return jsonify({
                 'success': False,
                 'message': 'Этот email уже используется'
+            }), 400
+        
+        if User.query.filter_by(pubg_nickname=pubg_nickname).first():
+            return jsonify({
+                'success': False,
+                'message': 'Этот ник PUBG уже зарегистрирован'
             }), 400
 
         # Сохраняем данные в сессию до подтверждения email
@@ -316,6 +325,9 @@ def verify_email_ajax():
             
             # Авторизуем пользователя сразу после подтверждения
             session['user_logged'] = new_user.id
+
+            ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+            log_ip(IPStatusEnum.REG, ip_address)
             
             return jsonify({
                 'success': True,
@@ -332,7 +344,7 @@ def verify_email_ajax():
         db.session.rollback()
         return jsonify({
             'success': False,
-            'message': f'Ошибка при подтверждении email: {str(e)}'
+            'message': f'Ошибка при подтверждении email. Попробуйте позже'
         }), 500
 
 # Переотправка кода на почту

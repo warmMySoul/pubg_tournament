@@ -66,7 +66,7 @@ def home():
                            join_request=join_request,
                            datetime_now=datetime_now)
 
-#Публичный просмотр деталей турнира
+# Публичный просмотр деталей турнира
 @public_bp.route('/public/tournament/<tournament_id>')
 def view_players_public(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)
@@ -83,7 +83,7 @@ def view_players_public(tournament_id):
                          max_players=max_players,
                          now=datetime.now(ZoneInfo("Europe/Moscow")))
 
-#Публичный просмотр деталей турнира
+# Пользовательское соглашение
 @public_bp.route('/public/privacy')
 def view_privacy():
     return render_template('public/privacy.html')

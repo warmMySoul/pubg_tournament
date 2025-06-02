@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>GB Admin - События входа и регистрации</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
+
+    <h3>Список событий</h3>
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+                <th>Событие</th>
+                <th>Дата</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ip_log in ip_logs %}
+            <tr>
+                <td>{{ ip_log.user.username }}</td>
+                <td>{{ ip_log.action }}</td>
+                <td>{{ ip_log.created_at.strftime('%d.%m.%Y %H:%M:%S')}}</td>
+                <td>{{ ip_log.ip}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

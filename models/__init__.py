@@ -9,3 +9,4 @@ from .match import Match
 from .player_match_stats import PlayerMatchStats
 from .tasks import ScheduledTask
 from .join_requests import JoinRequests, RqStatusEnum
+from .ip_log import IPLog, IPStatusEnum

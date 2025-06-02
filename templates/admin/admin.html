@@ -14,6 +14,7 @@
         <a href="{{url_for('admin.view_logs')}}" class="button">Журнал действий</a>
         {% if current_user.username == 'admin' %}
             <a href="{{url_for('admin.tasks')}}" class="button">Планировщик задач</a>
+            <a href="{{url_for('admin.ip_log_list')}}" class="button">События входа</a>
         {% endif %}
     </div>
 

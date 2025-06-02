@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from flask import has_request_context, session
-from models import AdminActionLog
+from models import AdminActionLog, IPLog
 from extensions.db_connection import db
 
 def log_admin_action(action, force_admin=False):
@@ -23,6 +23,15 @@ def log_admin_action(action, force_admin=False):
 
     clear_old_logs()
 
+def log_ip(action, ip):
+    user_id = session.get('user_logged')
+    ip_log = IPLog(user_id = user_id, ip = ip, action = action)
+
+    db.session.add(ip_log)
+    db.session.commit()
+
+    clear_old_logs()
+
 
 def clear_old_logs():
     """
@@ -36,6 +45,7 @@ def clear_old_logs():
     
     # Находим и удаляем старые записи
     AdminActionLog.query.filter(AdminActionLog.timestamp < one_month_ago).delete()
+    IPLog.query.filter(IPLog.created_at < one_month_ago).delete()
     
     # Коммитим изменения
     db.session.commit()

@@ -12,7 +12,7 @@ from flask import send_file
 from openpyxl import Workbook
 from sqlalchemy import case, func
 from extensions.security import get_current_user, role_required
-from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User, Match, PlayerMatchStats, ScheduledTask, JoinRequests, RqStatusEnum
+from models import RoleEnum, Tournament, PlayerGroup, Player, AdminActionLog, User, Match, PlayerMatchStats, ScheduledTask, JoinRequests, RqStatusEnum, IPLog
 from extensions.db_connection import db
 
 # Импорт логирования
@@ -742,7 +742,7 @@ def tasks():
         )
 
     tasks = ScheduledTask.query.all()
-    return render_template('admin/tasks/tasks.html', tasks=tasks, funcs = task_functions, jobs = job_list)
+    return render_template('admin/superadmin_menu/tasks.html', tasks=tasks, funcs = task_functions, jobs = job_list)
 
 # Добавление новой задачи
 @admin_bp.route('/add_task', methods=['POST'])
@@ -986,8 +986,6 @@ def accept_join_request(join_request_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-    
-
 # Отклонение заявки в клан
 @admin_bp.route('/decline_join_request/<int:join_request_id>', methods=['POST'])
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
@@ -1041,3 +1039,17 @@ def delete_join_request(join_request_id):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+# Список событий входа и регистраций в систему
+@admin_bp.route('/ip_log_list', methods=['GET'])
+@role_required([RoleEnum.ADMIN])
+def ip_log_list():
+    try:
+                
+        ip_logs = IPLog.query.order_by(IPLog.created_at.desc()).all()
+
+    except Exception as e:
+        return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
+
+    return render_template('admin/superadmin_menu/ip_logs.html',
+                           ip_logs=ip_logs)
