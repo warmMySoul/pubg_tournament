@@ -40,6 +40,10 @@
                             <span>{{join_request.moderator.username}}</span>
                             <span>{{join_request.reason}}</span>
                         {% endif %}
+
+                        {% if current_user.username == 'admin' %}
+                            <button onclick="processDelete({{ join_request.id }})" class="button"><i class="fi fi-rr-trash"></i></button>
+                        {% endif %}
                     </div>
                     
                 </div>
@@ -141,6 +145,35 @@ async function processDecline() {
             updateRequestCard(data);
         } else {
             toastr.error(data.error || 'Ошибка при отклонении');
+            button.innerHTML = originalHtml;
+        }
+    } catch (error) {
+        toastr.error('Ошибка сети');
+        button.innerHTML = originalHtml;
+    }
+}
+
+async function processDelete(requestId)
+{
+    const button = document.querySelector(`button[onclick="processDelete(${requestId})"]`);
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fi fi-rr-spinner spin"></i>';
+    
+    try {
+        const response = await fetch(`/admin/delete_join_request/${requestId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            toastr.success(data.message);
+        } else {
+            toastr.error(data.error || 'Ошибка');
             button.innerHTML = originalHtml;
         }
     } catch (error) {

@@ -1030,12 +1030,13 @@ def delete_join_request(join_request_id):
         join_request = JoinRequests.query.get_or_404(join_request_id)
         
         
-        log(f"{user.username} принял заявку в клан от {join_request.user.username}")
+        log(f"{user.username} удалил заявку {join_request.user.username}")
         db.session.delete(join_request)
         db.session.commit()
 
         return jsonify({
-            'success': True
+            'success': True,
+            'message': f"Заявка № {join_request_id} удалена"
         })
 
     except Exception as e:

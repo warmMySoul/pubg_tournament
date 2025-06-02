@@ -261,7 +261,7 @@ def register_user():
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Произошла ошибка при регистрации: {str(e)}'
+            'message': f'Произошла ошибка при регистрации: проверьте указанную почту или свяжитесь с администратором'
         }), 500
 
 

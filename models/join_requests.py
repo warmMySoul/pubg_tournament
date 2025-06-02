@@ -25,7 +25,7 @@ class JoinRequests(db.Model):
     user = db.relationship(
         'User', 
         foreign_keys=[user_id],
-        backref='join_requests',
+        backref=db.backref('join_requests', cascade='all, delete-orphan'),
         lazy=True,
         single_parent=True
     )
