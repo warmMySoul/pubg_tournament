@@ -1,7 +1,7 @@
 from zoneinfo import ZoneInfo
 from flask import Blueprint, flash, jsonify, url_for, redirect, session, request, render_template
 from datetime import datetime, timedelta
-from extensions.security import is_safe_url, role_required, get_current_user, login_required, get_cipher
+from extensions.security import get_client_ip, is_safe_url, role_required, get_current_user, login_required, get_cipher
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
 from pubg_api.models.player import ParsedPlayerStats
@@ -172,7 +172,7 @@ def login():
         session['user_logged'] = user.id
         next_url = request.form.get('next', '')
 
-        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+        ip_address = get_client_ip()
         log_ip(IPStatusEnum.LOGIN, ip_address)
 
         # Проверка безопасного URL для перенаправления
@@ -326,7 +326,7 @@ def verify_email_ajax():
             # Авторизуем пользователя сразу после подтверждения
             session['user_logged'] = new_user.id
 
-            ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+            ip_address = get_client_ip()
             log_ip(IPStatusEnum.REG, ip_address)
             
             return jsonify({

@@ -55,3 +55,15 @@ def role_required(required_roles):
 def get_cipher():
     """Инициализирует шифровальщик в контексте приложения"""
     return Fernet(current_app.config['FERNET_KEY'].encode())
+
+def get_client_ip():
+    """Получает реальный IP клиента за Nginx"""
+    # Проверяем цепочку прокси (X-Forwarded-For)
+    if forwarded_for := request.headers.get('X-Forwarded-For'):
+        # Берём первый IP из списка (исходный клиентский IP)
+        client_ip = forwarded_for.split(',')[0].strip()
+    else:
+        # Если заголовка нет, используем X-Real-IP или remote_addr
+        client_ip = request.headers.get('X-Real-IP', request.remote_addr)
+    
+    return client_ip
