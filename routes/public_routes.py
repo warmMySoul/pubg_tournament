@@ -82,3 +82,8 @@ def view_players_public(tournament_id):
                          players=players,
                          max_players=max_players,
                          now=datetime.now(ZoneInfo("Europe/Moscow")))
+
+#Публичный просмотр деталей турнира
+@public_bp.route('/public/privacy')
+def view_privacy():
+    return render_template('public/privacy.html')
