@@ -38,7 +38,10 @@
                         {% else %}
                             <span>{{join_request.status}}</span>
                             <span>{{join_request.moderator.username}}</span>
-                            <span>{{join_request.reason}}</span>
+                            {% if join_request.reason %}
+                                <span>{{join_request.reason}}</span>
+                            {% endif %}
+                            
                         {% endif %}
 
                         {% if current_user.username == 'admin' %}
