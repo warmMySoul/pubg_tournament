@@ -268,6 +268,7 @@ def register_user():
         })
 
     except Exception as e:
+        print(e)
         return jsonify({
             'success': False,
             'message': f'Произошла ошибка при регистрации: проверьте указанную почту или свяжитесь с администратором'
@@ -314,6 +315,15 @@ def verify_email_ajax():
                 email=temp_user['email'],
                 is_verified=True
             )
+
+            # Проверка клана
+            player = client.get_player_by_name(temp_user['pubg_nickname'])
+            if player:
+                try:
+                   if player.clan_id == "clan.ad9293ce262f4c9e847ef73b3f2190b3":
+                       new_user.role = RoleEnum.CLAN_MEMBER
+                except Exception as e:
+                    print("Ошибка автоматической установки роли пользователя")
             
             db.session.add(new_user)
             db.session.commit()
