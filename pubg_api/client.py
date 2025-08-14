@@ -1,102 +1,161 @@
-import os
-import time
-import requests
-from flask import has_request_context, flash
-from dotenv import load_dotenv
 from datetime import datetime
-from models import Player, PlayerStats
+import os
+from pathlib import Path
+import sys
+import time
+from collections import deque
+from zoneinfo import ZoneInfo
+import requests
+from dotenv import load_dotenv
 
-# Импорт логирования
-from services.admin_log_service import log_admin_action as log
+# Добавляем родительскую директорию в Python path
+parent_dir = str(Path(__file__).parent.parent)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
-from pubg_api.models import Player, ParsedPlayerStats, MatchData
+from extensions.db_connection import db
+from models import *
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-load_dotenv("secrets.env")
-
-class PUBGApiException(Exception):
-    pass
+# Настройка SQLAlchemy
+engine = create_engine('sqlite:///instance/tournament.db')
+Session = sessionmaker(bind=engine)
 
 class PUBGApiClient:
     BASE_URL = "https://api.pubg.com"
-    RATE_LIMIT = 10  # максимум 10 запросов в минуту
-    MAX_QUEUE_SIZE = 30 # максимум в очереди
+    RATE_LIMIT = 10  # Максимум 10 запросов в минуту
 
-    def __init__(self):
-        self.api_key = os.getenv("PUBG_API_KEY")
-        if not self.api_key:
-            raise PUBGApiException("PUBG_API_KEY не задан в .env файле")
-
+    def __init__(self, api_key: str = os.getenv("PUBG_API_KEY_1")):
+        self.api_key = api_key
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/vnd.api+json"
         }
-        
-        self.request_timestamps = []
-
-
-    def _rate_limit_guard(self):
-        now = datetime.now()
-
-        # Очистим старые таймстемпы (старше 60 секунд)
-        self.request_timestamps = [
-            ts for ts in self.request_timestamps if (now - ts).total_seconds() < 60
-        ]
-
-        if len(self.request_timestamps) < self.RATE_LIMIT:
-            # Можно делать запрос
-            self.request_timestamps.append(now)
-            return
-
-        # Если очередь переполнена
-        if len(self.request_timestamps) >= self.RATE_LIMIT + self.MAX_QUEUE_SIZE:
-            if has_request_context():
-                flash("Очередь обновлений переполнена. Попробуйте позже.", "error")
-            raise PUBGApiException("Очередь переполнена")
-
-        # В очереди, ждём
-        earliest = self.request_timestamps[0]
-        delta = (now - earliest).total_seconds()
-        sleep_time = 60 - delta
-
-        if has_request_context():
-            flash(f"[Обновление игровых данных] Вы добавлены в очередь. Примерное время ожидания: {sleep_time:.1f} сек...", "success")
-
-        time.sleep(sleep_time)
-
-        # После ожидания снова пробуем
-        self._rate_limit_guard()
-
-
+        self.request_timestamps = deque(maxlen=self.RATE_LIMIT)
+    
+    def _check_rate_limit(self):
+        """Проверяет, не превышен ли лимит запросов."""
+        if len(self.request_timestamps) >= self.RATE_LIMIT:
+            time_elapsed = time.time() - self.request_timestamps[0]
+            if time_elapsed < 60:
+                raise Exception("Rate limit exceeded. Wait 60 seconds.")
+    
     def _get(self, endpoint: str):
-        self._rate_limit_guard()
+        self._check_rate_limit()
+        
         url = f"{self.BASE_URL}{endpoint}"
         response = requests.get(url, headers=self.headers)
+        self.request_timestamps.append(time.time())  # Фиксируем время запроса
 
         if response.status_code == 429:
-            raise PUBGApiException("Rate limit exceeded (429)")
+            raise Exception("Rate limit exceeded (429)")
         if not response.ok:
-            raise PUBGApiException(f"Ошибка при запросе к PUBG API: {response.status_code}, {response.text}")
+            raise Exception(f"API Error: {response.status_code}, {response.text}")
 
         return response.json()
 
-    # Получить данные по игроку
-    def get_player_by_name(self, player_name: str, shard: str = "steam") -> Player:
+    # Получение данных игрока по нику
+    def get_player_by_name(self, player_name: str, shard: str = "steam"):
         endpoint = f"/shards/{shard}/players?filter[playerNames]={player_name}"
         response = self._get(endpoint)
-        data = response.get("data")
-        if not data:
-            raise PUBGApiException(f"Игрок с именем '{player_name}' не найден.")
-        return Player(data[0])
+        player_data = response["data"][0]
+        
+        player_id = player_data.get("id")
+        player_name = player_data["attributes"].get("name")
+        clan_id = player_data["attributes"].get("clanId")
+        matches = [match["id"] for match in player_data["relationships"]["matches"]["data"]]
+
+        session = Session()  # Создаем новую сессию
+        try:
+            user = session.query(User).filter_by(pubg_nickname=player_name).first()
+            if not user:
+                raise Exception(f"Пользователь с ником {player_name} не найден в БД")
+
+            if clan_id == "clan.ad9293ce262f4c9e847ef73b3f2190b3":
+                user.role = "clan_member"
+                session.add(user)
+
+            player_stats = session.query(PlayerStats).filter_by(pubg_id=player_id).first()
+            if player_stats:
+                player_stats.match_ids = matches
+                player_stats.updated_at = datetime.now(ZoneInfo("Europe/Moscow"))
+            else:
+                new_player_stats = PlayerStats(
+                    user_id=user.id,
+                    pubg_id=player_id,
+                    stats_json={},
+                    match_ids=matches,
+                    updated_at=datetime.now(ZoneInfo("Europe/Moscow"))
+                )
+                session.add(new_player_stats)
+
+            session.commit()
+            return "200 OK"
+
+        except Exception as e:
+            session.rollback()
+            print(f"Error: {str(e)}")
+            raise
+        finally:
+            session.close()
     
-    # Получить статистику за все время по нику игрока
-    def get_player_lifetime_stats_by_id(self, player_id: str, shard="steam") -> PlayerStats:
+    # Получение статистики игрока за все время по id
+    def get_player_lifetime_stats_by_id(self, player_id: str, shard="steam"):
         endpoint = f"/shards/{shard}/players/{player_id}/seasons/lifetime"
-        data = self._get(endpoint)
-        return ParsedPlayerStats(data)
+        response = self._get(endpoint)
+        player_data = response["data"]["attributes"]["gameModeStats"]
 
+        # Фильтруем только FPP-режимы (заканчиваются на "-fpp")
+        fpp_stats = {
+            mode: stats 
+            for mode, stats in player_data.items() 
+            if mode.endswith("-fpp")
+        }
+        session = Session()  # Создаем новую сессию
+        try:
+            player_stats = session.query(PlayerStats).filter_by(pubg_id=player_id).first()
+            if player_stats:
+                player_stats.stats_json = fpp_stats
+                player_stats.updated_at = datetime.now(ZoneInfo("Europe/Moscow"))
+            else:
+                raise Exception(f"Пользователь с pubg_id {player_id} не найден в БД")
 
-    # Получить матч по ID
-    def get_match_by_id(self, match_id, shard="steam") -> MatchData:
+            session.commit()
+            return "200 OK"
+
+        except Exception as e:
+            session.rollback()
+            print(f"Error: {str(e)}")
+            raise
+        finally:
+            session.close()
+
+    # Получение данных матча по id
+    def get_match_by_id(self, match_id, shard="steam"):
         endpoint = f"/shards/{shard}/matches/{match_id}"
-        data = self._get(endpoint)
-        return MatchData(data)
+        response = self._get(endpoint)
+        match_data = response
+
+        session = Session()  # Создаем новую сессию
+        try:
+            match_stats = session.query(MatchStats).filter_by(match_id=match_id).first()
+            if (match_stats):
+                raise Exception(f"Статика этого матча уже сохранена")
+            
+            new_match_stats = MatchStats(
+                    match_id=match_id,
+                    data_json=match_data,
+                    processed_at=datetime.now(ZoneInfo("Europe/Moscow"))
+                )
+            session.add(new_match_stats)
+
+            session.commit()
+            return match_data
+
+        except Exception as e:
+            session.rollback()
+            print(f"Error: {str(e)}")
+            raise
+        finally:
+            session.close()

@@ -26,7 +26,8 @@ jobs:
             # Настройка переменных окружения
             echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" > secrets.env
             echo "ADMIN_PASS=${{ secrets.ADMIN_PASS }}" >> secrets.env
-            echo "PUBG_API_KEY=${{ secrets.PUBG_API_KEY }}" >> secrets.env
+            echo "PUBG_API_KEY_1=${{ secrets.PUBG_API_KEY_1 }}" >> secrets.env
+            echo "PUBG_API_KEY_2=${{ secrets.PUBG_API_KEY_2 }}" >> secrets.env
             echo "FERNET_KEY=${{ secrets.FERNET_KEY }}" >> secrets.env
             echo "MAIL_LOGIN=${{ secrets.MAIL_LOGIN }}" >> secrets.env
             echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> secrets.env
@@ -39,17 +40,41 @@ jobs:
             # Проверяем и инициализируем БД
             export FLASK_APP=app.py
             
-            # Если БД не существует
             if [ ! -f "instance/tournament.db" ]; then
               echo "Database not found, creating new one..."
               flask db init
               flask db migrate -m "Initial database creation"
               flask db upgrade
-              
             else
               echo "Database exists, applying migrations..."
               flask db upgrade
             fi
 
-            # Перезапускаем сервис
+            # Создаем сервис для консьюмеров, если его нет
+            if [ ! -f "/etc/systemd/system/pubg_consumers.service" ]; then
+              echo "Creating consumers service..."
+              sudo bash -c 'cat > /etc/systemd/system/pubg_consumers.service <<EOF
+
+            [Unit]
+            Description=PUBG Tournament Consumers
+            After=network.target
+
+            [Service]
+            User=root
+            WorkingDirectory=/root/pubg_tournament
+            EnvironmentFile=/root/pubg_tournament/secrets.env
+            ExecStart=/root/pubg_tournament/venv/bin/python /root/pubg_tournament/pubg_api/consumers.py
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF'
+              sudo systemctl daemon-reload
+              sudo systemctl enable pubg_consumers
+            fi
+
+            # Перезапускаем сервисы
             sudo systemctl restart pubg
+            sudo systemctl restart pubg_consumers
+
+            echo "Deployment completed successfully!"

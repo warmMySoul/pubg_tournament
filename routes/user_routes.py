@@ -4,11 +4,12 @@ from datetime import datetime, timedelta
 from extensions.security import get_client_ip, is_safe_url, role_required, get_current_user, login_required, get_cipher
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
-from pubg_api.models.player import ParsedPlayerStats
+from pubg_api.pubg_models.player import ParsedPlayerStats
 from services.verification_service import generate_verification_code, send_email, send_verification_email
 from utils.helpers import mask_email, registration_open as tournament_reg_is_open
 from models import RoleEnum, User, Tournament, Player, PlayerGroup, AdminActionLog, PlayerStats, JoinRequests, RqStatusEnum, IPStatusEnum
 from extensions.db_connection import db
+from services.queue_service import QueueService
 
 # Импорт PUBG API
 from pubg_api.client import PUBGApiClient
@@ -36,31 +37,15 @@ def profile():
         cached_stats = PlayerStats.query.filter_by(user_id=user.id).first()
         
         if cached_stats:
-            try:
-                player_stats = ParsedPlayerStats.from_json(cached_stats.stats_json)
-                updated_at = cached_stats.updated_at            
-            except Exception as e:
-                flash(f"Возникли ошибки при загрузке статистики. Попробуйте позже.", 'warning')
-        else:
-            try:
-                player = client.get_player_by_name(user.pubg_nickname)
-                if player:
-                    try:
-                        player_stats = client.get_player_lifetime_stats_by_id(player.id)
-                        cached_stats = PlayerStats(
-                            user_id=user.id,
-                            pubg_id=player.id,
-                            stats_json=player_stats.to_dict(),
-                            match_ids=player.match_ids
-                        )
-                        db.session.add(cached_stats)
-                        db.session.commit()
-                        updated_at = cached_stats.updated_at
-                    except Exception as e:
-                        db.session.rollback()
-                        flash(f"Статистика временно недоступна.", 'error')
-            except Exception as e:
-                flash(f"Игрока с таким ником не найдено. Проверьте ник. Для изменения обратитесь к администратору", 'error')
+            updated_at = cached_stats.updated_at
+
+        player_stats = ParsedPlayerStats.from_json(cached_stats.stats_json)
+        
+        # Добавляем задачу на обновление статистики в очередь
+        QueueService.publish_task({
+            'type': 'get_lifetime_stats',
+            'player_id': cached_stats.pubg_id
+        })
 
     # Обработка POST-запроса (изменение профиля)
     if request.method == 'POST':
@@ -174,6 +159,12 @@ def login():
 
         ip_address = get_client_ip()
         log_ip(IPStatusEnum.LOGIN, ip_address)
+
+        # Добавляем задачу в очередь
+        QueueService.publish_task({
+            'type': 'get_player',
+            'player_name': user.pubg_nickname
+        })
 
         # Проверка безопасного URL для перенаправления
         if next_url and is_safe_url(next_url):
@@ -294,7 +285,7 @@ def verify_email_ajax():
         if not encrypted_code:
             return jsonify({
                 'success': False,
-                'message': 'Код подтверждения не найден'
+                'message': 'Код подтверждения не найден. Повторите попытку'
             }), 400
             
         if datetime.now(ZoneInfo("Europe/Moscow")) > expires:
@@ -328,6 +319,12 @@ def verify_email_ajax():
 
             ip_address = get_client_ip()
             log_ip(IPStatusEnum.REG, ip_address)
+
+            # Добавляем задачу в очередь
+            QueueService.publish_task({
+                'type': 'get_player',
+                'player_name': new_user.pubg_nickname
+            })
             
             return jsonify({
                 'success': True,

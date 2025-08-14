@@ -2,7 +2,8 @@ from datetime import datetime
 from extensions.db_connection import db
 from zoneinfo import ZoneInfo
 
-from pubg_api.models.match import MatchData
+from pubg_api.pubg_models.match import MatchData
+from pubg_api.pubg_models.player import ParsedPlayerStats
 
 class PlayerStats(db.Model):
     __tablename__ = 'player_stats'
@@ -15,6 +16,10 @@ class PlayerStats(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("Europe/Moscow")))
 
     user = db.relationship('User', backref=db.backref('cached_stats', uselist=False))
+
+    def to_player_stats_data(self):
+        """Конвертирует запись БД в объект MatchData"""
+        return ParsedPlayerStats(self.stats_json)
 
 class MatchStats(db.Model):
     __tablename__ = 'match_stats'

@@ -37,22 +37,54 @@ class MatchData:
         if not isinstance(api_data, dict):
             raise ValueError("Input must be a dictionary")
         
-        # ВАЖНО: теперь данные лежат внутри ключа 'data'
         self._raw_data = api_data
-        self._data = api_data.get("data", {})  # <-- сюда переносим
-        self._included = api_data.get("included", [])  # included лежит на верхнем уровне
+        self._data = api_data.get("data", {})
+        self._included = api_data.get("included", [])
+        
+        # Инициализация всех полей по умолчанию
+        self.id = ""
+        self.type = ""
+        self.created_at = ""
+        self.duration = 0
+        self.game_mode = ""
+        self.map_name = ""
+        self.is_custom_match = False
+        self.season_state = ""
+        self.shard_id = ""
+        self.title_id = ""
+        self.rosters = []
+        self.participants = []
+        self.assets = []
+        self.telemetry_url = None
+        
         self._parse_data()
 
     def _parse_data(self):
         """Основной метод парсинга данных"""
-        data = self._data  # теперь используем это
-        
+        if not self._data:
+            logger.error("Empty data in match response")
+            return
+            
         # Основные поля матча
-        self.id = data.get("id", "")
-        self.type = data.get("type", "match")
+        self.id = self._data.get("id", "")
+        self.type = self._data.get("type", "match")
         
         # Атрибуты матча
-        attributes = data.get("attributes", {})
+        attributes = self._data.get("attributes", {})
+        self._parse_attributes(attributes)
+        
+        # Обработка связей
+        relationships = self._data.get("relationships", {})
+        self._process_relationships(relationships)
+        
+        # Обработка включенных данных
+        self._process_included()
+        
+        # Связывание данных
+        self._link_team_ranks()
+
+    def _parse_attributes(self, attributes: dict):
+        """Парсинг атрибутов матча"""
         iso_created_at = attributes.get("createdAt", "")
         self.created_at = self._format_created_at(iso_created_at)
         self.duration = int(attributes.get("duration", 0))
@@ -62,22 +94,6 @@ class MatchData:
         self.season_state = attributes.get("seasonState", "")
         self.shard_id = attributes.get("shardId", "")
         self.title_id = attributes.get("titleId", "")
-        
-        # Инициализация коллекций
-        self.rosters = []
-        self.participants = []
-        self.assets = []
-        self.telemetry_url = None
-        
-        # Обработка связей
-        relationships = data.get("relationships", {})
-        self._process_relationships(relationships)
-        
-        # Обработка включенных данных
-        self._process_included(self._included)
-        
-        # Связывание данных
-        self._link_team_ranks()
 
     def _format_created_at(self, iso_str):
         """Форматирование даты"""
@@ -85,75 +101,90 @@ class MatchData:
             return ""
 
         try:
-            # Парсим ISO строку и переводим в МСК
             dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
             dt_moscow = dt.astimezone(ZoneInfo("Europe/Moscow"))
             return dt_moscow.strftime("%d.%m.%Y %H:%M:%S")
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error parsing date: {e}")
             return iso_str 
 
     def _process_relationships(self, relationships: dict):
-        """Обработка связей матча согласно API"""
-        # Обработка ассетов (телеметрия)
+        """Обработка связей матча"""
         assets = relationships.get("assets", {}).get("data", [])
         if assets and isinstance(assets, list):
             self.assets = assets
-            self.telemetry_url = assets[0].get("attributes", {}).get("URL", None) if assets else None
+            # Находим URL телеметрии в included данных
+            self._find_telemetry_url()
 
-    def _process_included(self, included: list):
-        """Обработка включенных данных согласно API спецификации"""
-        for item in included:
-            if not isinstance(item, dict):
-                continue
-                
-            item_type = item.get("type")
-            attributes = item.get("attributes", {})
-            relationships = item.get("relationships", {})
+    def _find_telemetry_url(self):
+        """Поиск URL телеметрии в included данных"""
+        for item in self._included:
+            if isinstance(item, dict) and item.get("type") == "asset":
+                attributes = item.get("attributes", {})
+                if "URL" in attributes:
+                    self.telemetry_url = attributes["URL"]
+                    break
+
+    def _process_included(self):
+        """Обработка включенных данных"""
+        if not self._included:
+            return
             
-            if item_type == "roster":
-                self._process_roster(item, attributes, relationships)
-            elif item_type == "participant":
-                self._process_participant(item, attributes, relationships)
+        # Сначала обрабатываем ростеры
+        rosters = [item for item in self._included 
+                  if isinstance(item, dict) and item.get("type") == "roster"]
+        
+        for roster_item in rosters:
+            self._process_roster(roster_item)
+        
+        # Затем участников
+        participants = [item for item in self._included 
+                       if isinstance(item, dict) and item.get("type") == "participant"]
+        
+        for participant_item in participants:
+            self._process_participant(participant_item)
 
-    def _process_roster(self, item: dict, attributes: dict, relationships: dict):
+    def _process_roster(self, roster_item: dict):
         """Обработка данных команды/роста"""
-        roster_stats = attributes.get("stats", {})
+        attributes = roster_item.get("attributes", {})
+        stats = attributes.get("stats", {})
         
         roster = {
-            "id": item.get("id"),
-            "type": item.get("type"),
-            "won": roster_stats.get("won", False),
-            "rank": roster_stats.get("rank", 0),
-            "team_id": roster_stats.get("teamId"),
+            "id": roster_item.get("id"),
+            "won": stats.get("won", False),
+            "rank": stats.get("rank", 0),
+            "team_id": stats.get("teamId"),
             "participants": []
         }
         self.rosters.append(roster)
 
-    def _process_participant(self, item: dict, attributes: dict, relationships: dict):
+    def _process_participant(self, participant_item: dict):
         """Обработка данных участника"""
-        participant_stats = attributes.get("stats", {})
+        attributes = participant_item.get("attributes", {})
+        stats = attributes.get("stats", {})
+        relationships = participant_item.get("relationships", {})
         
         participant = {
-            "id": item.get("id"),
-            "type": item.get("type"),
-            "player_id": participant_stats.get("playerId"),
-            "name": participant_stats.get("name"),
+            "id": participant_item.get("id"),
+            "player_id": stats.get("playerId"),
+            "name": stats.get("name"),
             "roster_id": relationships.get("roster", {}).get("data", {}).get("id"),
-            "stats": {
-                "kills": participant_stats.get("kills", 0),
-                "assists": participant_stats.get("assists", 0),
-                "damage_dealt": participant_stats.get("damageDealt", 0.0),
-                "headshot_kills": participant_stats.get("headshotKills", 0),
-                "longest_kill": participant_stats.get("longestKill", 0.0),
-                "revives": participant_stats.get("revives", 0),
-                "ride_distance": participant_stats.get("rideDistance", 0.0),
-                "walk_distance": participant_stats.get("walkDistance", 0.0),
-                "time_survived": participant_stats.get("timeSurvived", 0),
-                "win_place": participant_stats.get("winPlace", 0),
-                "death_type": participant_stats.get("deathType"),
-                "vehicle_destroys": participant_stats.get("vehicleDestroys", 0),
-                "dbnos": participant_stats.get("DBNOs", 0)
-            }
+            "stats": PlayerMatchStats(
+                kills=stats.get("kills", 0),
+                assists=stats.get("assists", 0),
+                damage_dealt=stats.get("damageDealt", 0.0),
+                headshot_kills=stats.get("headshotKills", 0),
+                longest_kill=stats.get("longestKill", 0.0),
+                revives=stats.get("revives", 0),
+                ride_distance=stats.get("rideDistance", 0.0),
+                walk_distance=stats.get("walkDistance", 0.0),
+                time_survived=stats.get("timeSurvived", 0),
+                win_place=stats.get("winPlace", 0),
+                death_type=stats.get("deathType"),
+                vehicle_destroys=stats.get("vehicleDestroys", 0),
+                dbnos=stats.get("DBNOs", 0),
+                team_rank=0  # Временное значение, будет обновлено в _link_team_ranks
+            )
         }
         self.participants.append(participant)
 
@@ -162,35 +193,17 @@ class MatchData:
         roster_ranks = {roster["id"]: roster.get("rank", 0) for roster in self.rosters}
         
         for participant in self.participants:
-            if "stats" in participant:
-                participant["stats"]["team_rank"] = roster_ranks.get(participant["roster_id"], 0)
+            if isinstance(participant.get("stats"), PlayerMatchStats):
+                participant["stats"].team_rank = roster_ranks.get(participant["roster_id"], 0)
 
     def get_detailed_player_stats(self, player_name: str) -> Optional[PlayerMatchStats]:
         """Получение детальной статистики игрока"""
+        if not player_name:
+            return None
+            
         for participant in self.participants:
             if participant.get("name") == player_name:
-                stats = participant.get("stats", {})
-                try:
-                    return PlayerMatchStats(
-                        kills=stats.get("kills", 0),
-                        assists=stats.get("assists", 0),
-                        damage_dealt=stats.get("damage_dealt", 0.0),
-                        headshot_kills=stats.get("headshot_kills", 0),
-                        longest_kill=stats.get("longest_kill", 0.0),
-                        revives=stats.get("revives", 0),
-                        ride_distance=stats.get("ride_distance", 0.0),
-                        walk_distance=stats.get("walk_distance", 0.0),
-                        time_survived=stats.get("time_survived", 0),
-                        win_place=stats.get("win_place", 0),
-                        weapons_acquired=stats.get("weapons_acquired", 0),
-                        death_type=stats.get("death_type"),
-                        vehicle_destroys=stats.get("vehicle_destroys", 0),
-                        dbnos=stats.get("dbnos", 0),
-                        team_rank=stats.get("team_rank", 0)
-                    )
-                except Exception as e:
-                    logger.error(f"Failed to create PlayerMatchStats: {str(e)}")
-                    return None
+                return participant.get("stats")
         return None
 
     def get_player_performance_summary(self, player_id: str) -> Optional[Dict]:

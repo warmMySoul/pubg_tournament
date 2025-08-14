@@ -1,6 +1,8 @@
-from flask import Flask
+import json
+from flask import Flask, jsonify, request
 from datetime import datetime
 from flask_migrate import Migrate
+import pika
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 import os
@@ -44,12 +46,10 @@ def create_app():
     from routes.public_routes import public_bp
     from routes.admin_routes import admin_bp
     from routes.user_routes import user_bp
-    from errors.handlers import errors
 
     app.register_blueprint(public_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
-    #app.register_blueprint(errors)
 
     # Добавляем переменные в шаблоны
     from utils.helpers import registration_open as tournament_reg_is_open
@@ -96,6 +96,27 @@ def create_default_admin():
 
 
 app = create_app()
+
+@app.route('/api/add_task', methods=['POST'])
+def add_pubg_task():
+    task_data = request.json
+        
+    # Валидация задачи
+    if not task_data.get("type"):
+        return jsonify({"error": "Task type is required"}), 400
+        
+    # Отправка в RabbitMQ
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    channel.basic_publish(
+        exchange='',
+        routing_key='pubg_tasks',
+        body=json.dumps(task_data),
+        properties=pika.BasicProperties(delivery_mode=2)  # Сохраняем задачи
+    )
+    connection.close()
+        
+    return jsonify({"status": f"Task {task_data.get("type")} added"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

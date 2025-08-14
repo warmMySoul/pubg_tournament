@@ -48,7 +48,12 @@ class ParsedPlayerStats:
         Принимает уже обработанные данные (как из to_dict())
         и создает объект с такой же структурой
         """
-        obj = cls.__new__(cls)
-        obj.original_data = None  # Исходные данные не сохраняем
-        obj.stats = json_data
-        return obj
+        # Создаем фиктивный словарь, который будет соответствовать ожидаемой структуре
+        dummy_data = {
+            "data": {
+                "attributes": {
+                    "gameModeStats": json_data
+                }
+            }
+        }
+        return cls(dummy_data)
