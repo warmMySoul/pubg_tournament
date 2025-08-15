@@ -1161,3 +1161,41 @@ label[for="applicant_know_from_optional"] {
     gap: 4px;
     justify-content: flex-end;
 }
+
+.available-groups{
+    padding: 16px 8px;
+    border-radius: 16px;
+    margin: 16px 0;
+    background-color: var(--light-gray);
+}
+
+.group-radio {
+    display: inline-block;
+	margin-right: 10px;
+}
+
+.group-radio input[type=radio]{
+    display: none;
+}
+
+.group-radio label {
+	display: inline-block;
+	cursor: pointer;
+	padding: 0px 15px;
+	line-height: 34px;
+	border: 1px solid var(--white);
+	border-radius: 6px;
+	user-select: none;
+    margin-bottom: 16px;
+    background-color: var(--dark-gray);
+}
+
+.group-radio input[type=radio]:checked + label {
+	background: var(--gold);
+    color: var(--dark-gray);
+}
+
+.group-radio label:hover {
+	background-color: var(--dark-gold);
+    color: var(--dark-gray);
+}

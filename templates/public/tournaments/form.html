@@ -20,14 +20,18 @@
         <h3>Начисление баллов:</h3>
         <table class="scoring-table">
             <tbody>
+                {% if tournament.kill_points %}
                 <tr>
                     <td>1 убийство</td>
                     <td>{{ tournament.kill_points or 0 }} б.</td>
                 </tr>
+                {% endif %}
+                {% if tournament.damage_points %}
                 <tr>
                     <td>100 урона</td>
                     <td>{{ tournament.damage_points or 0 }} б.</td>
                 </tr>
+                {% endif %}
                 <tr>
                     <td>1 место</td>
                     <td>{{ tournament.first_place_points or 0 }} б.</td>
@@ -78,17 +82,22 @@
 
         {% if tournament.mode in ['Дуо', 'Сквад'] %}
         <div class="group-selection">
-            <h3>Выбор группы</h3>
             <div class="available-groups">
-                <h4>Доступные группы:</h4>
+                <div class="group-option">
+                    <input type="radio" name="group_id" id="new_group" value="" checked>
+                    <label for="new_group" class="h3">Создать новую группу</label>
+                </div>
                 {% if groups %}
+                
+                <h2>Или выбери из доступных:</h2>
+
                 {% for group in groups %}
                 {% set player_count = group.players|length %}
                 {% if player_count < max_players %}
-                <div class="group-option">
+                <div class="group-radio">
                     <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
-                    <label for="group_{{ group.id }}">
-                        Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }})
+                    <label  for="group_{{ group.id }}">
+                        <span class="nickname">Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }}) </span>
                         {% if player_count > 0 %}
                         <ul>
                             {% for player in group.players %}
@@ -101,10 +110,6 @@
                 {% endif %}
                 {% endfor %}
                 {% endif %}
-                <div class="group-option">
-                    <input type="radio" name="group_id" id="new_group" value="" checked>
-                    <label for="new_group">Создать новую группу</label>
-                </div>
             </div>
         </div>
         {% endif %}
