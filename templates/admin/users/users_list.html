@@ -7,7 +7,7 @@
 {% block content %}
 <div class="container">
     <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
-    <h1>Пользователи</h1>
+    <h1>Пользователи ({{users_count}})</h1>
 
     <div class="collapsible-filters">
         <div class="collapsible-header" onclick="toggleFilters(this)">

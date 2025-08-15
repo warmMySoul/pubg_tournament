@@ -517,10 +517,13 @@ def users_list():
     role_filter = request.args.get('role_filter', 'all')
     date_from = request.args.get('from')
     date_to = request.args.get('to')
+
+    # Количество пользователей
+    users_count = User.query.count()
     
     # Пагинация
     page = request.args.get('page', 1, type=int)
-    per_page = 20
+    per_page = 25
     
     # Базовый запрос
     query = User.query
@@ -576,7 +579,8 @@ def users_list():
             'from': date_from,
             'to': date_to
         },
-        RoleEnum=RoleEnum  # Передаем enum в шаблон
+        RoleEnum = RoleEnum,  # Передаем enum в шаблон
+        users_count = users_count
     )
 
 # Удалить пользователя
