@@ -192,7 +192,8 @@ def shuffle_players():
         return jsonify({'success': False, 'error': 'Не указан ID турнира'})
     
     result = PlayerGroup.shuffle_players(tournament_id)
-    log(f"В турнире {tournament_id} игроки перемешаны между группами")
+    tournament = Tournament.query.get_or_404(tournament_id)
+    log(f"В турнире {tournament.name} игроки перемешаны между группами")
     return jsonify(result)
 
 # Удалить игрока из турнира
