@@ -90,6 +90,7 @@
     <!-- Список игроков/групп -->
     {% if tournament.mode in ['Дуо', 'Сквад'] %}
     <h2>Группы игроков</h2>
+    <a href="#" onclick="shufflePlayers({{tournament.id}})" class="button">Перемешать составы групп</a>
     {% for group in tournament.player_groups|sort(attribute='group_number') %}
     <div class="player-group">
         <h3>Группа #{{ group.group_number }}</h3>
@@ -173,6 +174,24 @@
 
 {% block script %}
 <script>
+
+    async function shufflePlayers(tournamentId) {
+    const response = await fetch('admin/api/shuffle_players', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({tournament_id: tournamentId})
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+        alert('Игроки успешно перемешаны!');
+        location.reload(); // Обновляем страницу
+    } else {
+        alert('Ошибка: ' + result.error);
+    }
+}
+
     function movePlayer(playerId, newGroupId) {
         if (newGroupId === "") newGroupId = null;
 

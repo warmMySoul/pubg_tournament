@@ -182,6 +182,19 @@ def move_player():
 
     return jsonify({'success': True})
 
+# api перемешивания игроков в группе
+@admin_bp.route('/api/shuffle_players', methods=['POST'])
+@role_required([RoleEnum.ADMIN])
+def shuffle_players():
+    tournament_id = request.json.get('tournament_id')
+    
+    if not tournament_id:
+        return jsonify({'success': False, 'error': 'Не указан ID турнира'})
+    
+    result = PlayerGroup.shuffle_players(tournament_id)
+    log(f"В турнире {tournament_id} игроки перемешаны между группами")
+    return jsonify(result)
+
 # Удалить игрока из турнира
 @admin_bp.route('/api/delete_player', methods=['POST'])
 @role_required([RoleEnum.ADMIN])
