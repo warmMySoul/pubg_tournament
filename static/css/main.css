@@ -3,7 +3,7 @@
     --gold: #FFD700;
     --dark-gold: #FFD700;
     --light-gold: #FFEC85;
-    --semi-light-gold: #FFF2AD;
+    --semi-light-gold: #fff1ad;
     --high-light-gold: #FFF9D6;
     --black: #18191D;
     --dark-gray: #202229;
@@ -1218,4 +1218,14 @@ label[for="applicant_know_from_optional"] {
 	font-family: 'Material Icons';
 	color: var(--white);
 	font-size: 14px;
+}
+
+.countdown {
+    text-align: center;
+    display: inline-block;
+    background-color: var(--semi-light-gold);
+    color: var(--black);
+    border-radius: 12px;
+    margin: 8px 0;
+    padding: 8px;
 }
