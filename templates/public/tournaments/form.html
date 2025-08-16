@@ -88,18 +88,16 @@
                     <label for="new_group" class="h3">Создать новую группу</label>
                 </div>
                 {% if groups %}
-                
-                <h2>Или выбери из доступных:</h2>
-
                 {% for group in groups %}
                 {% set player_count = group.players|length %}
                 {% if player_count < max_players %}
+                <h2>Или выбери из доступных:</h2>
                 <div class="group-radio">
                     <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
                     <label  for="group_{{ group.id }}">
                         <span class="nickname">Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }}) </span>
                         {% if player_count > 0 %}
-                        <ul>
+                        <ul class="player-markers">
                             {% for player in group.players %}
                             <li>{{ player.name }} ({{ player.nickname }})</li>
                             {% endfor %}

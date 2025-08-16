@@ -53,13 +53,16 @@ body {
 }
 
 body {
-    max-width: 1648px;
-    margin: 0 auto;
     background-color: var(--black);
     background-image: url("/static/images/bg.png");
     color: var(--white);
     padding: 0;
     line-height: 1.6;
+}
+
+.main_container {
+    max-width: 1648px;
+    margin: 0 auto;
 }
 
 html {
@@ -74,11 +77,10 @@ scroll-behavior: smooth;
 .navbar {
     height: 72px;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
+    border-bottom: 1px solid var(--light-gray);
     background-color: var(--dark-gray);
-    border-radius: 0 0 8px 8px;
-    border: 2px solid var(--dark-gold);
     padding: 0 16px;
     position: sticky;
     top: 0;
@@ -143,6 +145,7 @@ scroll-behavior: smooth;
     padding: 4px 8px;
     border: 2px solid transparent;
     margin-left: 4px;
+    text-align: center;
 }
 
 .navbar_profile:hover {
@@ -179,6 +182,7 @@ scroll-behavior: smooth;
     transform: translateY(0);
     pointer-events: auto;
     top: 72px;
+    right: 10%;
 }
 
 .profile-dropdown a {
@@ -818,13 +822,14 @@ select:focus {
     font-size: 0.8em;
 }
 
-.user-role{
+.user-role {
     background: #4CAF50;
     color: var(--white);
     margin: 0 6px;
     border-radius: 4px;
     font-size: 0.8em;
     text-align: center;
+    padding: 0 4px;
 }
 
 .moderator {
@@ -1198,4 +1203,19 @@ label[for="applicant_know_from_optional"] {
 .group-radio label:hover {
 	background-color: var(--dark-gold);
     color: var(--dark-gray);
+}
+
+@counter-style marker-font {
+	system: cyclic;
+	symbols: "person";
+	suffix: " ";
+}
+
+.player-markers {
+	list-style-type: marker-font;
+}
+.player-markers li::marker {
+	font-family: 'Material Icons';
+	color: var(--white);
+	font-size: 14px;
 }

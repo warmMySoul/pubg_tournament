@@ -16,14 +16,18 @@
         <h3>Начисление баллов:</h3>
         <table class="scoring-table">
             <tbody>
+                {% if tournament.kill_points %}
                 <tr>
                     <td>1 убийство</td>
                     <td>{{ tournament.kill_points or 0 }} б.</td>
                 </tr>
+                {% endif %}
+                {% if tournament.damage_points %}
                 <tr>
                     <td>100 урона</td>
                     <td>{{ tournament.damage_points or 0 }} б.</td>
                 </tr>
+                {% endif %}
                 <tr>
                     <td>1 место</td>
                     <td>{{ tournament.first_place_points or 0 }} б.</td>

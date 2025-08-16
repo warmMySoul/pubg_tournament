@@ -8,6 +8,7 @@
 
     <!-- Иконки -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <!-- Уведомления -->
     <link href="{{ url_for('static', filename='lib/toastr/toastr.min.css') }}" rel="stylesheet" />
@@ -52,14 +53,7 @@
         }
     </script>
 
-    <div class="main_container">
-        <div id="cookie-consent" class="cookie-consent">
-            <p>Мы используем cookies для улучшения работы сайта. Продолжая, вы соглашаетесь с их использованием и принимаете 
-                <a href="{{ url_for('public.view_privacy') }}">условия пользовательского соглашения</a></p>
-            <button id="cookie-accept" class="cookie-btn">Принять</button>
-        </div>
-
-        <!-- Navbar -->
+    <!-- Navbar -->
         <div class="navbar">
 
             <a href="{{ url_for('public.home') }}" class="h1">
@@ -90,7 +84,7 @@
                 {% set role_translations = {
                     'admin': 'Админ',
                     'moderator': 'Модератор',
-                    'clan_member': 'Член клана',
+                    'clan_member': 'Участник клана',
                     'clan_friend': 'Друг клана',
                     'guest': 'Гость'
                 } %}
@@ -107,22 +101,36 @@
                             {{ role_translations[current_user.role] }}
                         </div>
                     {% endif %}
+
+                    <div id="profileDropdown" class="profile-dropdown">
+                        <a href="/user/profile">Профиль</a>
+                        {% if current_user.role in ['admin', 'moderator'] %}
+                        <a href="/admin">Админ-панель</a>
+                        {% endif %}
+                        <a href="/user/logout">Выйти</a>
+                    </div>
                 </div>
 
-                <div id="profileDropdown" class="profile-dropdown">
-                    <a href="/user/profile">Профиль</a>
-                    {% if current_user.role in ['admin', 'moderator'] %}
-                    <a href="/admin">Админ-панель</a>
-                    {% endif %}
-                    <a href="/user/logout">Выйти</a>
-                </div>
+                
             </div>
             {% else %}
             <div class="navbar_auth">
-                <a href="#" class="button" id="loginButton">Войти</a>
+                <a href="#" class="button" id="loginButton">
+                    <i class="fas fa-user profile-icon"></i>
+                    Войти
+                </a>
             </div>
             {% endif %}
         </div>
+
+    <div class="main_container">
+        <div id="cookie-consent" class="cookie-consent">
+            <p>Мы используем cookies для улучшения работы сайта. Продолжая, вы соглашаетесь с их использованием и принимаете 
+                <a href="{{ url_for('public.view_privacy') }}">условия пользовательского соглашения</a></p>
+            <button id="cookie-accept" class="cookie-btn">Принять</button>
+        </div>
+
+        
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
