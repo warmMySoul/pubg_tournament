@@ -1,6 +1,7 @@
 from inspect import getmembers, getsourcefile, isfunction
 from io import BytesIO
 import io
+import os
 from pathlib import Path
 import pkgutil
 import uuid
@@ -25,7 +26,7 @@ from pubg_api.scheduler import *
 
 # Импорт PUBG API
 from pubg_api.client import PUBGApiClient
-from utils.helpers import generate_export_data
+from utils.helpers import export_tournament_stats
 client = PUBGApiClient()
 
 
@@ -104,12 +105,30 @@ def create_tournament():
 # Просмотр деталей турнира
 @admin_bp.route('/tournament/<tournament_id>')
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
-def view_players(tournament_id):
+def tournament_info(tournament_id):
+    players = Player.query.filter_by(tournament_id=tournament_id).order_by(Player.registered_at.desc()).all()
+    matches = Match.query.filter_by(tournament_id=tournament_id).order_by(Match.map_number).all()
     tournament = Tournament.query.get_or_404(tournament_id)
-    max_players = 4 if tournament.mode == 'Сквад' else 2 if tournament.mode == 'Дуо' else None
+
+    # Определяем статус турнира
+    now = datetime.now()
+    if tournament.reg_start < now and tournament.reg_end > now:
+        registration_status = 'open'
+    elif tournament.reg_end < now:
+        if tournament.tournament_date < now:
+            registration_status = "ended"
+        else:
+            registration_status = 'closed'
+    else:
+        registration_status = 'soon'
+
+    max_players = 4 if tournament.mode == 'SQUAD' else 2 if tournament.mode == 'DUO' else None
     return render_template('admin/tournaments/tournament_info.html', 
-                         tournament=tournament,
-                         max_players=max_players)
+                           registration_status=registration_status,
+                           matches=matches,
+                           players=players,
+                           tournament=tournament,
+                           max_players=max_players)
 
 # Экспорт турнира в Excell
 @admin_bp.route('/tournament/<tournament_id>/export', methods=['GET'])
@@ -117,19 +136,23 @@ def view_players(tournament_id):
 def export_tournament_data(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)
     
-    # Составляем данные для выгрузки
-    export_data = generate_export_data(tournament)
-
-    # Генерируем Excel в памяти
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        for sheet_name, df in export_data.items():
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
-    output.seek(0)
-
-    # Отдаём файл пользователю
-    filename = f"{tournament.name}_выгрузка.xlsx"
-    return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    # Генерируем файл
+    file_buffer = export_tournament_stats(tournament)
+    
+    if file_buffer:
+        # Формируем имя файла для скачивания
+        download_name = f"tournament_{tournament.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        # Отправляем файл из памяти
+        return send_file(
+            file_buffer,
+            as_attachment=True,
+            download_name=download_name,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
+        flash('Ошибка при создании файла экспорта', 'error')
+        return redirect(url_for('public.tournament_details', tournament_id=tournament_id))
 
 # api перемещения игроков между команд
 @admin_bp.route('/api/move_player', methods=['POST'])
@@ -141,8 +164,8 @@ def move_player():
     player = Player.query.get_or_404(player_id)
     tournament = Tournament.query.get_or_404(player.tournament_id)
 
-    if tournament.mode not in ['Дуо', 'Сквад']:
-        return jsonify({'success': False, 'error': 'Только для режимов Дуо/Сквад'})
+    if tournament.mode not in ['DUO', 'SQUAD']:
+        return jsonify({'success': False, 'error': 'Только для режимов DUO/SQUAD'})
 
     old_group_id = player.group_id
 
@@ -165,7 +188,7 @@ def move_player():
         if not group:
             return jsonify({'success': False, 'error': 'Группа не найдена'})
 
-        max_players = 4 if tournament.mode == 'Сквад' else 2
+        max_players = 4 if tournament.mode == 'SQUAD' else 2
         if len(group.players) >= max_players:
             return jsonify({'success': False, 'error': 'Группа уже заполнена'})
 
@@ -208,12 +231,12 @@ def delete_player():
         return jsonify({'success': False, 'error': 'Игрок не найден'})
 
     tournament = player.tournament
-    group = player.group  # Может быть None (в режиме Соло)
+    group = player.group  # Может быть None (в режиме SOLO)
 
     db.session.delete(player)
 
-    # Проверка на удаление пустой группы для Дуо и Сквад
-    if group and tournament.mode in ['Дуо', 'Сквад']:
+    # Проверка на удаление пустой группы для DUO и SQUAD
+    if group and tournament.mode in ['DUO', 'SQUAD']:
         remaining_players = Player.query.filter_by(group_id=group.id).count()
         if remaining_players == 0:
             db.session.delete(group)
@@ -241,7 +264,7 @@ def create_match(tournament_id):
             ).first()
             
             if existing_match:
-                flash('Матч для этой карты уже существует', 'error')
+                flash('Карта под этим номером уже существует', 'error')
                 return redirect(url_for('admin.create_match', tournament_id=tournament_id))
             
             new_match = Match(
@@ -254,7 +277,7 @@ def create_match(tournament_id):
             db.session.commit()
             
             flash('Матч успешно создан', 'success')
-            return redirect(url_for('admin.view_players', tournament_id=tournament_id))
+            return redirect(url_for('admin.tournament_info', tournament_id=tournament_id))
             
         except ValueError as e:
             flash('Ошибка в формате данных', 'error')

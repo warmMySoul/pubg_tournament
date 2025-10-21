@@ -21,18 +21,19 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if not get_current_user():
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                # Для AJAX-запросов возвращаем JSON
+                # Для AJAX-запросов возвращаем JSON с флагом
                 return jsonify({
                     'success': False,
                     'message': 'Для выполнения этого действия необходимо авторизоваться',
-                    'login_required': True,
-                    'redirect': url_for('public.home')  # или другая страница
+                    'login_required': True
                 }), 401
             else:
                 # Для обычных запросов делаем редирект
                 flash('Для доступа к данной странице необходимо авторизоваться', 'error')
-                next_url = request.url
-                return redirect(url_for('public.home') + f'?login_required=1&next={next_url}')
+                current_url = request.referrer or url_for('public.home')
+                # Определяем разделитель (? или &) в зависимости от наличия параметров в URL
+                separator = '&' if '?' in current_url else '?'
+                return redirect(f"{current_url}{separator}login_required=1")
         return f(*args, **kwargs)
     return decorated_function
 

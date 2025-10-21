@@ -19,9 +19,9 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="button">Создать матч</button>
-            <a href="{{ url_for('admin.view_players', tournament_id=tournament.id) }}"
-                class="button button-secondary">Отмена</a>
+            <button type="submit" class="btn btn-primary">Создать матч</button>
+            <a href="{{ url_for('admin.tournament_info', tournament_id=tournament.id) }}"
+                class="btn btn-secondary">Отмена</a>
         </div>
     </form>
 </div>

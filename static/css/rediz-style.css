@@ -1,0 +1,14 @@
+
+
+/* Footer */
+.site-footer { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 28px; margin-top: 40px; }
+.footer-inner { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .footer-inner { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+.footer-title { font-weight: 700; margin: 0 0 10px; }
+.footer-links { display: grid; gap: 8px; }
+.footer-links a { color: #D9DBE3; text-decoration: none; }
+.footer-links a:hover { color: #fff; }
+.footer-text { color: #C9CBD2; }
+.footer-bottom { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 16px 0 28px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 16px; }
+.copy, .made { color: #A5A7B0; font-size: 13px; }
+

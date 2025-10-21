@@ -3,10 +3,10 @@ from flask import Blueprint, flash, jsonify, url_for, redirect, session, request
 from datetime import datetime, timedelta
 from extensions.security import get_client_ip, is_safe_url, role_required, get_current_user, login_required, get_cipher
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func
+from sqlalchemy import and_, func
 from pubg_api.models.player import ParsedPlayerStats
 from services.verification_service import generate_verification_code, send_email, send_verification_email
-from utils.helpers import mask_email, registration_open as tournament_reg_is_open
+from utils.helpers import mask_email
 from models import RoleEnum, User, Tournament, Player, PlayerGroup, AdminActionLog, PlayerStats, JoinRequests, RqStatusEnum, IPStatusEnum
 from extensions.db_connection import db
 
@@ -92,6 +92,10 @@ def profile():
             # Запрос на смену пароля
             current_password = request.form.get('current_password')
             new_password = request.form.get('new_password')
+
+            if (current_password == new_password):
+                flash('Пароли не должны совпадать', 'error')
+                return redirect(url_for('user.profile'))
             
             if not check_password_hash(user.password, current_password):
                 flash('Текущий пароль неверен', 'error')
@@ -170,10 +174,16 @@ def login():
 
         # Успешная авторизация
         session['user_logged'] = user.id
-        next_url = request.form.get('next', '')
 
         ip_address = get_client_ip()
         log_ip(IPStatusEnum.LOGIN, ip_address)
+
+        # Получаем URL для перенаправления из разных источников
+        next_url = (
+            request.form.get('next') or 
+            request.referrer or  # Страница, с которой пришел пользователь
+            url_for('public.home')
+        )
 
         # Проверка безопасного URL для перенаправления
         if next_url and is_safe_url(next_url):
@@ -184,7 +194,7 @@ def login():
         return jsonify({
             'success': True,
             'message': f"Добро пожаловать, {user.username} ({user.role})",
-            'redirect': redirect_url,
+            'redirect': redirect_url,  # Возвращаем URL для перенаправления
             'user': {
                 'id': user.id,
                 'username': user.username,
@@ -485,21 +495,6 @@ def player_form(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)
     user = get_current_user()
 
-    # Проверка существующей регистрации
-    if user:
-        existing_player = Player.query.filter_by(
-            tournament_id=tournament_id,
-            user_id=user.id  # Теперь проверяем по user_id
-        ).first()
-        
-        if existing_player:
-            return render_template('public/tournaments/tournament_register_already.html', 
-                                tournament=tournament, 
-                                player=existing_player)
-
-    if not tournament_reg_is_open(tournament):
-        return render_template('public/tournaments/registration_closed.html', 
-                            tournament=tournament)
 
     if request.method == 'POST':
         try:
@@ -529,11 +524,9 @@ def player_form(tournament_id):
                 return redirect(url_for('user.player_form', tournament_id=tournament_id))
 
             # Для групповых режимов
-            if tournament.mode in ['Дуо', 'Сквад']:
-                max_players = 4 if tournament.mode == 'Сквад' else 2
-                
-                # Создание новой группы, если не выбрана
-                if not group_id:
+            if tournament.mode in ['DUO', 'SQUAD']:
+                max_players = 4 if tournament.mode == 'SQUAD' else 2
+                if group_id == "new_group": # Создание новой группы
                     max_group = db.session.query(func.max(PlayerGroup.group_number)) \
                         .filter_by(tournament_id=tournament_id).scalar() or 0
                     new_group = PlayerGroup(
@@ -543,12 +536,27 @@ def player_form(tournament_id):
                     db.session.add(new_group)
                     db.session.flush()
                     group_id = new_group.id
-                
-                # Проверка заполненности группы
-                group = PlayerGroup.query.get(group_id)
-                if group and len(group.players) >= max_players:
-                    flash('Выбранная группа уже заполнена', 'error')
-                    return redirect(url_for('user.player_form', tournament_id=tournament_id))
+
+                elif group_id == "random_group": # Выбор случайно группы группы
+                    random_group = (PlayerGroup.query
+                            .join(PlayerGroup.players)
+                            .filter(and_(
+                                PlayerGroup.tournament_id == tournament_id
+                            ))
+                            .group_by(PlayerGroup.id)
+                            .having(func.count(PlayerGroup.players) < max_players)
+                            .order_by(func.random())
+                            .first())
+
+                    if random_group:
+                        group_id = random_group.id
+                    else:
+                        group_id = None
+                else:
+                    group = PlayerGroup.query.get(group_id)
+                    if group and len(group.players) >= max_players:
+                        flash('Выбранная группа уже заполнена', 'error')
+                        return redirect(url_for('user.player_form', tournament_id=tournament_id))
 
             # Обновляем имя пользователя, если оно было изменено
             if user and user.name != name:
@@ -559,7 +567,7 @@ def player_form(tournament_id):
             new_player = Player(
                 tournament_id=tournament_id,
                 user_id=user.id if user else None,
-                group_id=group_id if tournament.mode in ['Дуо', 'Сквад'] else None,
+                group_id=group_id if tournament.mode in ['DUO', 'SQUAD'] else None,
                 name=name,
                 nickname=nickname
             )
@@ -575,11 +583,11 @@ def player_form(tournament_id):
             db.session.add(log)
             db.session.commit()
 
-            session['last_registered_tournament'] = tournament_id
             flash('Вы успешно зарегистрировались на турнир!', 'success')
-            return redirect(url_for('public.view_players_public', tournament_id=tournament_id))
+            return redirect(url_for('public.tournament_details', tournament_id=tournament_id))
 
         except Exception as e:
+            print(e)
             db.session.rollback()
             flash('Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.', 'error')
             return redirect(url_for('user.player_form', tournament_id=tournament_id))
@@ -587,20 +595,231 @@ def player_form(tournament_id):
     # Для GET-запроса
     groups = []
     max_players = None
-    if tournament.mode in ['Дуо', 'Сквад']:
+    if tournament.mode in ['DUO', 'SQUAD']:
         groups = PlayerGroup.query \
             .filter_by(tournament_id=tournament_id) \
             .options(db.joinedload(PlayerGroup.players)) \
             .all()
-        max_players = 4 if tournament.mode == 'Сквад' else 2
+        max_players = 4 if tournament.mode == 'SQUAD' else 2
+
+    now = datetime.now()
+    # Определяем статус турнира
+    if tournament.reg_start < now and tournament.reg_end > now:
+        registration_status = 'open'
+    elif tournament.reg_end < now:
+        if tournament.tournament_date < now:
+            registration_status = "ended"
+        else:
+            registration_status = 'closed'
+    else:
+        registration_status = 'soon'
+
+    # Проверка существующей регистрации
+    if user:
+        existing_player = Player.query.filter_by(
+            tournament_id=tournament_id,
+            user_id=user.id
+        ).first()
 
     return render_template(
         'public/tournaments/form.html',
         tournament=tournament,
+        registration_status=registration_status,
+        existing_player=existing_player,
         groups=groups,
         max_players=max_players,
         current_user=user
     )
+
+# Отправка кода подтверждения для удаления регистрации
+@user_bp.route('/send-delete-code', methods=['POST'])
+@login_required
+def send_delete_code():
+    cipher = get_cipher()
+
+    try:
+        data = request.get_json()
+        tournament_id = data.get('tournament_id')
+        player_id = data.get('player_id')
+        
+        user = get_current_user()
+        tournament = Tournament.query.get_or_404(tournament_id)
+        player = Player.query.filter_by(
+            id=player_id,
+            tournament_id=tournament_id,
+            user_id=user.id
+        ).first_or_404()
+
+        # Генерация, шифрование и сохранение кода
+        verification_code = generate_verification_code()
+        encrypted_code = cipher.encrypt(verification_code.encode())
+        
+        # Сохраняем данные для удаления в сессии
+        session['delete_data'] = {
+            'tournament_id': tournament_id,
+            'player_id': player_id,
+            'user_id': user.id
+        }
+        session['delete_encrypted_code'] = encrypted_code
+        session['delete_code_expires'] = (datetime.now(ZoneInfo("Europe/Moscow")) + timedelta(minutes=5)).isoformat()
+
+        # Отправка письма
+        send_verification_email(user.email, verification_code)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Код подтверждения отправлен на ваш email'
+        })
+        
+    except Exception as e:
+        print(f"Send delete code error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Произошла ошибка при отправке кода'
+        }), 500
+
+# Удаление регистрации с подтверждением
+@user_bp.route('/delete-registration', methods=['POST'])
+@login_required
+def delete_registration():
+    cipher = get_cipher()
+    
+    if 'delete_data' not in session:
+        return jsonify({
+            'success': False,
+            'message': 'Сессия истекла или не найдена. Пожалуйста, запросите код подтверждения снова.'
+        }), 400
+
+    entered_code = request.form.get('verification_code', '').strip()
+    tournament_id = request.form.get('tournament_id')
+    player_id = request.form.get('player_id')
+    
+    try:
+        # Проверяем соответствие данных
+        delete_data = session.get('delete_data')
+        if (str(delete_data['tournament_id']) != str(tournament_id) or 
+            str(delete_data['player_id']) != str(player_id)):
+            return jsonify({
+                'success': False,
+                'message': 'Несоответствие данных. Пожалуйста, запросите новый код.'
+            }), 400
+
+        encrypted_code = session.get('delete_encrypted_code')
+        expires = datetime.fromisoformat(session.get('delete_code_expires', ''))
+        
+        if not encrypted_code:
+            return jsonify({
+                'success': False,
+                'message': 'Код подтверждения не найден'
+            }), 400
+            
+        if datetime.now(ZoneInfo("Europe/Moscow")) > expires:
+            return jsonify({
+                'success': False,
+                'message': 'Срок действия кода истек'
+            }), 400
+            
+        decrypted_code = cipher.decrypt(encrypted_code).decode()
+        
+        if decrypted_code == entered_code:
+            # Находим и удаляем запись
+            player = Player.query.filter_by(
+                id=player_id,
+                tournament_id=tournament_id,
+                user_id=delete_data['user_id']
+            ).first_or_404()
+
+            anotherGroupPlayer = Player.query.filter(
+                Player.group_id == player.group_id,
+                Player.id != player.id
+            ).all()
+            group = PlayerGroup.query.get(player.group_id)
+            if (not anotherGroupPlayer):
+                db.session.delete(group)
+            
+            tournament = Tournament.query.get_or_404(tournament_id)
+            
+            # Логируем удаление
+            action = f"Игрок {player.name} (ник: {player.nickname}) удалил регистрацию с турнира '{tournament.name}'"
+            log = AdminActionLog(
+                user_id=delete_data['user_id'],
+                action=action
+            )
+            
+            db.session.delete(player)
+            db.session.add(log)
+            db.session.commit()
+            
+            # Очищаем сессию
+            session.pop('delete_data', None)
+            session.pop('delete_encrypted_code', None)
+            session.pop('delete_code_expires', None)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Ваша регистрация на турнир успешно удалена'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Неверный код подтверждения'
+            }), 400
+            
+    except Exception as e:
+        print(f"Delete registration error: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': 'Произошла ошибка при удалении регистрации'
+        }), 500
+
+# Повторная отправка кода для удаления
+@user_bp.route('/resend-delete-code', methods=['POST'])
+@login_required
+def resend_delete_code():
+    cipher = get_cipher()
+
+    try:
+        data = request.get_json()
+        tournament_id = data.get('tournament_id')
+        player_id = data.get('player_id')
+        
+        user = get_current_user()
+        
+        # Проверяем существование записи
+        player = Player.query.filter_by(
+            id=player_id,
+            tournament_id=tournament_id,
+            user_id=user.id
+        ).first_or_404()
+
+        # Генерация нового кода
+        new_code = generate_verification_code()
+        encrypted_code = cipher.encrypt(new_code.encode())
+        
+        # Обновление данных в сессии
+        session['delete_data'] = {
+            'tournament_id': tournament_id,
+            'player_id': player_id,
+            'user_id': user.id
+        }
+        session['delete_encrypted_code'] = encrypted_code
+        session['delete_code_expires'] = (datetime.now(ZoneInfo("Europe/Moscow")) + timedelta(minutes=5)).isoformat()
+
+        # Отправка письма
+        send_verification_email(user.email, new_code)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Новый код подтверждения отправлен на ваш email'
+        })
+    
+    except Exception as e:
+        print(f"Resend delete code error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Произошла ошибка при отправке кода'
+        }), 500
 
 # Подача заявки в клан
 @user_bp.route('/join-clan-request', methods=['POST'])

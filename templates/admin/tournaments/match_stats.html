@@ -12,7 +12,7 @@
         <label for="api_match_id">Загрузить данные из матча PUBG</label>
         <input type="text" id="api_match_id" placeholder="Id матча PUBG">
         <input type="hidden" id="current_match_id" value="{{ match.id }}">
-        <button id="load_api_stats" class="button">Загрузить данные</button>
+        <button id="load_api_stats" class="btn btn-primary">Загрузить данные</button>
         <div id="api_status" class="status-message"></div>
     </div>
 
@@ -64,9 +64,9 @@
         </table>
 
         <div class="form-actions">
-            <button type="submit" class="button">Сохранить статистику</button>
-            <a href="{{ url_for('admin.view_players', tournament_id=tournament.id) }}"
-               class="button button-secondary">Назад к турниру</a>
+            <button type="submit" class="btn btn-primary">Сохранить статистику</button>
+            <a href="{{ url_for('admin.tournament_info', tournament_id=tournament.id) }}"
+               class="btn btn-secondary">Назад к турниру</a>
         </div>
     </form>
 </div>

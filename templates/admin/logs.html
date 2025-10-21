@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="container">
-    <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
+    <a class="btn btn-primary" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
     <h1>Журнал действий</h1>
     <div class="collapsible-filters">
         <div class="collapsible-header" onclick="toggleFilters(this)">
@@ -43,9 +43,9 @@
                 <label for="to">По:</label>
                 <input type="date" name="to" value="{{ request.args.get('to', '') }}">
 
-                <button type="submit" class="button">Фильтровать</button>
-                <a href="{{ url_for('admin.view_logs') }}" class="button">Сброс</a>
-                <a href="{{ url_for('admin.export_logs', **request.args) }}" class="button">Экспорт Excel</a>
+                <button type="submit" class="btn btn-primary">Фильтровать</button>
+                <a href="{{ url_for('admin.view_logs') }}" class="btn btn-primary">Сброс</a>
+                <a href="{{ url_for('admin.export_logs', **request.args) }}" class="btn btn-primary">Экспорт Excel</a>
             </form>
         </div>
     </div>
@@ -58,7 +58,7 @@
             {% if pagination.has_prev %}
             {% set args_prev = args.copy() %}
             {% set _ = args_prev.update({'page': pagination.prev_num}) %}
-            <a href="{{ url_for('admin.view_logs') }}?{{ args_prev|urlencode }}" class="button">←</a>
+            <a href="{{ url_for('admin.view_logs') }}?{{ args_prev|urlencode }}" class="btn btn-primary">←</a>
             {% endif %}
 
             Страница {{ pagination.page }} из {{ pagination.pages }}
@@ -66,7 +66,7 @@
             {% if pagination.has_next %}
             {% set args_next = args.copy() %}
             {% set _ = args_next.update({'page': pagination.next_num}) %}
-            <a href="{{ url_for('admin.view_logs') }}?{{ args_next|urlencode }}" class="button">→</a>
+            <a href="{{ url_for('admin.view_logs') }}?{{ args_next|urlencode }}" class="btn btn-primary">→</a>
             {% endif %}
         </div>
     </div>

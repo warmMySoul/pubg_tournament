@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="container">
-<a class="button" href="{{url_for('admin.users_list')}}">Назад к списку пользователей</a>
+<a class="btn btn-primary" href="{{url_for('admin.users_list')}}">Назад к списку пользователей</a>
 <div class="profile_container">
     
         <div class="container_left">
@@ -38,7 +38,7 @@
         <div class="container_right">
             {% if stats %}
             <h2>Статистика PUBG за все время</h2>
-            <button class="button" onclick="updateStats(event, {{ user.id }})">Обновить статистику</button>
+            <button class="btn btn-primary" onclick="updateStats(event, {{ user.id }})">Обновить статистику</button>
             <h3>Обновлено: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
 
             <div class="user_stats">

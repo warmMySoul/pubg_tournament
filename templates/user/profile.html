@@ -32,24 +32,24 @@
 
                 <hr>
 
-                <button type="submit" class="button">Сохранить изменения профиля</button>
+                <button type="submit" class="btn btn-primary">Сохранить изменения профиля</button>
             </form>
 
             <h3>Смена пароля</h3>
 
             {% if not password_change_requested %}
-            <form method="post">
+            <form method="post" id="passwordForm">
                 <input type="hidden" name="action" value="request_password_change">
 
                 <label>Текущий пароль:</label>
-                <input type="password" name="current_password" required>
+                <input type="password" id="current_password" name="current_password" required>
 
                 <label>Новый пароль:</label>
-                <input type="password" name="new_password" minlength="6" maxlength="30" required>
+                <input type="password" id="new_password" name="new_password" minlength="6" maxlength="30" required>
 
                 <p><small>После отправки формы вам будет отправлен код подтверждения на email</small></p>
 
-                <button type="submit" class="button">Запросить смену пароля</button>
+                <button type="submit" class="btn btn-primary">Запросить смену пароля</button>
             </form>
             {% else %}
             <form method="post">
@@ -57,10 +57,9 @@
 
                 <label>Код подтверждения:</label>
                 <input type="text" name="verification_code" required>
-                <small>Введите код, отправленный на ваш email</small>
+                <p><small>Введите код, отправленный на ваш email</small></p>
 
-                <button type="submit" class="button">Подтвердить смену пароля</button>
-                <a href="{{ url_for('user.profile') }}" class="button">Отмена</a>
+                <button type="submit" class="btn btn-primary">Подтвердить смену пароля</button>
             </form>
             {% endif %}
         </div>
@@ -96,8 +95,20 @@
 
     </div>
    
-
-    
-
 </div>
+
+
+<script>
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    const currentPassword = document.getElementById('current_password').value;
+    const newPassword = document.getElementById('new_password').value;
+    
+    if (currentPassword === newPassword) {
+        e.preventDefault();
+        toastr.error('Новый пароль не может совпадать с текущим паролем');
+        document.getElementById('new_password').focus();
+    }
+});
+</script>
+
 {% endblock %}

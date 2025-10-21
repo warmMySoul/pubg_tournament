@@ -44,7 +44,7 @@ def create_app():
     from routes.public_routes import public_bp
     from routes.admin_routes import admin_bp
     from routes.user_routes import user_bp
-    from errors.handlers import errors
+    #from errors.handlers import errors
 
     app.register_blueprint(public_bp)
     app.register_blueprint(admin_bp)
@@ -52,13 +52,11 @@ def create_app():
     #app.register_blueprint(errors)
 
     # Добавляем переменные в шаблоны
-    from utils.helpers import registration_open as tournament_reg_is_open
     from extensions.security import get_current_user
 
     @app.context_processor
     def utility_processor():
         return dict(
-            registration_open=tournament_reg_is_open,
             now=datetime.now(),
             current_user=get_current_user()
         )

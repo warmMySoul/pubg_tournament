@@ -4,376 +4,657 @@
 <title>Golden Bulls - PUBG</title>
 {% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
 
-    
-    <div class="container_block" data-aos="fade-right" id="about_us">
-        <h2>О нас</h2>
-        <p class="recruitment-lead">Мы — клан <span class="clan-name">Golden Bulls</span>, сплочённое братство
-                    игроков PUBG, где каждый боец ценится не только за навыки, но и за дух команды. Здесь нет одиночек —
-                    только взаимовыручка, тактика и стремление к победе.
-                    Наш клан объединяет лучших игроков PUBG, готовых сражаться плечом к плечу ради общей победы. 
-                    Вместе мы организовываем захватывающие турниры, соревнуемся командами и боремся за звание сильнейших. 
-                    Здесь царят дух товарищества, честная игра и адреналин настоящих баталий. 
-                    Присоединяйся к нам, если хочешь испытать настоящий драйв и стать частью легендарного коллектива!
-        </p>
-        <div class="recruitment-call">
-            <div class="recruitment-content">
-                <div class="why-us">
-                    <h3 class="recruitment-title">Почему мы?</h3>
-                    <ul class="benefits-list">
-                        <li class="benefit-item"><strong>Командная игра</strong> — мы
-                            сражаемся вместе, а не просто бежим за фрагами.</li>
-                        <li class="benefit-item"><strong>Развитие</strong> —
-                            анализируем ошибки, делимся тактиками и растем как игроки.</li>
-                        <li class="benefit-item"><strong>Честность и уважение</strong>
-                            — никакого токсика, только здоровая атмосфера.</li>
-                        <li class="benefit-item"><strong>Активность</strong> —
-                            постоянно проводим турниры и собираемся на тренировки.</li>
-                    </ul>
-                </div>
-
-                <div class="recruitment-image">
-                    <img class="item-image" src="{{ url_for('static', filename='images/solder_no_bg.png') }}" alt="">
-                </div>
-                
-                <div class="recruitment-join">
-                    <h3 class="recruitment-title">Вступай</h3>
-                    <p class="recruitment-cta">Если ты ищешь не просто клан, а <span class="highlight">настоящих
-                        союзников</span>, готовых поддержать в любом раунде, — бросай заявку. Вместе мы добьёмся
-                    большего!</p>
-
-                    <p class="clan-signature"><span class="clan-name">Golden Bulls</span> — не просто название. Это стиль
-                    игры.</p>
-
-                    
-                </div>
-
-                
-            </div>
-                {% if not current_user%}
-                    <p style="text-align:center; text-decoration: underline; font-size: 18px">
-                        Авторизуйтесь для подачи заявки на вступление в клан
-                    </p>                    
-                {% else %}
-                    {% if join_request %}
-                        {% if join_request.status == "Принята" %}
-                            <p class="join_request rq_accepted">
-                                <i class="fi fi-rr-checkbox"></i>
-                                Ваша заявка на вступление в клан <strong>принята</strong>. Добро пожаловать в клан Golden Bulls!
-                            </p>
-                        {% endif %}
-                        {% if join_request.status == "Отклонена" %}
-                            <p class="join_request rq_decline">
-                                <i class="fi fi-rr-rectangle-xmark"></i>
-                                Ваша заявка на вступление в клан <strong>отклонена</strong> по причине: {{join_request.reason}} <br>
-                                Вы сможете подать заявку повторно через месяц.
-                            </p>
-                            {% if (datetime_now - join_request.created_at).days > 30 %}
-                                <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
-                                    Подать повторно заявку на вступление в клан
-                                </a>
-                            {% endif %}
-                        {% endif %}
-                        {% if join_request.status == "На рассмотрении" %}
-                            <p class="join_request rq_review">
-                                <i class="fi fi-rr-hourglass-start"></i>
-                                Ваша заявка на вступление в клан находится на рассмотрении модераторов
-                            </p>
-                        {% endif %}
-                    {% else %}
-                        {% if current_user.role == 'guest' %}
-                            <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
-                                Подать заявку на вступление в клан
-                            </a>
-                            <!--
-                            <a href="#" class="join_button button" style="margin-bottom: 0;">
-                                Хочу стать другом клана
-                            </a>
-                            <a href="#" class="small_link"><small>Что может друг клана?</small></a>
-                            -->
-                        {% endif %}
-                        {% if current_user.role == 'clan_friend' %}
-                            <a href="#" class="join_button button" onclick="openJoinClanModal(); return false;">
-                                Подать заявку на вступление в клан
-                            </a>
-                        {% endif %}
-                    {% endif %}
-                {% endif %}
+    {% if (not current_user or current_user.role =="guest") %}
+    <div class="hotline-block">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--black)"><path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z"/></svg>
+        <div class="hotline-content">
+            <span class="hotline-text">Хочешь присоединиться к нашему клану Golden Bulls? Жми →</span>
+            {% if not current_user %}
+                <a href="#" class="btn-hotline" onclick="openLoginModal();">Подать заявку на вступление</a>
+            {% else %}
+                <a href="#" class="btn-hotline" onclick="openJoinClanModal(); return false;">Подать заявку на вступление</a>
+            {% endif %}
         </div>
-    </div>
-    
-
-    {% if champions %}
-    <div class="container_block" data-aos="fade-right" id="champions">
-        <h2>Команды победителей:</h2>
-
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--black)"><path d="m321-80-71-71 329-329-329-329 71-71 400 400L321-80Z"/></svg>
     </div>
     {% endif %}
 
-    <div class="container_block" data-aos="fade-right" id="tournaments">
-        <h2>Турниры</h2>
-        <div class="tournament_info">
+<div class="container">
+    <!-- About -->
+    <section id="about" data-aos="fade-right" class="section">
+        <div class="container">
+            <h2 class="section-title">О клане <span class="golden-text">Golden Bulls</span></h2>
+            <hr class="hr_small">
+            <p class="section-lead">Мы - элитный клан игроков PUBG, объединенных общей целью достижения высоких
+                результатов в соревновательной игре и построения сильного игрового сообщества.</p>
 
-            {% if next_tournament %}
-            <div class="next_tournament">
-                <img class="matches_img" src="{{ url_for('static', filename='images/matches.png') }}">
-                <div class="tournament_card_info">
-                    <h3 class="h3_mgb8">Ближайший турнир</h3>
-                    <p>
-                        <strong class="h4">{{ next_tournament.name }}</strong> <br>
-                        <strong>Дата проведения</strong> - {{ next_tournament.tournament_date.strftime('%d.%m.%Y %H:%M') }} <br>
-                        <strong>Начало регистрации</strong> - {{ next_tournament.reg_start.strftime('%d.%m.%Y %H:%M') }}<br>
-                        <strong>Окончание регистрации</strong> - {{ next_tournament.reg_end.strftime('%d.%m.%Y %H:%M')}}<br>
-                        <strong>Режим игры</strong> - {{ next_tournament.mode }}<br>
-                        <strong>Количество карт</strong> - {{ next_tournament.maps_count }}<br>
-                        
-                    </p>
-                    <p class="countdown">
-                        До начала турнира: <strong><span id="countdown-timer"></span></strong>
+            <div class="mission">
+                <div class="mission_caption">
+                    <p><strong>Golden Bulls</strong> был создан в 2024 году с целью объединения талантливых игроков PUBG. Мы
+                        стремимся к постоянному совершенствованию навыков, участию в крупных турнирах и поддержанию
+                        дружественной атмосферы внутри команды.
+                        <br><br>
+                        Наш клан известен своей дисциплиной, профессиональным подходом к тренировкам и способностью
+                        работать как единое целое в самых напряженных моментах игры.
                     </p>
 
-                    {% if current_user %}
-                        {% if current_user.role in ['admin', 'moderator', 'clan_member'] %}
-                            <a href="{{url_for('user.player_form',tournament_id=next_tournament.id)}}" class="button">Записаться</a>
-                        {% endif %}
-                    {% endif %}
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value">150+</div>
+                            <div class="stat-label">Участники</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">{{all_tournaments|length}}</div>
+                            <div class="stat-label">Турниры</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">2024 г.</div>
+                            <div class="stat-label">Основание</div>
+                        </div>
+                    </div>
                 </div>
+
+                <img class="mission_image"
+                    src="{{ url_for('static', filename='images/about_img.png') }}"
+                    alt="picture">
             </div>
-            
-            
-            <script>
-                // Скрипт обратного отсчета до турнира
 
-                // Устанавливаем дату начала турнира
-                const tournamentDate = new Date("{{ next_tournament.tournament_date.strftime('%Y-%m-%dT%H:%M:%S') }}").getTime();
-                
-                // Обновляем таймер каждую секунду
-                const countdownTimer = setInterval(function() {
-                    // Текущая дата и время
-                    const now = new Date().getTime();
-                    
-                    // Разница между текущим временем и временем турнира
-                    const distance = tournamentDate - now;
-                    
-                    // Расчет дней, часов, минут и секунд
-                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                    
-                    // Вывод результата
-                    document.getElementById("countdown-timer").innerHTML = 
-                        days + "д " + hours + "ч " + minutes + "м " + seconds + "с ";
-                    
-                    // Если время истекло
-                    if (distance < 0) {
-                        clearInterval(countdownTimer);
-                        document.getElementById("countdown-timer").innerHTML = "Турнир начался!";
-                    }
-                }, 1000);
-            </script>
-            {% endif %}
+            <hr class="hr_full">
 
-            {% if last_tournament %}
-            <div class="last_tournament">
-                <img class="matches_img" src="{{ url_for('static', filename='images/matches.png') }}">
-                <div class="tournament_card_info">
-                    <h3 class="h3_mgb8">Прошлый турнир</h3>
-                    <p>
-                        <strong class="h4">{{ last_tournament.name }}</strong><br>
-                        <strong>Дата проведения</strong> - {{ last_tournament.tournament_date.strftime('%d.%m.%Y') }}<br>
-                        <strong>Режим игры</strong> - {{ last_tournament.mode }}<br>
-                        <strong>Количество карт</strong> - {{ last_tournament.maps_count }}<br>
-                    </p>
-                
-                    {% if current_user %}
-                        {% if current_user.role in ['admin', 'moderator', 'clan_member', 'clan_friend'] %}
-                            <a href="{{url_for('public.view_players_public',tournament_id=last_tournament.id)}}" class="button">Посмотреть детали турнира</a>
-                        {% endif %}
-                    {% endif %}
+            <div class="features">
+
+                <div class="feature-card">
+                    <i class="feature-icon fi fi-rs-user-experience"></i>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Профессиональный уровень</h3>
+                        <p class="feature-desc">Высокий рейтинг и большой опыт в турнирах у игроков в клане</p>
+                    </div>
                 </div>
+
+                <div class="feature-card">
+                    <i class="feature-icon fi fi-rr-chess-knight-alt"></i>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Стратегический подход</h3>
+                        <p class="feature-desc">Разработка тактики и стратегии для каждой карты</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <i class="feature-icon fi fi-rr-users-alt"></i>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Командная работа</h3>
+                        <p class="feature-desc">Сплоченная команда - залог успеха в любом матче</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <i class="feature-icon fi fi-rr-bolt"></i>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Быстрая реакция</h3>
+                        <p class="feature-desc">Молниеносные решения в критических ситуациях</p>
+                    </div>
+                </div>
+
             </div>
-            {% endif %}
 
         </div>
+    </section>
 
-    </div>
+    <!-- News 
+    <section id="news" data-aos="fade-right" class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Последние <span class="golden-text">новости</span></h2>
+            <hr class="hr_small">
+            <p class="section-lead">Следите за актуальными событиями и достижениями нашего клана</p>
 
-    <div class="container_block" data-aos="fade-right" id="members">
-        <h2>Cостав клана</h2>
-        <div class="members_container">
-            <div class="member_list_container">
-                <div class="member_count">
-                    <h3>Количество участников :</h3>
-                    <strong class="member_count_value">{{ members.count() }}</strong>
-                </div>
-                
-                <ul class="member_list">
-                    {% for member in members %}
-                    <li class="member-card">
-                        <div class="member-nickname">{{ member.pubg_nickname }}</div>
-                        <div class="member-info">
-                            {% if member.name %}
-                            <span>Имя: {{ member.name }}</span>
+            <div class="cards grid-2">
+
+                <article class="card">
+                    <img class="card-img"
+                        src="https://wallpaperswide.com/download/playerunknown_s_battlegrounds_pubg_2019_game-wallpaper-3840x2160.jpg"
+                        alt="card_img">
+                    <div class="card-body">
+                        <h3 class="card-title">Победа в турнире PUBG Champions League</h3>
+                        <p class="card-text">Наша команда заняла первое место в престижном турнире, обыграв 32
+                            команды в финальном этапе.</p>
+                        <a href="#" class="card-link">Подробнее</a>
+                    </div>
+                    <div class="card-meta">15 авг 2024 · Турниры</div>
+                </article>
+
+                <article class="card">
+                    <img class="card-img"
+                        src="https://wallpaperswide.com/download/playerunknown_s_battlegrounds_pubg_2019_game-wallpaper-3840x2160.jpg"
+                        alt="card_img">
+                    <div class="card-body">
+                        <h3 class="card-title">Новый участник присоединился к команде</h3>
+                        <p class="card-text">Рады приветствовать BullStrike в рядах нашего клана. Профессиональный
+                            снайпер с многолетним опытом.</p>
+                    </div>
+                    <div class="card-meta">12 авг 2024 · Команда</div>
+                </article>
+
+                <article class="card">
+                    <img class="card-img"
+                        src="https://wallpaperswide.com/download/playerunknown_s_battlegrounds_pubg_2019_game-wallpaper-3840x2160.jpg"
+                        alt="card_img">
+                    <div class="card-body">
+                        <h3 class="card-title">Обновление стратегий для новой карты</h3>
+                        <p class="card-text">Команда разработала новые тактики для карты Deston. Подробный разбор
+                            доступен участникам клана.</p>
+                    </div>
+                    <div class="card-meta">10 авг 2024 · Стратегия</div>
+                </article>
+
+                <article class="card">
+                    <img class="card-img"
+                        src="https://wallpaperswide.com/download/playerunknown_s_battlegrounds_pubg_2019_game-wallpaper-3840x2160.jpg"
+                        alt="card_img">
+                    <div class="card-body">
+                        <h3 class="card-title">Результаты недельных тренировок</h3>
+                        <p class="card-text">Статистика прогресса команды за последнюю неделю. Заметное улучшение
+                            показателей в скримах.</p>
+                        <a href="#" class="card-link">Подробнее</a>
+                    </div>
+                    <div class="card-meta">8 авг 2024 · Тренировки</div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+    -->
+
+    <!-- Tournaments -->
+    <section id="tournaments" data-aos="fade-right" class="section">
+        <div class="container">
+            <h2 class="section-title">Наши <span class="golden-text">турниры</span></h2>
+            <hr class="hr_small">
+            <p class="section-lead">Предстоящие и прошедшие турниры</p>
+
+            {% if next_tournaments %}
+            <div class="subsection">
+                <h3 class="subsection-title">Предстоящие турниры</h3>
+                <div class="cards">
+
+                    {% for tournament_info in next_tournaments %}
+                    <div class="card">
+                        <div class="tournament-header">
+                            <h4 class="tournament-title">{{ tournament_info.tournament.name }}</h4>
+
+                            {% if (tournament_info.tournament.reg_start < now and tournament_info.tournament.reg_end > now) %}
+                            <span class="badge status_grn">Регистрация открыта</span>
+                            {% elif (tournament_info.tournament.reg_start < now and tournament_info.tournament.reg_end < now) %}
+                            <span class="badge status_red">Регистрация закрыта</span>
+                            {% else %}
+                            <span class="badge status-yllw">Скоро</span>
                             {% endif %}
-                            {% if member.birthday %}
-                            <span>День рождения:
-                                {{ member.birthday.strftime('%d.%m')  if member.birthday else 'Не указан' }}</span>
+
+                        </div>
+                        {% if tournament_info.tournament.desc %}
+                        <p class="tournament-desc">
+                            {{ tournament_info.tournament.desc }}
+                        </p>
+                        {% endif %}
+                        <div class="tournament-meta">
+                            <div><span class="meta-label">Дата проведения:</span>
+                                {{ tournament_info.tournament.tournament_date.strftime('%d.%m.%Y %H:%M') }}</div>
+                            <div><span class="meta-label">Количество участников:</span> {{ tournament_info.player_count }}</div>
+                            <div><span class="meta-label">Формат:</span> {{ tournament_info.tournament.mode }}</div>
+                        </div>
+                        <hr class="hr_full">
+                        <div class="tournament-meta">
+                            <div><span class="meta-label">Регистрация с:</span>
+                                {{ tournament_info.tournament.reg_start.strftime('%d.%m.%Y %H:%M')}}</div>
+                            <div><span class="meta-label">Регистрация до:</span>
+                                {{ tournament_info.tournament.reg_end.strftime('%d.%m.%Y %H:%M')}}</div>
+                            {% if tournament_info.tournament.prize %}
+                            <div><span class="meta-label">Призовой фонд:</span> <span
+                                    class="tournament-prize-fund">{{ tournament_info.tournament.prize }}</span> </div>
                             {% endif %}
                         </div>
-                        {% if member.role == "admin" or member.role == "moderator" %}
-                        <div class="member-role {{member.role}}">{{ member.role }}</div>
+                        {% if tournament_info.tournament.req %}
+                        <div class="tournament-req">
+                            <span class="meta-label">Требования:</span> {{ tournament_info.tournament.req }}
+                        </div>
                         {% endif %}
-                    </li>
+                        <div class="tournament-actions">
+                            {% if (current_user.role in ['admin', 'moderator', 'clan_member']
+                                 and (tournament_info.tournament.reg_start < now and tournament_info.tournament.reg_end > now)) %}
+                                {% if not tournament_info.is_user_registered %}
+                                <a href="{{url_for('user.player_form',tournament_id=tournament_info.tournament.id)}}"
+                                    class="btn btn-primary btn-wide">Записаться на турнир</a>
+                                {% else %}
+                                <span disabled class="btn btn-wide btn-secondary">Вы уже записаны</span>
+                                {% endif %}
+                            {% endif %}
+                            <a href="{{url_for('public.tournament_details',tournament_id=tournament_info.tournament.id)}}"
+                                class="btn btn-secondary">Подробнее</a>
+                        </div>
+
+                    </div>
                     {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
 
-
-    <div class="container_block" data-aos="fade-right" id="FAQ">
-    <h2>FAQ</h2>
-    <div class="faq-container">
-        <!-- Вопрос 1 -->
-        <div class="faq-item">
-            <div class="faq-question" onclick="toggleFaq(this)">
-                <span>Как вступить в клан?</span>
-                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
+                </div>
             </div>
-            <div class="faq-answer">
-                <p>Чтобы вступить в клан, вам необходимо:</p>
-                <ol>
-                    <li>Зарегистрироваться на нашем сайте</li>
-                    <li>Заполнить заявку на вступление через кнопку "Подать заявку"</li>
-                    <li>Дождаться рассмотрения вашей заявки администрацией</li>
-                    <li>После одобрения вы получите уведомление и инструкции на почту</li>
-                </ol>
-            </div>
-        </div>
-
-        <!-- Вопрос 2 -->
-        <div class="faq-item">
-            <div class="faq-question" onclick="toggleFaq(this)">
-                <span>Какие требования к участникам?</span>
-                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
-            </div>
-            <div class="faq-answer">
-                <p>Основные требования:</p>
-                <ul>
-                    <li>Возраст от 18 лет</li>
-                    <li>Регулярное участие в играх и турнирах</li>
-                    <li>Отсутствие банов и читов в истории аккаунта</li>
-                    <li>Готовность соблюдать правила клана</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Вопрос 3 -->
-        <div class="faq-item">
-            <div class="faq-question" onclick="toggleFaq(this)">
-                <span>Как часто проводятся турниры?</span>
-                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
-            </div>
-            <div class="faq-answer">
-                <p>Мы проводим турниры с разной периодичностью:</p>
-                <ul>
-                    <li>Еженедельные мини-турниры (по выходным)</li>
-                    <li>Месячные чемпионаты</li>
-                    <li>Сезонные турниры с призовым фондом (4 раза в год)</li>
-                </ul>
-                <p>Актуальная информация всегда доступна в разделе <a href="#tournaments">"Турниры"</a></p>
-            </div>
-        </div>
-
-        <!-- Вопрос 4 -->
-        <div class="faq-item">
-            <div class="faq-question" onclick="toggleFaq(this)">
-                <span>Какие правила поведения в клане?</span>
-                <span class="faq-arrow"><i class="fa fa-arrow-down" aria-hidden="true"></i></span>
-            </div>
-            <div class="faq-answer">
-                <p>Основные правила:</p>
-                <ul>
-                    <li>Запрещено использование читов и багов</li>
-                    <li>Запрещено токсичное поведение и оскорбления</li>
-                    <li>Обязательно участие в командных играх</li>
-                    <li>Активность не реже 2 раз в неделю</li>
-                    <li>Соблюдение спортивного духа</li>
-                    <li>Присутствие в дискорд-канале клана в дискорде во время игры</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- Модальное окно заявки в клан -->
-<div id="joinClanModal" class="modal_log_reg">
-    <div class="modal-content_log_reg" style="max-width: 900px;">
-        <span class="close" onclick="closeJoinClanModal()">&times;</span>
-        <h2>Заявка на вступление в клан</h2>
-        
-        <form id="joinClanForm">
-            <label for="applicant_name">Имя:</label>
-            <input type="text" id="applicant_name"
-            {% if current_user %}
-                {% if current_user.name %}
-                    value="{{ current_user.name}}"
-                {% endif %}
             {% endif %}
-            name="name" required>
-            
-            <label for="applicant_birthday">Дата рождения:</label>
-            <input type="date" id="applicant_birthday"
-            {% if current_user %}
-                {% if current_user.birthday %}
-                    value="{{ current_user.birthday.strftime('%Y-%m-%d') }}"
-                {% endif %}
+
+            <hr class="hr_full">
+
+            {% if last_tournaments %}
+            <div class="subsection">
+                <h3 class="subsection-title">Прошедшие турниры</h3>
+                <div class="cards">
+
+                    {% for tournament, player_count in last_tournaments %}
+                    <div class="card">
+                        <div class="tournament-header">
+                            <h4 class="tournament-title">{{ tournament.name }}</h4>
+
+                            <span class="badge status_red">Завершен</span>
+
+                        </div>
+                        {% if tournament.desc %}
+                        <p class="tournament-desc">
+                            {{tournament.desc }}
+                        </p>
+                        {% endif %}
+                        <div class="tournament-meta">
+                            <div><span class="meta-label">Дата проведения:</span>
+                                {{ tournament.tournament_date.strftime('%d.%m.%Y %H:%M') }}</div>
+                            <div><span class="meta-label">Количество участников:</span> {{ player_count }}</div>
+                            <div><span class="meta-label">Формат:</span> {{ tournament.mode }}</div>
+                        </div>
+                        <hr class="hr_full">
+                        <div class="tournament-req">
+                            <span class="meta-label">Победители:</span>
+                            <div class="winners">
+                                {% if tournament.mode == 'SOLO' %}
+                                {% set winners = players|sort(attribute='total_points', reverse=True) %}
+                                {% if winners %}
+                                <div class="win-group-box place1">
+                                    <span class="win-place">1 место</span>
+                                    <span class="winner_name">{{ winners[0].nickname }} -
+                                        {{ winners[0].total_points|default(0)|float|round(2) }} б.</span>
+                                </div>
+                                <div class="win-group-box place2">
+                                    <span class="win-place">2 место</span>
+                                    <span class="winner_name">{{ winners[1].nickname }} -
+                                        {{ winners[1].total_points|default(0)|float|round(2) }} б.</span>
+                                </div>
+                                <div class="win-group-box place3">
+                                    <span class="win-place">3 место</span>
+                                    <span class="winner_name">{{ winners[2].nickname }} -
+                                        {{ winners[2].total_points|default(0)|float|round(2) }} б.</span>
+                                </div>
+                                {% endif %}
+                                {% else %}
+                                {% set winning_group = tournament.player_groups|sort(attribute='total_points', reverse=True) %}
+                                {% if winning_group %}
+                                {% for i in range(1, 4) %}
+                                <div class="win-group-box place{{i}}">
+                                    <span class="win-place">{{i}} место</span>
+                                    {% for player in winning_group[i-1].players %}
+                                    <span class="winner_name">
+                                        {{ player.nickname }} - {{ player.total_points|default(0)|float|round(2) }} б.
+                                    </span>
+                                    {% endfor %}
+                                    <hr class="hr_dark">
+                                    <span class="winner_name">Всего:
+                                        {{ winning_group[i-1].total_points|default(0)|float|round(2) }} б.</span>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="tournament-actions">
+                            <a href="{{url_for('public.tournament_details',tournament_id=tournament.id)}}"
+                                class="btn btn-secondary">Подробнее</a>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
             {% endif %}
-            name="birthday" required>
-            
-            <label for="applicant_info">Расскажите о себе:</label>
-            <small class="hint">- почему вы хотите вступить в клан Golden Bulls <br> - какой уровень в PUBG <br> - как часто вы играете</small>
-            <textarea id="applicant_info" name="info" rows="5" maxlength="480" required></textarea>
 
-            <label for="applicant_from">Откуда узнали о нас:</label>
-            <select name="know_from" id="applicant_from" required>
-                <option value="friend" selected>От друга/знакомого</option>
-                <option value="public">Из рекламы</option>
-                <option value="other">Другое</option>
-            </select>
+            <hr class="hr_full">
 
-            <label for="applicant_know_from_optional">Ник друга/знакомого:</label>
-            <input type="text" id="applicant_know_from_optional" name="know_from_optional">
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="agree_rules" name="agree_rules" required>
-                <label for="agree_rules">Ознакомился с правилами клана и обязуюсь их соблюдать в случае удовлетворения моей кандидатуры</label>
+            <div class="stats stats-3">
+                <div class="stat">
+                    <div class="stat-value">{{all_tournaments|length}}</div>
+                    <div class="stat-label">Турниров сыграно</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">G 26 000+</div>
+                    <div class="stat-label">Общие призовые</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">Эрангель</div>
+                    <div class="stat-label">Самая популярная карта</div>
+                </div>
             </div>
-            
-            <div class="button-group">
-                <button type="submit" class="button">Отправить заявку</button>
-                <button type="button" class="button secondary" onclick="closeJoinClanModal()">Отмена</button>
+        </div>
+    </section>
+
+    <!-- Roster -->
+    <section id="members" data-aos="fade-right" class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Состав <span class="golden-text">клана</span></h2>
+
+            <!-- Лучшие игроки недели 
+            <div class="subsection">
+                <h3 class="subsection-title">Лучшие игроки недели</h3>
+                <p class="section-muted">Топ-3 игрока по показателям эффективности</p>
+                <div class="cards grid-3">
+
+                    <div class="player-card">
+
+                        <div class="player-avatar"></div>
+                        <div class="player-maininfo">
+                            <div class="player-nickname">GoldenLeader</div>
+                            <div class="player-name">Вася</div>
+                            <div class="player-role">Администратор</div>
+                        </div>
+
+                        <div class="player-mainstat">
+                            <div class="player-mainstat-subblock">
+                                <div class="player-stat-value">1488</div>
+                                <div class="player-stat-label">Рейтинг</div>
+                            </div>
+
+                            <div class="player-mainstat-subblock">
+                                <div class="player-stat-value">2.6</div>
+                                <div class="player-stat-label">k/d</div>
+                            </div>
+                        </div>
+
+                        <div class="player-substat">
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">28</div>
+                                <div class="player-substat-label">Убийств</div>
+                            </div>
+
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">47</div>
+                                <div class="player-substat-label">Побед</div>
+                            </div>
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">34</div>
+                                <div class="player-substat-label">%HS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="player-card">
+
+                        <div class="player-avatar"></div>
+                        <div class="player-maininfo">
+                            <div class="player-nickname">GoldenLeader</div>
+                            <div class="player-name">Петя</div>
+                        </div>
+
+                        <div class="player-mainstat">
+                            <div class="player-mainstat-subblock">
+                                <div class="player-stat-value">1488</div>
+                                <div class="player-stat-label">Рейтинг</div>
+                            </div>
+
+                            <div class="player-mainstat-subblock">
+                                <div class="player-stat-value">2.6</div>
+                                <div class="player-stat-label">k/d</div>
+                            </div>
+                        </div>
+
+                        <div class="player-substat">
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">28</div>
+                                <div class="player-substat-label">Убийств</div>
+                            </div>
+
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">47</div>
+                                <div class="player-substat-label">Побед</div>
+                            </div>
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">34</div>
+                                <div class="player-substat-label">%HS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="player-card">
+
+                        <div class="player-avatar"></div>
+
+                        <div class="player-maininfo">
+                            <div class="player-nickname">GoldenLeader</div>
+                            <div class="player-name">Петр</div>
+                            <div class="player-role">Модератор</div>
+                        </div>
+                        <div class="player-mainstat">
+                            <div class="player-mainstat-subblock">
+                                <div class="player-stat-value">1488</div>
+                                <div class="player-stat-label">Рейтинг</div>
+                            </div>
+
+                            <div class="player-mainstat-subblock">
+                                <div class="player-stat-value">2.6</div>
+                                <div class="player-stat-label">k/d</div>
+                            </div>
+                        </div>
+
+                        <div class="player-substat">
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">28</div>
+                                <div class="player-substat-label">Убийств</div>
+                            </div>
+
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">47</div>
+                                <div class="player-substat-label">Побед</div>
+                            </div>
+                            <div class="player-substat-subblock">
+                                <div class="player-substat-value">34</div>
+                                <div class="player-substat-label">%HS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
-        </form>
+            -->
+
+            <hr class="hr_full">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Все участники клана</h3>
+                <p class="section-muted">Полный список игроков клана Golden Bulls ({{ members.count() }} участников)</p>
+                <div class="list  scrollable-80vh">
+
+                    {% for member in members %}
+                    <div class="list-item">
+                        <div class="list-main">
+                            <div class="list-title">{{ member.pubg_nickname }}
+                                {% if member.role != "guest" and member.role != "clan_member" %}
+                                <span class="list-player-role {{ member.role }}">{{ member.role }}</span>
+                                {% endif %}
+                            </div>
+                            <div>{{ member.name }}</div>
+                            <div class="list-desc">День рождения:
+                                {{ member.birthday.strftime('%d.%m')  if member.birthday else 'Не указан' }}</div>
+                        </div>
+                        <!-- Рейтинг
+                        <div class="list-right"><span class="rating">5268</span></div>
+                        -->
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+                {% if not current_user or current_user.role == "guest" %}
+                    <div class="cta" id="cta_join">
+                        <h4 class="cta-title golden-text">Хотите присоединиться?</h4>
+                        <p class="cta-text">Мы всегда в поиске талантливых игроков для пополнения рядов нашего клана
+                        </p>
+                        <div class="cta-actions">
+                            {% if not current_user %}
+                                <button class="btn btn-primary" onclick="openLoginModal();">Подать заявку</button>
+                            {% else %}
+                                <a href="#" class="btn btn-primary" onclick="openJoinClanModal(); return false;">Подать заявку</a>
+                            {% endif %}
+                            <a href="#player_req" class="btn btn-secondary">Требования</a>
+                        </div>
+                    </div>
+                {% endif %}
+    </section>
+
+    <!-- FAQ -->
+    <section id="FAQ" data-aos="fade-right" class="section">
+        <div class="container">
+            <h2 class="section-title">Вопросы и <span class="golden-text">ответы</span></h2>
+            <p class="section-lead">Ответы на самые часто задаваемые вопросы о нашем клане</p>
+            <div class="faq">
+
+                <details class="faq-item">
+                    <summary class="faq-q">Как вступить в клан Golden Bulls?</summary>
+                    <div class="faq-a">
+                        <ol>
+                            <li>Зарегистрируйся на нашем сайте <a href="https://goldenbulls.ru">goldenbulls.ru</a></li>
+                            <li>Заполни заявку на вступление через кнопку <a href="#cta_join"> Подать заявку</a></li>
+                            <li>Дождись рассмотрения твоей заявки администрацией</li>
+                            <li>После одобрения ты получишь уведомление и инструкцию на почту</li>
+                        </ol>
+                    </div>
+                </details>
+
+                <details id="player_req" class="faq-item">
+                    <summary class="faq-q">Какие требования к игрокам?</summary>
+                    <div class="faq-a">
+                        <ul>
+                            <li>Возраст от 18 лет</li>
+                            <li>Регулярное участие в играх и турнирах</li>
+                            <li>Отсутствие банов и читов в истории аккаунта</li>
+                            <li>Готовность соблюдать правила клана</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-q">Как часто проводятся турниры?</summary>
+                    <div class="faq-a">
+                        <p>Мы проводим турниры с разной периодичностью:</p>
+                        <ul>
+                            <li>Еженедельные мини-турниры (по выходным)</li>
+                            <li>Месячные чемпионаты</li>
+                            <li>Сезонные турниры с призовым фондом (4 раза в год)</li>
+                        </ul>
+                        <p>Актуальная информация всегда доступна в разделе <a href="#tournaments">Турниры</a></p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-q">Какие правила поведения в клане?</summary>
+                    <div class="faq-a">
+                        <ul>
+                            <li>Запрещено использование читов и багов</li>
+                            <li>Запрещено токсичное поведение и оскорбления</li>
+                            <li>Обязательное участие в командных играх</li>
+                            <li>Активность не реже 2 раз в неделю</li>
+                            <li>Поддержание спортивного духа</li>
+                            <li>Присутствие в Discord-канале клана во время игры</li>
+                        </ul>
+                    </div>
+                </details>
+
+            </div>
+            <div class="faq-note">Не нашли ответ на свой вопрос? Свяжитесь с нами через Discord или напишите на
+                <a href="mailto:goldenbulls.pubg@mail.ru">goldenbulls.pubg@mail.ru</a></div>
+        </div>
+    </section>
+
+
+    <!-- Модальное окно заявки в клан -->
+    <div id="joinClanModal" class="modal_container">
+        <div class="modal-content">
+            <span class="btn-close" onclick="closeJoinClanModal()">&times;</span>
+            <h3>Заявка на вступление в клан</h3>
+
+            <form id="joinClanForm" class="flex">
+                <div class="row">
+                    <div class="w-100">
+                        <label for="applicant_name">Имя:</label>
+                        <input type="text" id="applicant_name" {% if current_user %} {% if current_user.name %}
+                            value="{{ current_user.name}}" {% endif %} {% endif %} name="name" required>
+                    </div>
+                    <div class="w-100">
+                        <label for="applicant_birthday">Дата рождения:</label>
+                        <input type="date" id="applicant_birthday" {% if current_user %} {% if current_user.birthday %}
+                            value="{{ current_user.birthday.strftime('%Y-%m-%d') }}" {% endif %} {% endif %}
+                            name="birthday" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="w-100">
+                        <label for="applicant_info">Расскажите о себе:</label>
+                        <textarea class="textarea" maxlength=479 id="applicant_info" name="info" rows="5" maxlength="480"
+                            required></textarea>
+                    </div>
+                    <div class="w-100 flex-center">
+                        <p>
+                            - Почему вы хотите вступить в клан Golden Bulls?
+                            <br>
+                            - Какой у вас уровень в PUBG?
+                            <br>
+                            - Как часто вы играете?
+                        </p>
+                    </div>
+                </div>
+
+                <label for="applicant_from">Откуда узнали о нас:</label>
+                <select name="know_from" id="applicant_from" required>
+                    <option value="friend" selected>От друга/знакомого</option>
+                    <option value="public">Из рекламы</option>
+                    <option value="other">Другое</option>
+                </select>
+
+                <label for="applicant_know_from_optional">Ник друга/знакомого:</label>
+                <input type="text" id="applicant_know_from_optional" name="know_from_optional">
+
+                <div class="checkbox-container">
+                    <input type="checkbox" id="agree_rules" name="agree_rules" required>
+                    <span>Ознакомился с правилами клана и обязуюсь их соблюдать в случае удовлетворения моей
+                        кандидатуры</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Отправить заявку</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<script>
-    function toggleFaq(questionElement) {
-        const faqItem = questionElement.parentElement;
-        faqItem.classList.toggle('active');
-        
-        // Закрываем другие открытые вопросы
-        const allFaqItems = document.querySelectorAll('.faq-item');
-        allFaqItems.forEach(item => {
-            if (item !== faqItem && item.classList.contains('active')) {
-                item.classList.remove('active');
-            }
-        });
-    }
-</script>
-{% endblock %}
+    <script>
+        function toggleFaq(questionElement) {
+            const faqItem = questionElement.parentElement;
+            faqItem.classList.toggle('active');
+
+            // Закрываем другие открытые вопросы
+            const allFaqItems = document.querySelectorAll('.faq-item');
+            allFaqItems.forEach(item => {
+                if (item !== faqItem && item.classList.contains('active')) {
+                    item.classList.remove('active');
+                }
+            });
+        }
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/join_form.js') }}"></script>
+
+    {% endblock %}

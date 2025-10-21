@@ -5,8 +5,9 @@
 {% endblock %}
 
 {% block content %}   
+<section id="join_requests" data-aos="fade-right" class="section-padding_0">
     <div class="container">  
-        <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>   
+        <a class="btn btn-primary" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>   
         {% if join_requests %}
             {% for join_request in join_requests %}
                 <div class="join_request_card" id="request-{{ join_request.id }}" style="border-color: {% if join_request.status == 'Принята' %}#4CAF50{% elif join_request.status == 'Отклонена' %}#F44336{% endif %}">
@@ -32,8 +33,8 @@
                                 <p>Сделать другом клана?</p>
                             {% endif %}
                             <div class="join_request_card_conrol_buttons">
-                                <button onclick="processAccept({{ join_request.id }})" class="button"><i class="fi fi-rr-check"></i></button>
-                                <button onclick="showDeclineModal({{ join_request.id }})" class="button"><i class="fi fi-rr-cross"></i></button>
+                                <button onclick="processAccept({{ join_request.id }})" class="btn btn-primary"><i class="fi fi-rr-check"></i></button>
+                                <button onclick="showDeclineModal({{ join_request.id }})" class="btn btn-primary"><i class="fi fi-rr-cross"></i></button>
                             </div>
                         {% else %}
                             <span>{{join_request.status}}</span>
@@ -45,7 +46,7 @@
                         {% endif %}
 
                         {% if current_user.username == 'admin' %}
-                            <button onclick="processDelete({{ join_request.id }})" class="button"><i class="fi fi-rr-trash"></i></button>
+                            <button onclick="processDelete({{ join_request.id }})" class="btn btn-primary"><i class="fi fi-rr-trash"></i></button>
                         {% endif %}
                     </div>
                     
@@ -59,7 +60,7 @@
                 <span class="close" onclick="closeModal()">&times;</span>
                 <h3>Укажите причину отказа</h3>
                 <textarea id="declineReason" placeholder="Причина отказа..." rows="4"></textarea>
-                <button onclick="processDecline()" class="button">Подтвердить</button>
+                <button onclick="processDecline()" class="btn btn-primary">Подтвердить</button>
             </div>
         </div>
     </div>
@@ -204,5 +205,5 @@ function updateRequestCard(data) {
     card.querySelector('.join_request_card_conrol').innerHTML = controlHtml;
 }
 </script>
-
+</section>
 {% endblock %}

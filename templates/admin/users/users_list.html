@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="container">
-    <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
+    <a class="btn btn-primary" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
     <h1>Пользователи ({{users_count}})</h1>
 
     <div class="collapsible-filters">
@@ -50,8 +50,8 @@
                 <input type="date" name="to" id="to" value="{{ current_filters.to }}" class="form-control">
 
                 <div style="margin-top: 10px; display: flex; gap: 10px;">
-                    <button type="submit" class="button">Применить фильтры</button>
-                    <a class="button" href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">Сбросить</a>
+                    <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                    <a class="btn btn-primary" href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">Сбросить</a>
                 </div>
             </form>
         </div>
@@ -107,7 +107,7 @@
                                     name=current_filters.name,
                                     role_filter=current_filters.role_filter,
                                     from=current_filters.from,
-                                    to=current_filters.to) }}" class="button">← Назад</a>
+                                    to=current_filters.to) }}" class="btn btn-primary">← Назад</a>
         {% endif %}
 
         {% for page_num in pagination.iter_pages() %}
@@ -119,7 +119,7 @@
                                         role_filter=current_filters.role_filter,
                                         from=current_filters.from,
                                         to=current_filters.to) }}"
-            class="button {% if page_num == pagination.page %}active{% endif %}">
+            class="btn {% if page_num == pagination.page %}active{% endif %}">
             {{ page_num }}
         </a>
         {% else %}
@@ -134,12 +134,12 @@
                                     name=current_filters.name,
                                     role_filter=current_filters.role_filter,
                                     from=current_filters.from,
-                                    to=current_filters.to) }}" class="button">Вперед →</a>
+                                    to=current_filters.to) }}" class="btn btn-primary">Вперед →</a>
         {% endif %}
     </div>
 
     <!-- Удаление -->
-    <div id="modalConfirm" class="modal" style="display:none;">
+    <div id="modalConfirm" class="modal_container" style="display:none;">
         <div class="modal-content">
             <p id="modalText">Подтвердите действие</p>
             <button onclick="handleModalConfirm()">Да</button>
@@ -148,7 +148,7 @@
     </div>
 
     <!-- Редактирование -->
-    <div id="modalEdit" class="modal" style="display:none;">
+    <div id="modalEdit" class="modal_container" style="display:none;">
         <div class="modal-content">
             <h3>Редактировать пользователя</h3>
             <form id="editForm" onsubmit="submitEdit(event)">
@@ -167,9 +167,9 @@
                     <option value="clan_friend">Друг клана</option>
                     <option value="guest">Гость</option>
                 </select>
-                <div style="margin-top:10px;">
-                    <button type="submit" class="button">Сохранить</button>
-                    <button type="button" class="button" onclick="hideEdit()">Отмена</button>
+                <div class="button-flex-group">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-primary" onclick="hideEdit()">Отмена</button>
                 </div>
             </form>
         </div>

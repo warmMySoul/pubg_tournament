@@ -1,6 +1,5 @@
 // Функции управления модальными окнами
 
-
 function openLoginModal() {
     document.getElementById('loginModal').style.display = 'flex';
     resetToLoginTab();
@@ -42,6 +41,20 @@ function resetToLoginTab() {
     
     document.querySelector('.tab-button[data-tab="login"]').classList.add('active');
     document.getElementById('login-tab').classList.add('active');
+}
+
+// Проверка URL на наличие параметра login_required=1
+function checkLoginRequiredParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('login_required') === '1') {
+        openLoginModal();
+        
+        // Убираем параметр из URL без перезагрузки страницы
+        const newUrl = window.location.pathname + 
+                      window.location.search.replace(/[?&]login_required=1(&|$)/, '') + 
+                      window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+    }
 }
 
 // Обработчик для кнопки "Войти"
@@ -236,7 +249,7 @@ async function handleRegisterSubmit(e) {
 // Обработка отправки кода подтверждения
 async function handleVerifySubmit(e) {
     await handleFormSubmit(e, '/user/verify-email', (data) => {
-        toastr.success(data.message || 'Email успешно подтвержден!');
+        toastr.success(data.message || 'Введен правильный код!');
         closeVerifyModal();
         window.location.href = data.redirect || '/';
     });
@@ -287,6 +300,9 @@ async function resendVerificationCode() {
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем параметр login_required при загрузке страницы
+    checkLoginRequiredParam();
+
     // Валидация
     document.getElementById('reg_username')?.addEventListener('input', () => validateUsername('reg_'));
     document.getElementById('reg_password')?.addEventListener('input', () => validatePassword('reg_'));
@@ -306,15 +322,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Закрытие модальных окон
-    document.querySelectorAll('.modal_log_reg .close').forEach(closeBtn => {
+    document.querySelectorAll('.modal_container .btn-close').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {
-            this.closest('.modal_log_reg').style.display = 'none';
+            this.closest('.modal_container').style.display = 'none';
         });
     });
 
     // Закрытие при клике вне модального окна
     /*
-    document.querySelectorAll('.modal_log_reg').forEach(modal => {
+    document.querySelectorAll('.modal_container').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
                 this.style.display = 'none';

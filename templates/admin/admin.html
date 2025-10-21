@@ -6,59 +6,68 @@
 
 {% block content %}
 <div class="container">
-    <h1>Админ-панель</h1>
+    <h2 class="section-title">Админ-панель</h2>
 
     <div class="admin-actions">
-        <a href="{{url_for('admin.tournaments')}}" class="button">Турниры</a>
-        <a href="{{url_for('admin.users_list')}}" class="button">Пользователи</a>
-        <a href="{{url_for('admin.view_logs')}}" class="button">Журнал действий</a>
+        <a href="{{url_for('admin.tournaments')}}" class="btn btn-primary">Турниры</a>
+        <a href="{{url_for('admin.users_list')}}" class="btn btn-primary">Пользователи</a>
+        <a href="{{url_for('admin.view_logs')}}" class="btn btn-primary">Журнал действий</a>
         {% if current_user.username == 'admin' %}
-            <a href="{{url_for('admin.tasks')}}" class="button">Планировщик задач</a>
-            <a href="{{url_for('admin.ip_log_list')}}" class="button">События входа</a>
+            <a href="{{url_for('admin.tasks')}}" class="btn btn-primary">Планировщик задач</a>
+            <a href="{{url_for('admin.ip_log_list')}}" class="btn btn-primary">События входа</a>
         {% endif %}
     </div>
 
-    <div class="join_requests_actual">
-        <h3>Заявки в клан</h3>
-        {% if join_requests %}
-            {% for join_request in join_requests %}
-                <div class="join_request_card" id="request-{{ join_request.id }}">
-                    <div class="join_request_card_info">
-                        <a class="h4" href="{{url_for('admin.user_profile', user_id=join_request.user.id )}}">
-                            {{join_request.user.username}}
-                        </a>
-                        <p>
-                            <strong>Имя:</strong> {{join_request.user.name}} <br>
-                            <strong>Ник:</strong> {{join_request.user.pubg_nickname}} <br>
-                            <strong>Инфо:</strong> {{join_request.user_info}} <br>
-                            <strong>Узнал о клане из/от:</strong> {{join_request.know_from}} <br>
-                            <strong>Заявку подали:</strong> {{join_request.created_at.strftime('%d.%m.%Y %H:%M:%S')}}
-                        </p>
-                    </div>
-                    <div class="join_request_card_conrol">
-                        {% if join_request.desired_role %}
-                            <p>Принять в клан?</p>
-                        {% else %}
-                            <p>Сделать другом клана?</p>
-                        {% endif %}
-                        <div class="join_request_card_conrol_buttons">
-                            <button onclick="processAccept({{ join_request.id }})" class="button"><i class="fi fi-rr-check"></i></button>
-                            <button onclick="showDeclineModal({{ join_request.id }})" class="button"><i class="fi fi-rr-cross"></i></button>
+    <section id="tournament-info" data-aos="fade-right" class="section-padding_0">
+        <h2 class="subsection-title">Заявки на вступление в клан</h2>
+        <div class="button-flex-group">
+            <a href="{{url_for('admin.join_requests')}}" class="btn btn-wide btn-primary">Все заявки</a>
+        </div>
+            {% if join_requests %}
+             <h4>Ожидают рассмотрения:</h4>
+                <div class="scrollable-40vh">
+                    {% for join_request in join_requests %}
+                    <div class="card flex-horizontal" id="request-{{ join_request.id }}">
+                        <div class="join_request_card_info">
+                            <a class="h4" href="{{url_for('admin.user_profile', user_id=join_request.user.id )}}">
+                                {{join_request.user.username}}
+                            </a>
+                            <p>
+                                <strong>Имя:</strong> {{join_request.user.name}} <br>
+                                <strong>Ник в PUBG:</strong> {{join_request.user.pubg_nickname}} <br>
+                                <strong>Инфо:</strong> {{join_request.user_info}} <br>
+                                <strong>Узнал о клане из/от:</strong> {{join_request.know_from}} <br>
+                                <strong>Заявка подана:</strong> {{join_request.created_at.strftime('%d.%m.%Y %H:%M:%S')}}
+                            </p>
+                        </div>
+                        <div class="join_request_card_control">
+                            {% if join_request.desired_role %}
+                                <p>Принять в клан?</p>
+                            {% else %}
+                                <p>Сделать другом клана?</p>
+                            {% endif %}
+                            <div class="join_request_card_control_buttons">
+                                <button onclick="processAccept({{ join_request.id }})" class="btn btn-primary"><i class="fi fi-rr-check"></i></button>
+                                <button onclick="showDeclineModal({{ join_request.id }})" class="btn btn-primary"><i class="fi fi-rr-cross"></i></button>
+                            </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        {% endif %}
-        <a href="{{url_for('admin.join_requests')}}" class="button">Все заявки</a>
-    </div>
+            {% else %}
+            <p>Нерассмотенных заявок нет</p>
+            {% endif %}
+            
+            
+    </section>
 
     <!-- Модальное окно для причины отказа -->
-        <div id="declineModal" class="modal" style="display:none">
+        <div id="declineModal" class="modal_container">
             <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
+                <span class="btn-close" onclick="closeModal()">&times;</span>
                 <h3>Укажите причину отказа</h3>
-                <textarea id="declineReason" placeholder="Причина отказа..." rows="4"></textarea>
-                <button onclick="processDecline()" class="button">Подтвердить</button>
+                <textarea class="textarea" id="declineReason" placeholder="К сожалению мы не можем принять твою кандидатуру потому что..." rows="4"></textarea>
+                <button onclick="processDecline()" class="btn btn-primary">Подтвердить</button>
             </div>
         </div>
 </div>
@@ -157,7 +166,7 @@ async function processDecline() {
 
 // ========== Общая функция обновления карточки ==========
 function updateRequestCard(data) {
-    const card = document.querySelector(`.join_request_card[id="request-${data.request_id}"]`);
+    const card = document.querySelector(`.card[id="request-${data.request_id}"]`);
     if (!card) return;
     
     card.style.borderColor = data.new_status === 'Принята' ? '#4CAF50' : '#F44336';
@@ -171,7 +180,7 @@ function updateRequestCard(data) {
         controlHtml += `<span>${data.reason}</span>`;
     }
     
-    card.querySelector('.join_request_card_conrol').innerHTML = controlHtml;
+    card.querySelector('.join_request_card_control').innerHTML = controlHtml;
 }
 </script>
 {% endblock %}

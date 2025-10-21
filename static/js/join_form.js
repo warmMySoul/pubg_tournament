@@ -84,12 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Обработчик формы
     document.getElementById('joinClanForm')?.addEventListener('submit', handleJoinClanSubmit);
-    
-    // Обработчик кнопки (теперь просто открывает форму)
-    document.querySelector('.join_button')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        openJoinClanModal();
-    });
 });
 
 // Функция для управления видимостью дополнительного поля

@@ -1,0 +1,781 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Golden Bulls - {{ tournament.name }}</title>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tournament.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section id="tournament-info" data-aos="fade-right" class="section-padding_0">
+        <div class="card">
+            <div class="tournament-header">
+                <h4 class="tournament-title">
+                    <span class="tournament-title-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="36px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--black)">
+                            <path
+                                d="M280-120v-80h160v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80v-80h400v80h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h160v80H280Zm0-408v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z" />
+                        </svg>
+                    </span>
+                    {{ tournament.name }}
+                </h4>
+
+                {% if registration_status == 'open' %}
+                <span class="badge status_grn">Регистрация открыта</span>
+                {% elif registration_status == 'closed' %}
+                <span class="badge status_red">Регистрация закрыта</span>
+                {% elif registration_status == 'ended' %}
+                <span class="badge status_red">Турнир завершен</span>
+                {% else %}
+                <span class="badge status-yllw">Скоро</span>
+                {% endif %}
+
+            </div>
+
+            <div class="tournament-meta">
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z" />
+                        </svg>
+                        Дата проведения
+                    </span>
+                    {{ tournament.tournament_date.strftime('%d.%m.%Y %H:%M') }}
+                </div>
+                <a href="#players_list">
+                    <div class="block">
+                        <span class="meta-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                                fill="var(--gold)">
+                                <path
+                                    d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z" />
+                            </svg>
+                            Количество участников
+                        </span>
+                        {{ players|length }}
+                    </div>
+                </a>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="M40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm440-160q-38 0-72-17.5T351-386q-17-25-42.5-39.5T253-440q22-37 93-58.5T480-520q63 0 134 21.5t93 58.5q-29 0-55 14.5T609-386q-22 32-56 49t-73 17ZM160-440q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440ZM480-560q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-680q0 50-34.5 85T480-560Z" />
+                        </svg>
+                        Формат
+                    </span>
+                    {{ tournament.mode }}
+                </div>
+                <a href="#matches">
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="m600-120-240-84-186 72q-20 8-37-4.5T120-170v-560q0-13 7.5-23t20.5-15l212-72 240 84 186-72q20-8 37 4.5t17 33.5v560q0 13-7.5 23T812-192l-212 72Zm-40-98v-468l-160-56v468l160 56Zm80 0 120-40v-474l-120 46v468Zm-440-10 120-46v-468l-120 40v474Zm440-458v468-468Zm-320-56v468-468Z" />
+                        </svg>
+                        Количество карт
+                    </span>
+                    {{ tournament.maps_count}}
+                </div>
+                </a>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z" />
+                        </svg>
+                        Регистрация с
+                    </span>
+                    {{ tournament.reg_start.strftime('%d.%m.%Y %H:%M')}}
+                </div>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z" />
+                        </svg>
+                        Регистрация до
+                    </span>
+                    {{ tournament.reg_end.strftime('%d.%m.%Y %H:%M')}}
+                </div>
+                <div class="block full-width-cell">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path d="M160-160v-320h160v320H160Zm240 0v-640h160v640H400Zm240 0v-440h160v440H640Z" />
+                            </svg>
+                        Статистика матча
+                    </span>
+                    <div class="tournament_stats">
+                        <div class="">
+                            <div class="stats-value players">
+                                {{ total_tournament_players or 0 }}
+                            </div>
+                            <div class="stats-title">
+                                Игроков
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="stats-value place">
+                                {{ total_tournament_teams or 0 }}
+                            </div>
+                            <div class="stats-title">
+                                Команд
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="stats-value damage">
+                                {{ total_tournament_damage|default(0)|float|round(2) }}
+                            </div>
+                            <div class="stats-title">
+                                Урона
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="stats-value points">
+                                {{ total_tournament_points|default(0)|float|round(2) }}
+                            </div>
+                            <div class="stats-title">
+                                Баллов
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if tournament.req %}
+            <div class="tournament-req">
+                <span class="meta-label">Требования:</span> {{tournament.req}}
+            </div>
+            {% endif %}
+            <div class="tournament-actions">
+                {% if (registration_status == 'open' and not existing_player) %}
+                    <a href="{{url_for('user.player_form',tournament_id=tournament.id)}}"
+                        class="btn btn-primary btn-wide">Записаться на турнир</a>
+                {% endif %}
+                {% if existing_player and registration_status in ['open','soon']%}
+                    <span>Вы зарегистрированы на турнир</span>
+                    <a href="#" class="btn btn-danger btn-wide" 
+                    onclick="openDeleteRegistrationModal('{{ tournament.id }}', '{{ existing_player.id }}')">
+                    Удалить свою запись с турнира
+                    </a>
+                {% endif %}
+            </div>
+            </div>
+    </section>
+
+    <section id="counter-list" data-aos="fade-right" class="section-padding_0">
+        <h4 class="tournament-title">
+            <span class="tournament-title-icon color_reverse">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                    fill="var(--gold)">
+                    <path
+                        d="M240-360h280l80-80H240v80Zm0-160h240v-80H240v80Zm-80-160v400h280l-80 80H80v-560h800v120h-80v-40H160Zm756 212q5 5 5 11t-5 11l-36 36-70-70 36-36q5-5 11-5t11 5l48 48ZM520-120v-70l266-266 70 70-266 266h-70ZM160-680v400-400Z" />
+                </svg>
+            </span>
+            Система подсчета баллов
+        </h4>
+
+        <div class="card">
+
+            <div class="scoring-table">
+                <div class="table-row header">
+                    <div class="table-cell category">Категория</div>
+                    <div class="table-cell points">Баллы</div>
+                </div>
+
+                {% if tournament.kill_points %}
+                <div class="table-row">
+                    <div class="table-cell category">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--red)">
+                            <path
+                                d="M440-42v-80q-125-14-214.5-103.5T122-440H42v-80h80q14-125 103.5-214.5T440-838v-80h80v80q125 14 214.5 103.5T838-520h80v80h-80q-14 125-103.5 214.5T520-122v80h-80Zm40-158q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-120q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T560-480q0-33-23.5-56.5T480-560q-33 0-56.5 23.5T400-480q0 33 23.5 56.5T480-400Zm0-80Z" />
+                        </svg>
+                        За убийство
+                    </div>
+                    <div class="table-cell points">+{{ tournament.kill_points or 0 }} балл</div>
+                </div>
+                {% endif %}
+
+                {% if tournament.damage_points %}
+                <div class="table-row">
+                    <div class="table-cell category">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--green)">
+                            <path
+                                d="M440-501Zm0 381L313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 22t81 62q34-40 81-62t99-22q84 0 153 59t69 160q0 14-2 29.5t-6 31.5h-85q5-18 8-34t3-30q0-75-50-105.5T620-760q-51 0-88 27.5T463-660h-46q-31-45-70.5-72.5T260-760q-57 0-98.5 39.5T120-621q0 33 14 67t50 78.5q36 44.5 98 104T440-228q26-23 61-53t56-50l9 9 19.5 19.5L605-283l9 9q-22 20-56 49.5T498-172l-58 52Zm160-280v-80h320v80H600Z" />
+                        </svg>
+                        За урон (каждые 100 ед.)
+                    </div>
+                    <div class="table-cell points">+{{ tournament.damage_points or 0 }} балл</div>
+                </div>
+                {% endif %}
+
+                {% if tournament.first_place_points %}
+                <div class="table-row">
+                    <div class="table-cell category">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="36px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="M280-120v-80h160v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80v-80h400v80h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h160v80H280Zm0-408v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z" />
+                        </svg>
+                        1 место
+                    </div>
+                    <div class="table-cell points">+{{ tournament.first_place_points or 0 }} балл</div>
+                </div>
+                {% endif %}
+
+                {% if tournament.second_place_points %}
+                <div class="table-row">
+                    <div class="table-cell category">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="36px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--white-gray)">
+                            <path
+                                d="M280-120v-80h160v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80v-80h400v80h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h160v80H280Zm0-408v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z" />
+                        </svg>
+                        2 место
+                    </div>
+                    <div class="table-cell points">+{{ tournament.second_place_points or 0 }} балл</div>
+                </div>
+                {% endif %}
+
+                {% if tournament.third_place_points %}
+                <div class="table-row">
+                    <div class="table-cell category">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="36px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--light-orange)">
+                            <path
+                                d="M280-120v-80h160v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80v-80h400v80h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h160v80H280Zm0-408v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z" />
+                        </svg>
+                        3 место
+                    </div>
+                    <div class="table-cell points">+{{ tournament.third_place_points or 0 }} балл</div>
+                </div>
+                {% endif %}
+            </div>
+
+    </section>
+
+    {% set tournament_end = tournament.tournament_date.replace(tzinfo=None) %}
+    {% set current_time = now.replace(tzinfo=None) if now.tzinfo else now %}
+    {% if tournament_end < current_time %}
+    <section id="players_result" data-aos="fade-right" class="section-padding_0">
+
+        <h4 class="tournament-title">
+            <span class="tournament-title-icon color_reverse">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--gold)"><path d="M480-160q75 0 127.5-52.5T660-340q0-75-52.5-127.5T480-520q-75 0-127.5 52.5T300-340q0 75 52.5 127.5T480-160ZM363-572q20-11 42.5-17.5T451-598L350-800H250l113 228Zm234 0 114-228H610l-85 170 19 38q14 4 27 8.5t26 11.5ZM256-208q-17-29-26.5-62.5T220-340q0-36 9.5-69.5T256-472q-42 14-69 49.5T160-340q0 47 27 82.5t69 49.5Zm448 0q42-14 69-49.5t27-82.5q0-47-27-82.5T704-472q17 29 26.5 62.5T740-340q0 36-9.5 69.5T704-208ZM480-80q-40 0-76.5-11.5T336-123q-9 2-18 2.5t-19 .5q-91 0-155-64T80-339q0-87 58-149t143-69L120-880h280l80 160 80-160h280L680-559q85 8 142.5 70T880-340q0 92-64 156t-156 64q-9 0-18.5-.5T623-123q-31 20-67 31.5T480-80Zm0-260ZM363-572 250-800l113 228Zm234 0 114-228-114 228ZM406-230l28-91-74-53h91l29-96 29 96h91l-74 53 28 91-74-56-74 56Z"/></svg>
+            </span>
+            Итоговая таблица
+        </h4>
+
+        <div class="players_result scrollable-80vh">
+
+            {% if tournament.mode == 'SOLO' %}
+            {% set players = players|sort(attribute='total_points', reverse=True)%}
+            <div class="card">
+                <div class="scoring-table">
+
+                    <div class="table-row header">
+                        <div class="table-cell category">Игрок</div>
+                        <div class="table-cell kills">Убийства</div>
+                        <div class="table-cell damage">Суммарный урон</div>
+                        <div class="table-cell place">Занятые места</div>
+                        <div class="table-cell points">Баллы</div>
+                    </div>
+
+                    {% for player in players %}
+                    <div class="table-row body">
+                        <div class="table-cell category">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                                fill="var(--white-gray)">
+                                <path
+                                    d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+                            </svg>
+                            {{ player.nickname }}
+                        </div>
+                        <div class="table-cell kills">{{ player.total_kills|default(0) }}</div>
+                        <div class="table-cell damage">{{ player.total_damage|default(0)}}</div>
+                        <div class="table-cell place">{{ player.total_place_points|default(0) }} б.</div>
+                        <div class="table-cell points">{{ player.total_points|default(0)|float|round(2) }} б.</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            {% set player_groups = tournament.player_groups|sort(attribute='total_points', reverse=True) %}
+            {% for player_group in player_groups %}
+            <div class="card">
+                <div class="scoring-table">
+                    <div class="table-header">
+                        <span>Группа #{{ player_group.group_number }}</span>
+                        <div class="total_group_points">
+                            {{ player_group.total_points|default(0)|float|round(2) }} б.
+                        </div>
+                    </div>
+
+                    <div class="table-row header">
+                        <div class="table-cell category">Игрок</div>
+                        <div class="table-cell kills">Убийства</div>
+                        <div class="table-cell damage">Суммарный урон</div>
+                        <div class="table-cell points">Баллы</div>
+                    </div>
+
+                    {% for player in player_group.players %}
+                    {% set player_stat = player_group.player_tournament_stat(player.id) %}
+                    <div class="table-row body">
+                        <div class="table-cell category">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                                fill="var(--white-gray)">
+                                <path
+                                    d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+                            </svg>
+                            {{ player.nickname }}
+                        </div>
+                        <div class="table-cell kills">{{ player_stat.total_kills|default(0) }}</div>
+                        <div class="table-cell damage">{{ player_stat.total_damage|default(0)|float|round(2) }}</div>
+                        <div class="table-cell points">{{ player_stat.total_points|default(0)|float|round(2) }} б.</div>
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if players %}
+    <section id="players_list" data-aos="fade-right" class="section-padding_0">
+
+        <h4 class="tournament-title">
+            <span class="tournament-title-icon color_reverse">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                    fill="var(--gold)">
+                    <path
+                        d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z" />
+                </svg>
+            </span>
+            Зарегистрированные на турнир игроки
+        </h4>
+
+        <div class="players_grid scrollable-80vh">
+
+            {% if tournament.mode == 'SOLO' %}
+            {% set players = players|sort(attribute='total_points', reverse=True)%}
+            <div class="card">
+                <div class="scoring-table">
+
+                    {% for player in players %}
+                    <div class="table-row body">
+                        <div class="table-cell category">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                                fill="var(--white-gray)">
+                                <path
+                                    d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+                            </svg>
+                            {{ player.nickname }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            {% set player_groups = tournament.player_groups|sort(attribute='group_number') %}
+            {% for player_group in player_groups %}
+            <div class="card">
+                <div class="scoring-table">
+
+                    <div class="table-row header">
+                        <div class="table-cell category"><span>Группа #{{ player_group.group_number }}</span></div>
+                    </div>
+
+                    {% for player in player_group.players %}
+                    <div class="table-row body">
+                        <div class="table-cell category">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                                fill="var(--white-gray)">
+                                <path
+                                    d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+                            </svg>
+                            {{ player.nickname }}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if tournament.matches %}
+    <section id="matches" data-aos="fade-right" class="section-padding_0">
+        <h4 class="tournament-title">
+            <span class="tournament-title-icon color_reverse">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                    fill="var(--gold)">
+                    <path
+                        d="m600-120-240-84-186 72q-20 8-37-4.5T120-170v-560q0-13 7.5-23t20.5-15l212-72 240 84 186-72q20-8 37 4.5t17 33.5v560q0 13-7.5 23T812-192l-212 72Zm-40-98v-468l-160-56v468l160 56Zm80 0 120-40v-474l-120 46v468Zm-440-10 120-46v-468l-120 40v474Zm440-458v468-468Zm-320-56v468-468Z" />
+                </svg>
+            </span>
+            Карты
+        </h4>
+
+        <div class="flex-card">
+            {% for match_data in matches_stats %}
+            <div class="card match-card pointer" onclick="toggleMatchStats({{ match_data.match.map_number }})">
+                <h3>Карта #{{ match_data.match.map_number }}</h3>
+                <img class="card_image" src="{{ url_for('static', filename='images/maps.png') }}" alt="picture">
+                <div class="match-card-arrow">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                        fill="var(--gold)">
+                        <path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z" />
+                    </svg>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% set tournament_end = tournament.tournament_date.replace(tzinfo=None) %}
+        {% set current_time = now.replace(tzinfo=None) if now.tzinfo else now %}
+        {% if tournament_end < current_time %}
+        <!-- Статистика по матчам -->
+        {% for match_data in matches_stats %}
+        <div id="match-stats-{{ match_data.match.map_number }}" class="match-stats-container" style="display: none;">
+            <h4 class="tournament-title">
+                <span class="tournament-title-icon color_reverse">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                        fill="var(--gold)">
+                        <path
+                            d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z" />
+                    </svg>
+                </span>
+                Результаты карты #{{ match_data.match.map_number }}
+            </h4>
+
+            <div class="players_result">
+                {% if tournament.mode == 'SOLO' %}
+                <div class="card">
+                    <div class="scoring-table">
+                        <div class="table-row header">
+                            <div class="table-cell category">Игрок</div>
+                            <div class="table-cell kills">Убийства</div>
+                            <div class="table-cell damage">Урон</div>
+                            <div class="table-cell place">Место</div>
+                            <div class="table-cell points">Всего баллов</div>
+                        </div>
+
+                        {% for player_stat in match_data.players_stats %}
+                        <div class="table-row body">
+                            <div class="table-cell category">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
+                                    width="24px" fill="var(--white-gray)">
+                                    <path
+                                        d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+                                </svg>
+                                {{ player_stat.player.nickname }}
+                            </div>
+                            <div class="table-cell kills">{{ player_stat.kills|default(0) }}</div>
+                            <div class="table-cell damage">{{ player_stat.damage|default(0)|float|round(2) }}</div>
+                            <div class="table-cell place">
+                                {% if player_stat.placement %}
+                                {{ player_stat.placement }} место
+                                {% else %}
+                                -
+                                {% endif %}
+                            </div>
+                            <div class="table-cell points">{{ player_stat.total_points|default(0)|float|round(2) }} б.
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <!-- Для групповых режимов - аналогичная структура, но с группировкой -->
+                <div class="card">
+                    <div class="scoring-table">
+                        <div class="table-row header">
+                            <div class="table-cell category">Игрок</div>
+                            <div class="table-cell kills">Убийства</div>
+                            <div class="table-cell damage">Урон</div>
+                            <div class="table-cell place">Место</div>
+                            <div class="table-cell points">Всего баллов</div>
+                        </div>
+
+                        {% for player_stat in match_data.players_stats %}
+                        <div class="table-row body">
+                            <div class="table-cell category">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
+                                    width="24px" fill="var(--white-gray)">
+                                    <path
+                                        d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+                                </svg>
+                                {{ player_stat.player.nickname }}
+                            </div>
+                            <div class="table-cell kills">{{ player_stat.kills|default(0) }}</div>
+                            <div class="table-cell damage">{{ player_stat.damage|default(0)|float|round(2) }}</div>
+                            <div class="table-cell place">
+                                {% if player_stat.placement %}
+                                {{ player_stat.placement }} место
+                                {% else %}
+                                -
+                                {% endif %}
+                            </div>
+                            <div class="table-cell points">{{ player_stat.total_points|default(0)|float|round(2) }} б.
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+
+<!-- Модальное окно подтверждения удаления регистрации -->
+<div id="deleteRegistrationModal" class="modal_container">
+    <div class="modal-content">
+        <span class="btn-close" onclick="closeDeleteRegistrationModal()">&times;</span>
+        <h3>Удаление регистрации</h3>
+        <p>Для удаления вашей регистрации с турнира введите код подтверждения, отправленный на ваш email.</p>
+
+        <form id="deleteRegistrationForm">
+            <input type="hidden" id="tournament_id" name="tournament_id">
+            <input type="hidden" id="player_id" name="player_id">
+            
+            <div class="form-group">
+                <label for="delete_verification_code">Код подтверждения:</label>
+                <input type="text" id="delete_verification_code" name="verification_code" required>
+                <button type="button" id="sendCodeToEmailBtn" class="btn btn-primary" onclick="sendCodeToEmail()" style="margin-top: 16px;">Отправить код на почту</button>
+            </div>
+
+            <div class="button-flex-group mt-2">
+                <button type="submit" class="btn btn-danger">Удалить регистрацию</button>
+                <button type="button" class="btn btn-secondary" onclick="resendDeleteVerificationCode()">Отправить код повторно</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleMatchStats(mapNumber) {
+        const statsContainer = document.getElementById(`match-stats-${mapNumber}`);
+        const matchCard = event.currentTarget;
+        const arrow = matchCard.querySelector('.match-card-arrow');
+
+        if (statsContainer.style.display === 'none' || !statsContainer.style.display) {
+            // Скрываем все открытые контейнеры
+            document.querySelectorAll('.match-stats-container').forEach(container => {
+                container.style.display = 'none';
+            });
+
+            // Сбрасываем все стрелки
+            document.querySelectorAll('.match-card-arrow').forEach(arrow => {
+                arrow.style.transform = 'rotate(0deg)';
+            });
+
+            // Показываем выбранный контейнер и поворачиваем стрелку
+            statsContainer.style.display = 'block';
+            arrow.style.transform = 'rotate(180deg)';
+
+            // Плавная прокрутка к открытому контейнеру
+            statsContainer.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        } else {
+            // Скрываем контейнер и возвращаем стрелку
+            statsContainer.style.display = 'none';
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    // Закрытие по клику вне области
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('.match-card') && !event.target.closest('.match-stats-container')) {
+            document.querySelectorAll('.match-stats-container').forEach(container => {
+                container.style.display = 'none';
+            });
+            document.querySelectorAll('.match-card-arrow').forEach(arrow => {
+                arrow.style.transform = 'rotate(0deg)';
+            });
+        }
+    });
+</script>
+
+<script>
+// Функции для модального окна удаления регистрации
+function openDeleteRegistrationModal(tournamentId, playerId) {
+    document.getElementById('deleteRegistrationModal').style.display = 'flex';
+    document.getElementById('tournament_id').value = tournamentId;
+    document.getElementById('player_id').value = playerId;
+}
+
+function sendCodeToEmail(){
+    tournamentId = document.getElementById('tournament_id').value;
+    playerId = document.getElementById('player_id').value;
+
+    document.getElementById('sendCodeToEmailBtn').style.display = 'none';
+
+    // Отправляем запрос на отправку кода подтверждения
+    sendDeleteVerificationCode(tournamentId, playerId); 
+}
+
+function closeDeleteRegistrationModal() {
+    document.getElementById('deleteRegistrationModal').style.display = 'none';
+}
+
+// Отправка кода подтверждения для удаления
+async function sendDeleteVerificationCode(tournamentId, playerId) {
+    try {
+        const response = await fetch('/user/send-delete-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                tournament_id: tournamentId,
+                player_id: playerId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Ошибка сервера');
+        }
+
+        toastr.success(data.message || 'Код подтверждения отправлен на ваш email');
+    } catch (error) {
+        toastr.error(error.message || 'Произошла ошибка при отправке кода');
+    }
+}
+
+// Повторная отправка кода
+async function resendDeleteVerificationCode() {
+    const tournamentId = document.getElementById('tournament_id').value;
+    const playerId = document.getElementById('player_id').value;
+    
+    try {
+        const response = await fetch('/user/resend-delete-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                tournament_id: tournamentId,
+                player_id: playerId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Ошибка сервера');
+        }
+
+        toastr.success(data.message || 'Новый код отправлен на ваш email');
+    } catch (error) {
+        console.error('Resend delete code error:', error);
+        toastr.error(error.message || 'Произошла ошибка при отправке кода');
+    }
+}
+
+// Обработка отправки формы удаления
+async function handleDeleteRegistrationSubmit(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+
+    try {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Удаление...';
+        
+        const formData = new FormData(form);
+        const response = await fetch('/user/delete-registration', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Ошибка сервера');
+        }
+
+        toastr.success(data.message || 'Регистрация успешно удалена');
+        closeDeleteRegistrationModal();
+        
+        // Обновляем страницу через короткую задержку
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Delete registration error:', error);
+        toastr.error(error.message || 'Произошла ошибка при удалении регистрации');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    }
+}
+
+// Инициализация обработчиков после загрузки DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик формы удаления регистрации
+    const deleteForm = document.getElementById('deleteRegistrationForm');
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', handleDeleteRegistrationSubmit);
+    }
+
+    // Закрытие модального окна при клике вне его
+    const deleteModal = document.getElementById('deleteRegistrationModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteRegistrationModal();
+            }
+        });
+    }
+
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteRegistrationModal();
+        }
+    });
+});
+</script>
+{% endblock %}

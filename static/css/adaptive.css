@@ -1,23 +1,20 @@
-/* Mobile-first адаптация стилей */
 @media (max-width: 768px) {
 
   /* Базовые настройки */
-  body {
-    padding: 0 10px;
-  }
 
   h1 {
     font-size: 3em;
     margin: 0.67em 0;
   }
 
-  h2, .h2 {
-   font-size: 36px;
+  h2,
+  .h2 {
+    font-size: 36px;
   }
 
-  h3, .h3 {
-    font-size: 24px;
-  }
+  .hotline-block{ display: none; }
+
+
 
   /* Навбар */
   .navbar {
@@ -44,7 +41,7 @@
     padding: 8px 0;
   }
 
-  .navbar_profile{
+  .navbar_profile {
     border-radius: 8px;
     background-color: #333333;
   }
@@ -106,55 +103,17 @@
     margin: 15px auto;
   }
 
-  .container_block {
-    margin: 15px 0;
-    padding: 10px;
-  }
-
-  .tournament_info {
-    flex-direction: column;
-  }
-
-  .next_tournament,
-  .last_tournament {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-
-  .members_container {
-    flex-direction: column;
-    max-height: none;
-  }
-
-  .member_list_container,
-  .member_best_container {
-    box-sizing: border-box;
-    width: 100%;
-    margin: 5px 0;
-  }
-
   /* Таблицы */
   table {
     overflow-x: auto;
     white-space: nowrap;
   }
 
-  /* Формы */
-  input[type="text"],
-  input[type="password"],
-  input[type="email"],
-  input[type="date"],
-  input[type="number"],
-  input[type="datetime-local"],
-  textarea,
-  select {
-    width: 95%;
-  }
 
   /* Кнопки */
   .button,
   button {
-    padding: 8px 15px;
+    padding: 8px 16px;
   }
 
   .button_dark {
@@ -164,8 +123,8 @@
 
   /* Модальные окна */
   .modal-content {
-    width: 90%;
-    padding: 15px;
+    width: 80%;
+    padding: 16px;
   }
 
   /* Пагинация */
@@ -175,98 +134,88 @@
 
   /* Карточки участников */
   .member-card {
-    padding: 10px;
+    padding: 12px;
   }
 
-  .log_reg_container {
-    margin: auto;
-    margin-top: 8%;
-    border-radius: 8px;
-    border: 1px solid var(--dark-gold);
-    padding: 32px;
-}
+  .user_stats {
+    flex-direction: column;
+    width: 90%;
+  }
 
-.recruitment-content{
-  flex-direction: column;
-}
-
-.user_stats{
-  flex-direction: column;
-  width: 90%;
-}
-
-.cookie-consent{
-  font-size: 12px;
-  width: 100%;
-  margin: 8px;
-}
-
-.cookie-btn {
-  margin: auto 0;
-  height: 32px;
-}
-
-.modal-content_log_reg {
-  width: 95%;
-  max-width: 95%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 15px;
-}
-
-.next_tournament, .last_tournament {
-  flex-direction: column;
-}
-.matches_img {
-  width: 100%;
-}
-
-.player-info {
-width: 100%;
-}
-
-.scoring-info {
+  .cookie-consent {
+    font-size: 12px;
     width: 100%;
-}
+    margin: 8px;
+  }
 
-.scoring-table {
-  white-space: nowrap; /* Запрещаем перенос текста */
-}
-        
-.scoring-table td {
-  padding: 8px 12px; /* Увеличиваем отступы для мобильных */
-}
+  .cookie-btn {
+    height: 32px;
+  }
 
-.profile_container{
-  flex-direction: column-reverse;
-}
+  .modal-content {
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 15px;
+  }
 
-.links {
-  margin-right: 0px;
-}
+  .scoring-info {
+    width: 100%;
+  }
 
-.user-info {
-  flex-direction: column;
-  gap: 5px;
-}
+  .scoring-table {
+    white-space: nowrap;
+    /* Запрещаем перенос текста */
+  }
 
-.matches-section{
-  overflow-y: auto;
-  max-height: 80vh;
-  border: 1px solid var(--light-gray);
-  border-radius: 8px;
-  margin-top: 8px;
-  padding: 6px;
+  .scoring-table td {
+    padding: 8px 12px;
+    /* Увеличиваем отступы для мобильных */
+  }
 
-}
+  .profile_container {
+    flex-direction: column-reverse;
+  }
 
-.join_request_card {
-  flex-direction: column;
-}
+  .links {
+    margin-right: 0px;
+  }
 
-.admin-actions{
-  flex-direction: column;
-}
+  .user-info {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .matches-section {
+    overflow-y: auto;
+    max-height: 80vh;
+    border: 1px solid var(--light-gray);
+    border-radius: 8px;
+    margin-top: 8px;
+    padding: 6px;
+
+  }
+
+  .join_request_card {
+    flex-direction: column;
+  }
+
+  .admin-actions {
+    flex-direction: column;
+  }
+
+  .scroll_up_btn {
+    top: 110px;
+    left: 4px;
+    bottom: unset;
+    right: unset;
+    padding: 8px 8px 4px 8px;
+  }
+
+  .scroll_up_btn svg {
+    height: 18px;
+    width: 18px;
+  }
 }
 
 /* Дополнительные адаптации для очень маленьких экранов */
@@ -287,7 +236,6 @@ width: 100%;
   input[type="datetime-local"],
   textarea,
   select {
-    width: 92%;
     font-size: 14px;
   }
 

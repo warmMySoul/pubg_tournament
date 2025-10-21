@@ -7,92 +7,72 @@
 
 {% block content %}
 <div class="container">
-    <a class="button" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
-    <h2>Турниры</h2>
-    <a class="button" href="{{url_for('admin.create_tournament')}}">Создать турнир</a>
-    {% if tournaments %}
-    <table>
-        <tr>
-            <th>Название</th>
-            <th>Режим</th>
-            <th>Регистрация</th>
-            <th>Дата турнира</th>
-            <th>Статус</th>
-            <th>Количество участников</th>
-            {% if current_user.role == "admin" %}
-            <th>Действия</th>
-            {% endif %}
-        </tr>
-        {% for tournament in tournaments %}
-        <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#FF8C00'"
-            onmouseout="this.style.backgroundColor='transparent'"
-            onclick="handleRowClick(event, '{{ tournament.id }}')">
-            <td>{{ tournament.name }}</td>
-            <td>{{ tournament.mode }} </br> Кол-во карт: {{tournament.maps_count}} </td>
-            <td>
-                {{ tournament.reg_start.strftime('%d.%m.%Y') }} -<br>
-                {{ tournament.reg_end.strftime('%d.%m.%Y') }}
-            </td>
-            <td>{{ tournament.tournament_date.strftime('%d.%m.%Y') }}</td>
-            <td>
-                {% if registration_open(tournament) %}
-                <span class="status-open">Открыта</span>
-                {% else %}
-                <span class="status-closed">Закрыта</span>
+    <section id="tournament-info" data-aos="fade-right" class="section">
+        <a class="btn btn-primary" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
+        <h2>Турниры</h2>
+        <a class="btn btn-primary" href="{{url_for('admin.create_tournament')}}">Создать турнир</a>
+        {% if tournaments %}
+        <table>
+            <tr>
+                <th>Название</th>
+                <th>Режим</th>
+                <th>Регистрация</th>
+                <th>Дата турнира</th>
+                <th>Статус регистрации</th>
+                <th>Количество участников</th>
+                {% if current_user.role == "admin" %}
+                <th>Действия</th>
                 {% endif %}
-            </td>
-            <td>
-                {{ tournament.players|length }}
-            </td>
-            {% if current_user.role == "admin" %}
-            <td>
-                <i class="fas fa-pencil-alt" style="cursor:pointer;" title="Редактировать"
-                    onclick='editTournament({{ tournament.id|tojson }}, "{{ tournament.name }}", "{{ tournament.mode }}", "{{ tournament.reg_start.strftime("%Y-%m-%dT%H:%M") }}", "{{ tournament.reg_end.strftime('%Y-%m-%dT%H:%M') }}", "{{ tournament.tournament_date.strftime('%Y-%m-%dT%H:%M') }}")'></i>
-                <button onclick='confirmDelete({{ tournament.id|tojson }})'>Удалить</button>
-            </td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <p>Нет активных турниров</p>
-    {% endif %}
+            </tr>
+            {% for tournament in tournaments %}
+            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='var(--dark-gold)'"
+                onmouseout="this.style.backgroundColor='transparent'"
+                onclick="handleRowClick(event, '{{ tournament.id }}')">
+                <td>{{ tournament.name }}</td>
+                <td>{{ tournament.mode }} </br> Кол-во карт: {{tournament.maps_count}} </td>
+                <td>
+                    {{ tournament.reg_start.strftime('%d.%m.%Y') }} -<br>
+                    {{ tournament.reg_end.strftime('%d.%m.%Y') }}
+                </td>
+                <td>{{ tournament.tournament_date.strftime('%d.%m.%Y') }}</td>
+                <td>
+                    {% set now = now.replace(tzinfo=None) %}
+                    {% if tournament.reg_start <= now <= tournament.reg_end %}
+                    <span class="status-open">Открыта</span>
+                    {% else %}
+                    <span class="status-closed">Закрыта</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ tournament.players|length }}
+                </td>
+                {% if current_user.role == "admin" %}
+                <td class="">
+                    
+                    <span onclick='confirmDelete({{ tournament.id|tojson }})' class="control-icon pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--red)">
+                            <path
+                                d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                        </svg>
+                    </span>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>Нет активных турниров</p>
+        {% endif %}
+    </section>
 </div>
 
-<div id="modalConfirm" class="modal" style="display:none;">
+<div id="modalConfirm" class="modal_container">
     <div class="modal-content">
         <p id="modalText">Подтвердите действие</p>
-        <button onclick="handleModalConfirm()">Да</button>
-        <button onclick="hideModal()">Отмена</button>
+        <button class="btn btn-danger" onclick="handleModalConfirm()">Да</button>
+        <button class="btn btn-secondary" onclick="hideModal()">Отмена</button>
     </div>
-</div>
-
-<div id="modalEdit" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h3>Редактировать турнир</h3>
-        <form id="editForm" onsubmit="submitEdit(event)">
-            <input type="hidden" id="edit_id">
-            <label>Название:</label>
-            <input type="text" id="edit_name" required>
-            <label>Режим:</label>
-            <select id="edit_mode">
-                <option value="Соло">Соло</option>
-                <option value="Дуо">Дуо</option>
-                <option value="Сквад">Сквад</option>
-            </select>
-            <label>Дата начала регистрации:</label>
-            <input type="datetime-local" id="edit_reg_start" required>
-            <label>Дата окончания регистрации:</label>
-            <input type="datetime-local" id="edit_reg_end" required>
-            <label>Дата турнира:</label>
-            <input type="datetime-local" id="edit_tournament_date" required>
-            <div style="margin-top:10px;">
-                <button type="submit" class="button">Сохранить</button>
-                <button type="button" class="button" onclick="hideEdit()">Отмена</button>
-            </div>
-        </form>
-    </div>
-</div>
 </div>
 
 
@@ -104,7 +84,7 @@
     function handleRowClick(event, tournament_id) {
         if (tournament_id) {
             if (event.target.tagName !== 'BUTTON' && event.target.tagName !== 'I') {
-                window.location.href = "{{ url_for('admin.view_players', tournament_id = tournament_id) }}" +
+                window.location.href = "{{url_for('admin.tournament_info',tournament_id=tournament_id)}}" +
                     tournament_id;
             }
         }
@@ -180,43 +160,5 @@
         }
     }
 
-    function editTournament(id, name, mode, regStart, regEnd, tournamentDate) {
-        document.getElementById('edit_id').value = id;
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_mode').value = mode;
-        document.getElementById('edit_reg_start').value = regStart;
-        document.getElementById('edit_reg_end').value = regEnd;
-        document.getElementById('edit_tournament_date').value = tournamentDate;
-        document.getElementById('modalEdit').style.display = 'flex';
-    }
-
-    function hideEdit() {
-        document.getElementById('modalEdit').style.display = 'none';
-    }
-
-    function submitEdit(e) {
-        e.preventDefault();
-
-        fetch('/admin/api/edit_tournament', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                tournament_id: document.getElementById('edit_id').value,
-                name: document.getElementById('edit_name').value,
-                mode: document.getElementById('edit_mode').value,
-                reg_start: document.getElementById('edit_reg_start').value,
-                reg_end: document.getElementById('edit_reg_end').value,
-                tournament_date: document.getElementById('edit_tournament_date').value,
-                confirm: true
-            })
-        }).then(res => res.json()).then(data => {
-            if (data.success) location.reload();
-            else alert('Ошибка: ' + (data.error || 'Не удалось сохранить'));
-        });
-
-        hideEdit();
-    }
 </script>
 {% endblock %}

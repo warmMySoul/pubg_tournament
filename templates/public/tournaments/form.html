@@ -4,119 +4,214 @@
 <title>Golden Bulls - {{ tournament.name }}</title>
 {% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tournament.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <h1>Регистрация на турнир {{ tournament.name }}</h1>
+    <section id="tournament-info" data-aos="fade-right" class="section-padding_0">
+        <div class="card">
+            <div class="tournament-header">
+                <h4 class="tournament-title">
+                    <span class="tournament-title-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="36px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--black)">
+                            <path
+                                d="M280-120v-80h160v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80v-80h400v80h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h160v80H280Zm0-408v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z" />
+                        </svg>
+                    </span>
+                    {{ tournament.name }}
+                </h4>
 
-    <div class="time-info">
-        <p>Регистрация открыта до: <strong>{{ tournament.reg_end.strftime('%d.%m.%Y в %H:%M') }}</strong></p>
-    </div>
-
-    <p><strong>Режим:</strong> {{ tournament.mode }}</p>
-    <p><strong>Количество карт:</strong> {{ tournament.maps_count }}</p>
-    <p><strong>Дата проведения турнира:</strong> {{ tournament.tournament_date.strftime('%d.%m.%Y в %H:%M') }}</p>
-
-    <div class="scoring-info">
-        <h3>Начисление баллов:</h3>
-        <table class="scoring-table">
-            <tbody>
-                {% if tournament.kill_points %}
-                <tr>
-                    <td>1 убийство</td>
-                    <td>{{ tournament.kill_points or 0 }} б.</td>
-                </tr>
-                {% endif %}
-                {% if tournament.damage_points %}
-                <tr>
-                    <td>100 урона</td>
-                    <td>{{ tournament.damage_points or 0 }} б.</td>
-                </tr>
-                {% endif %}
-                <tr>
-                    <td>1 место</td>
-                    <td>{{ tournament.first_place_points or 0 }} б.</td>
-                </tr>
-                <tr>
-                    <td>2 место</td>
-                    <td>{{ tournament.second_place_points or 0 }} б.</td>
-                </tr>
-                <tr>
-                    <td>3 место</td>
-                    <td>{{ tournament.third_place_points or 0 }} б.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="current-players">
-        <a href="{{ url_for('public.view_players_public', tournament_id=tournament.id) }}" class="button">
-            Посмотреть текущих участников ({{ tournament.players|length }})
-        </a>
-    </div>
-
-    <form method="POST">
-        <h3>Вы записываетесь как:</h3>
-        {% if current_user %}
-        <div class="player-info">
-            <p class="nickname">{{ current_user.pubg_nickname }}</p>
-            <p>
-                <strong>Имя:</strong>
-                {% if current_user.name %}
-                {{ current_user.name }}
+                {% if registration_status == 'open' %}
+                <span class="badge status_grn">Регистрация открыта</span>
+                {% elif registration_status == 'closed' %}
+                <span class="badge status_red">Регистрация закрыта</span>
+                {% elif registration_status == 'ended' %}
+                <span class="badge status_red">Турнир завершен</span>
                 {% else %}
-                <span class="warning">Не указано</span>
+                <span class="badge status-yllw">Скоро</span>
                 {% endif %}
-            </p>
-        </div>
 
-        <input type="hidden" name="nickname" value="{{ current_user.pubg_nickname }}">
-
-        {% if not current_user.name %}
-        <div class="name-input">
-            <label for="name">Ваше имя (обязательно):</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        {% else %}
-        <input type="hidden" name="name" value="{{ current_user.name }}">
-        {% endif %}
-
-        {% if tournament.mode in ['Дуо', 'Сквад'] %}
-        <div class="group-selection">
-            <div class="available-groups">
-                <div class="group-option">
-                    <input type="radio" name="group_id" id="new_group" value="" checked>
-                    <label for="new_group" class="h3">Создать новую группу</label>
-                </div>
-                {% if groups %}
-                {% for group in groups %}
-                {% set player_count = group.players|length %}
-                {% if player_count < max_players %}
-                <h2>Или выбери из доступных:</h2>
-                <div class="group-radio">
-                    <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
-                    <label  for="group_{{ group.id }}">
-                        <span class="nickname">Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }}) </span>
-                        {% if player_count > 0 %}
-                        <ul class="player-markers">
-                            {% for player in group.players %}
-                            <li>{{ player.name }} ({{ player.nickname }})</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </label>
-                </div>
-                {% endif %}
-                {% endfor %}
-                {% endif %}
             </div>
-        </div>
-        {% endif %}
 
-        <button type="submit" class="button">Записаться</button>
+            <div class="tournament-meta">
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z" />
+                        </svg>
+                        Дата проведения
+                    </span>
+                    {{ tournament.tournament_date.strftime('%d.%m.%Y %H:%M') }}
+                </div>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z" />
+                        </svg>
+                        Количество участников
+                    </span>
+                    {{ players|length }}
+                </div>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="M40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm440-160q-38 0-72-17.5T351-386q-17-25-42.5-39.5T253-440q22-37 93-58.5T480-520q63 0 134 21.5t93 58.5q-29 0-55 14.5T609-386q-22 32-56 49t-73 17ZM160-440q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440ZM480-560q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-680q0 50-34.5 85T480-560Z" />
+                        </svg>
+                        Формат
+                    </span>
+                    {{ tournament.mode }}
+                </div>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="m600-120-240-84-186 72q-20 8-37-4.5T120-170v-560q0-13 7.5-23t20.5-15l212-72 240 84 186-72q20-8 37 4.5t17 33.5v560q0 13-7.5 23T812-192l-212 72Zm-40-98v-468l-160-56v468l160 56Zm80 0 120-40v-474l-120 46v468Zm-440-10 120-46v-468l-120 40v474Zm440-458v468-468Zm-320-56v468-468Z" />
+                        </svg>
+                        Количество карт
+                    </span>
+                    {{ tournament.maps_count}}
+                </div>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z" />
+                        </svg>
+                        Регистрация с
+                    </span>
+                    {{ tournament.reg_start.strftime('%d.%m.%Y %H:%M')}}
+                </div>
+                <div class="block">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path
+                                d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z" />
+                        </svg>
+                        Регистрация до
+                    </span>
+                    {{ tournament.reg_end.strftime('%d.%m.%Y %H:%M')}}
+                </div>
+                <div class="block full-width-cell">
+                    <span class="meta-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="var(--gold)">
+                            <path d="M160-160v-320h160v320H160Zm240 0v-640h160v640H400Zm240 0v-440h160v440H640Z" />
+                            </svg>
+                        Статистика матча
+                    </span>
+                    <div class="tournament_stats">
+                        <div class="">
+                            <div class="stats-value players">
+                                {{ total_tournament_players or 0 }}
+                            </div>
+                            <div class="stats-title">
+                                Игроков
+                            </div>
+                        </div>
 
-        {% else %}
-        <h2>Для записи на турнир авторизуйтесь или зарегистрируйтесь на сайте</h2>
-        {% endif %}
-    </form>
+                        <div class="">
+                            <div class="stats-value place">
+                                {{ total_tournament_teams or 0 }}
+                            </div>
+                            <div class="stats-title">
+                                Команд
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="stats-value damage">
+                                {{ total_tournament_damage|default(0)|float|round(2) }}
+                            </div>
+                            <div class="stats-title">
+                                Урона
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="stats-value points">
+                                {{ total_tournament_points|default(0)|float|round(2) }}
+                            </div>
+                            <div class="stats-title">
+                                Баллов
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if tournament.req %}
+            <div class="tournament-req">
+                <span class="meta-label">Требования:</span> {{tournament.req}}
+            </div>
+            {% endif %}
+    </section>
+
+    {% if (not existing_player) %}
+    <section id="tournament-register-player" data-aos="fade-right" class="section-padding_0">
+        <form method="POST">
+            <h2 class="subsection-title">Регистрация на турнир <span class="golden-text">{{ tournament.name }}</span></h2>
+            
+            <label for="nickname">Ваш игровой ник PUBG:</label>
+            <input type="text" disabled name="nickname" id="nickname" value="{{ current_user.pubg_nickname }}">
+
+            <label for="name">Ваше имя (обязательно):</label>
+            <input style="margin-bottom:16px;" type="text" id="name" name="name" value="{{ current_user.name }}" placeholder="Имя" required>
+
+            {% if tournament.mode in ['DUO', 'SQUAD'] %}
+            <div class="group-selection">
+                <div class="card players_grid scrollable-40vh">
+                    <div class="group-radio full-width-cell">
+                        <input type="radio" name="group_id" id="new_group" value="new_group" checked>
+                        <label for="new_group">
+                            <span class="h3">Создать новую группу</span>
+                        </label>
+                    </div>
+
+                    {% if groups %}
+                        <div class="group-radio full-width-cell">
+                            <input type="radio" name="group_id" id="random_group" value="random_group">
+                            <label for="random_group">
+                                <span class="h3">Присоединиться к случайной группе</span>
+                            </label>
+                        </div>
+
+                        {% for group in groups %}
+                            {% set player_count = group.players|length %}
+                            {% if player_count < max_players %}
+                            <div class="group-radio">
+                                <input type="radio" name="group_id" id="group_{{ group.id }}" value="{{ group.id }}">
+                                <label for="group_{{ group.id }}">
+                                    <span class="nickname">Группа #{{ group.group_number }} ({{ player_count }}/{{ max_players }}) </span>
+                                    {% if player_count > 0 %}
+                                    <ul class="player-markers">
+                                        {% for player in group.players %}
+                                        <li>{{ player.nickname }} ({{ player.name }})</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary btn-wide">Зарегистрироваться на турнир</button>
+            
+        </form>
+        </section>
+    {% endif %}
 </div>
 {% endblock %}

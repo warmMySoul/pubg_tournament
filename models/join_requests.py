@@ -30,7 +30,6 @@ class JoinRequests(db.Model):
         single_parent=True
     )
     
-    # Дополнительно можно добавить связь для модератора
     moderator = db.relationship(
         'User', 
         foreign_keys=[moderator_id],

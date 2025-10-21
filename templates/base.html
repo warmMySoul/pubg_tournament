@@ -17,15 +17,22 @@
     <!-- Анимации -->
     <link rel="stylesheet" href="{{ url_for('static', filename='lib/aos/aos.css') }}" />
 
+    <!-- Стили -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block styles %}
+    {% endblock %}
+
 
     <!-- Иконки -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" href="{{ url_for('static', filename='images/logo_gold.png') }}" type="image/x-icon">
-    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+    <link rel='stylesheet'
+        href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+    <link rel='stylesheet'
+        href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-straight/css/uicons-regular-straight.css'>
 </head>
 
 <body>
@@ -54,34 +61,39 @@
     </script>
 
     <!-- Navbar -->
-        <div class="navbar">
+    <div class="navbar">
 
-            <a href="{{ url_for('public.home') }}" class="h1">
-                <img class="logo" src="{{ url_for('static', filename='images/logo_gold.png') }}">
-                Golden Bulls
-            </a>
+        <a href="{{ url_for('public.home') }}" class="h1">
+            <img class="logo" src="{{ url_for('static', filename='images/logo_gold.png') }}">
+            Golden Bulls
+        </a>
 
-            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
 
-            <div class="navigation_menu">
-                <a href="/#about_us" class="nav_link">О нас</a>
-                <a href="/#tournaments" class="nav_link">Турниры</a>
-                <a href="/#members" class="nav_link">Состав клана</a>
-                <a href="/#FAQ" class="nav_link">FAQ</a>
+        <div class="navigation_menu">
+            <a href="/#about" class="nav_link">О нас</a>
+            <!-- <a href="/#news" class="nav_link">Новости</a> -->
+            <a href="/#tournaments" class="nav_link">Турниры</a>
+            <a href="/#members" class="nav_link">Состав клана</a>
+            <a href="/#FAQ" class="nav_link">FAQ</a>
+        </div>
+
+
+        {% if current_user %}
+        <div class="navbar_profile_block">
+            <div class="links">
+                <a class="link_ds" target="_blank" href="https://discord.gg/goldenbulls"><img width="36" height="36"
+                        src="{{ url_for('static', filename='images/discord.png') }}" alt="discord-logo--v1" /></a>
+
+                {% if current_user.role in ['admin', 'moderator', 'clan_member', 'clan_friend'] %}
+                    <a class="link_tg" target="_blank" href="https://t.me/+aJeNA7oQ1dBhMDg6"><img width="32" height="32"
+                            src="{{ url_for('static', filename='images/telegram.png') }}" alt="telegram-app" /></a>            
+                {% endif %}
             </div>
 
-            {% if current_user %}
-            <div class="navbar_profile_block">
-                {% if current_user.role in ['admin', 'moderator', 'clan_member', 'clan_friend'] %}
-                    <div class="links">
-                        <a class="link_ds" target="_blank" href="https://discord.gg/goldenbulls"><img width="36" height="36" src="{{ url_for('static', filename='images/discord.png') }}" alt="discord-logo--v1"/></a>
-                        <a class="link_tg" target="_blank" href="https://t.me/+zDtlgXelVX03YWEy"><img width="32" height="32" src="{{ url_for('static', filename='images/telegram.png') }}" alt="telegram-app"/></a>
-                    </div>
-                {% endif %}
-
-                {% set role_translations = {
+            {% set role_translations = {
                     'admin': 'Админ',
                     'moderator': 'Модератор',
                     'clan_member': 'Участник клана',
@@ -89,54 +101,53 @@
                     'guest': 'Гость'
                 } %}
 
-                {% if current_user.role in ['admin', 'moderator'] %}
-                    <a href="/admin" class="button">Админ-панель</a>
+            {% if current_user.role in ['admin', 'moderator'] %}
+            <a href="{{ url_for('admin.admin') }}" class="btn btn-primary">Админ-панель</a>
+            {% endif %}
+
+            <div class="navbar_profile" onclick="toggleProfileMenu(event)">
+                <i class="fas fa-user profile-icon"></i>
+                <span class="nav_username">{{ current_user.username }}</span>
+                {% if current_user %}
+                <div class="user-role">
+                    {{ role_translations[current_user.role] }}
+                </div>
                 {% endif %}
 
-                <div class="navbar_profile" onclick="toggleProfileMenu(event)">
-                    <i class="fas fa-user profile-icon"></i>
-                    <span class="nav_username">{{ current_user.username }}</span>
-                    {% if current_user %}
-                        <div class="user-role">
-                            {{ role_translations[current_user.role] }}
-                        </div>
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a href="{{ url_for('user.profile') }}">Профиль</a>
+                    {% if current_user.role in ['admin', 'moderator'] %}
+                    <a href="{{ url_for('admin.admin') }}">Админ-панель</a>
                     {% endif %}
-
-                    <div id="profileDropdown" class="profile-dropdown">
-                        <a href="/user/profile">Профиль</a>
-                        {% if current_user.role in ['admin', 'moderator'] %}
-                        <a href="/admin">Админ-панель</a>
-                        {% endif %}
-                        <a href="/user/logout">Выйти</a>
-                    </div>
+                    <a href="{{ url_for('user.logout') }}">Выйти</a>
                 </div>
-
-                
             </div>
-            {% else %}
-            <div class="navbar_auth">
-                <a href="#" class="button" id="loginButton">
-                    <i class="fas fa-user profile-icon"></i>
-                    Войти
-                </a>
-            </div>
-            {% endif %}
         </div>
+        {% else %}
+        <div class="navbar_auth">
+            <a href="#" class="btn btn-primary" id="loginButton">
+                <i class="fas fa-user profile-icon"></i>
+                Войти
+            </a>
+        </div>
+        {% endif %}
+    </div>
 
     <div class="main_container">
         <div id="cookie-consent" class="cookie-consent">
-            <p>Мы используем cookies для улучшения работы сайта. Продолжая, вы соглашаетесь с их использованием и принимаете 
-                <a href="{{ url_for('public.view_privacy') }}">условия пользовательского соглашения</a></p>
-            <button id="cookie-accept" class="cookie-btn">Принять</button>
+            <p>
+                Мы используем cookies для улучшения работы сайта. Продолжая, вы соглашаетесь с их использованием и
+                принимаете
+                <a href="{{ url_for('public.view_privacy') }}">условия пользовательского соглашения</a>
+            </p>
+            <span id="cookie-accept" class="btn-close cookie-btn">×</span>
         </div>
-
-        
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <script>
-            {% for category, message in messages %} 
-                {%if category == 'error' %}
+            {%for category, message in messages %} 
+                {% if category == 'error' %}
                     toastr.error('{{ message }}'); 
                 {% elif category == 'warning' %}
                     toastr.warning('{{ message }}'); 
@@ -149,104 +160,149 @@
         </script>
         {% endif %}
         {% endwith %}
+        
 
         {% block content %}
         {% endblock %}
 
-        <!-- Модальное для авторизации -->
-        <div id="loginModal" class="modal_log_reg">
-            <div class="modal-content_log_reg">
-                <span class="close">&times;</span>
 
-                <div class="auth-tabs">
-                    <button class="tab-button active" data-tab="login">Авторизация</button>
-                    <button class="tab-button" data-tab="register">Регистрация</button>
+    </div>
+
+    <footer class="site-footer gradient-bg">
+        <div class="container footer-inner">
+            <div class="footer-col">
+                <div class="brand mark-sm"></div>
+                <div class="footer-title">Golden Bulls</div>
+                <div class="copy">PUBG Clan</div>
+                <p class="footer-text">Профессиональный клан игроков PUBG, стремящийся к победе в каждом матче.</p>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-title">Навигация</h4>
+                <div class="footer-links">
+                    <a href="#about">О нас</a>
+                    <!-- <a href="#news">Новости</a> -->
+                    <a href="#tournaments">Турниры</a>
+                    <a href="#members">Состав</a>
+                    <a href="#FAQ">Вопросы и ответы</a>
                 </div>
-
-                <div id="login-tab" class="auth-tab-content active">
-                    <div class="log_reg_container">
-                        <h1>Авторизация</h1>
-
-                        <form method="POST" action="{{ url_for('user.login') }}" id="loginForm">
-                            <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
-                            <label for="username">Логин:</label>
-                            <input type="text" id="username" name="username" required>
-
-                            <label for="password">Пароль:</label>
-                            <input type="password" id="password" name="password" required>
-
-                            <button type="submit">Войти</button>
-
-                            <div class="forgot-password-link">
-                                <a href="#" onclick="event.preventDefault(); closeLoginModal(); openForgotPasswordModal();">Забыли пароль?</a>
-                            </div>
-                        </form>
-                    </div>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-title">Ресурсы</h4>
+                <div class="footer-links">
+                    <a href="{{ url_for('public.view_privacy') }}">Условия пользовательского соглашения</a>
                 </div>
-
-                <div id="register-tab" class="auth-tab-content">
-                    <div class="log_reg_container">
-                        <h1>Регистрация</h1>
-
-                        <form method="POST" action="{{ url_for('user.register_user') }}" onsubmit="return validateRegisterForm()" id="registerForm">
-                            <label for="reg_username">Имя пользователя(логин):</label>
-                            <input type="text" id="reg_username" name="username" placeholder="Login" required 
-                                pattern="[a-zA-Z0-9_.]+" title="Только английские буквы, цифры, _ и .">
-                            <small id="reg_usernameError" class="error-message">
-                                Логин может содержать только латинские буквы, цифры, символы _ и .
-                            </small>
-
-                            <label for="email">Почта:</label>
-                            <span class="hint">Используется для отправки кодов подтверждений</span>
-                            <input type="email" name="email" placeholder="ivan@gmail.com" required>
-                            
-                            <label for="pubg_nickname">Ник в PUBG:</label>
-                            <input type="text" id="pubg_nickname" name="pubg_nickname" placeholder="" required>
-
-                            <label for="reg_password">Пароль:</label>
-                            <input type="password" id="reg_password" name="password" placeholder="******" required>
-                            
-                            <div id="passwordRequirements">
-                                <p>Требования к паролю:</p>
-                                <ul>
-                                    <li id="reg_lengthReq">Длина от 6 до 30 символов</li>
-                                    <li id="reg_charsReq">Только латинские буквы, цифры и _!.,</li>
-                                    <li id="reg_upperReq">Минимум одна заглавная буква</li>
-                                </ul>
-                            </div>
-
-                            <button type="submit" class="button">Зарегистрироваться</button>
-                        </form>
-                    </div>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-title">Контакты</h4>
+                <div class="footer-links">
+                    <a href="mailto:goldenbulls.pubg@mail.ru">goldenbulls.pubg@mail.ru</a>
                 </div>
             </div>
         </div>
+        <div class="container footer-bottom">
+            <div class="copy">© 2025 Golden Bulls PUBG Clan. Все права защищены.</div>
+            <div class="made">Создано с ❤️ для сообщества PUBG игроков</div>
+        </div>
+    </footer>
+
+    <!-- Модальное для авторизации -->
+    <div id="loginModal" class="modal_container">
+        <div class="modal-content">
+            <span class="btn-close">&times;</span>
+
+            <div id="login-tab" class="auth-tab-content active">
+                <div class="log_reg_container">
+                    <span class="subsection-title">Авторизация</span>
+
+                    <form method="POST" action="{{ url_for('user.login') }}" id="loginForm">
+                        <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+                        <label for="username">Логин:</label>
+                        <input type="text" id="username" placeholder="Login" name="username" required>
+
+                        <label for="password">Пароль:</label>
+                        <input type="password" id="password" placeholder="Password" name="password" required>
+
+                        <div class="forgot-password-link">
+                            <a href="#"
+                                onclick="event.preventDefault(); closeLoginModal(); openForgotPasswordModal();">Забыли
+                                пароль?</a>
+                        </div>
+
+                        <button class="btn btn-primary btn-wide mt-2" type="submit">Войти</button>
+
+                    </form>
+                </div>
+            </div>
+
+            <div id="register-tab" class="auth-tab-content">
+                <div class="log_reg_container">
+                    <span class="subsection-title">Регистрация</span>
+
+                    <form method="POST" action="{{ url_for('user.register_user') }}"
+                        onsubmit="return validateRegisterForm()" id="registerForm">
+                        <label for="reg_username">Имя пользователя(логин):</label>
+                        <input type="text" id="reg_username" name="username" placeholder="Login" required
+                            pattern="[a-zA-Z0-9_.]+" title="Только английские буквы, цифры, _ и .">
+                        <small id="reg_usernameError" class="error-message">
+                            Логин может содержать только латинские буквы, цифры, символы _ и .
+                        </small>
+
+                        <label for="email">Почта:</label>
+                        <input type="email" id="email" name="email" placeholder="ivan@gmail.com" required>
+
+                        <label for="pubg_nickname">Ник в PUBG:</label>
+                        <input type="text" id="pubg_nickname" name="pubg_nickname" placeholder="" required>
+
+                        <label for="reg_password">Пароль:</label>
+                        <input type="password" id="reg_password" name="password" placeholder="******" required>
+
+                        <div id="passwordRequirements">
+                            <p>Требования к паролю:</p>
+                            <ul>
+                                <li id="reg_lengthReq">Длина от 6 до 30 символов</li>
+                                <li id="reg_charsReq">Только латинские буквы, цифры и _!.,</li>
+                                <li id="reg_upperReq">Минимум одна заглавная буква</li>
+                            </ul>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-wide">Зарегистрироваться</button>
+                    </form>
+
+                </div>
+            </div>
+            <div class="auth-tabs mt-1">
+                <button class="btn tab-button btn-secondary btn-wide active" data-tab="login">Авторизоваться</button>
+                <button class="btn tab-button btn-secondary btn-wide" data-tab="register">Зарегистрироваться</button>
+            </div>
+        </div>
+
     </div>
 
     <!-- Модальное окно подтверждения email -->
-    <div id="verifyEmailModal" class="modal_log_reg">
-        <div class="modal-content_log_reg" style="max-width: 400px;">
-            <span class="close" onclick="closeVerifyModal()">&times;</span>
-            <h2>Подтверждение Email</h2>
-            
+    <div id="verifyEmailModal" class="modal_container">
+        <div class="modal-content">
+            <span class="btn-close" onclick="closeVerifyModal()">&times;</span>
+            <h3>Подтверждение Email</h3>
+
             <form id="verifyEmailForm">
                 <label for="verification_code">Код подтверждения:</label>
                 <input type="text" id="verification_code" name="verification_code" required>
-                
-                <div class="button-group">
-                    <button type="submit" class="button">Подтвердить</button>
-                    <button type="button" class="button secondary" onclick="resendVerificationCode()">Отправить код повторно</button>
+
+                <div class="button-flex-group mt-2">
+                    <button type="submit" class="btn btn-primary">Подтвердить</button>
+                    <button type="button" class="btn btn-secondary" onclick="resendVerificationCode()">Отправить код
+                        повторно</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Модальное окно восстановления пароля (шаг 1) -->
-    <div id="forgotPasswordModal" class="modal_log_reg">
-        <div class="modal-content_log_reg" style="max-width: 500px;">
-            <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
-            <h2>Восстановление пароля</h2>
-            
+    <div id="forgotPasswordModal" class="modal_container">
+        <div class="modal-content">
+            <span class="btn-close" onclick="closeForgotPasswordModal()">&times;</span>
+            <h3>Восстановление пароля</h3>
+
             <form id="forgotPasswordForm">
                 <label for="forgot_username">Логин:</label>
                 <input type="text" id="forgot_username" name="username" required>
@@ -254,25 +310,24 @@
                 <label for="forgot_email">Email:</label>
                 <input type="email" id="forgot_email" name="email" required>
 
-                <div class="button-group">
-                    <button type="submit" class="button">Отправить код</button>
-                    <button type="button" class="button secondary" onclick="closeForgotPasswordModal(); openLoginModal()">Назад к авторизации</button>
+                <div class="button-flex-group mt-2">
+                    <button type="submit" class="btn btn-primary">Отправить код</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeForgotPasswordModal(); openLoginModal()">Назад к авторизации</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Модальное окно сброса пароля (шаг 2) -->
-    <div id="resetPasswordModal" class="modal_log_reg">
-        <div class="modal-content_log_reg" style="max-width: 500px;">
-            <span class="close" onclick="closeResetPasswordModal()">&times;</span>
-            <h2>Сброс пароля</h2>
-            
+    <div id="resetPasswordModal" class="modal_container">
+        <div class="modal-content">
+            <span class="btn-close" onclick="closeResetPasswordModal()">&times;</span>
+            <h3>Сброс пароля</h3>
+
             <form id="resetPasswordForm">
                 <label for="reset_code">Код подтверждения:</label>
                 <input type="text" id="reset_code" name="verification_code" required>
-                <small class="hint">Введите код, отправленный на ваш email</small>
-
                 <label for="new_password">Новый пароль:</label>
                 <input type="password" id="new_password" name="new_password" minlength="6" maxlength="30" required>
                 <div id="passwordResetRequirements">
@@ -284,17 +339,22 @@
                     </ul>
                 </div>
 
-                <div class="button-group">
-                    <button type="submit" class="button">Установить пароль</button>
-                    <button type="button" class="button secondary" onclick="resendResetCode()">Отправить код повторно</button>
+                <div class="button-flex-group mt-2">
+                    <button type="submit" class="btn btn-primary">Установить пароль</button>
+                    <button type="button" class="btn btn-secondary" onclick="resendResetCode()">Отправить код
+                        повторно</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script type="text/javascript" src="{{ url_for('static', filename='js/log_reg_modal.js') }}" ></script>
-    
-    <script type="text/javascript" src="{{ url_for('static', filename='js/join_form.js') }}" ></script>
+    <div class="scroll_up_btn">
+        <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="var(--gold)">
+            <path d="M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z" /></svg>
+    </div>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='js/log_reg_modal.js') }}"></script>
+
 
     <script>
         function toggleProfileMenu(event) {
@@ -347,6 +407,19 @@
             const navbar = document.querySelector('.navbar');
             navbar.classList.toggle('active');
         }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scrollBtn = document.querySelector('.scroll_up_btn');
+
+            scrollBtn.addEventListener('click', function () {
+                document.documentElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
     </script>
 
     {% block script %}

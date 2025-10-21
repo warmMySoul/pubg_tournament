@@ -6,67 +6,72 @@
 
 {% block content %}
 <div class="container">
-    <h1>Создать новый турнир</h1>
+    <section id="createTournament" data-aos="fade-right" class="section">
+        <h2 class="section-title">Создать новый турнир</h2>
 
-    <form method="POST">
-        <!-- Основные параметры -->
-        <div class="form-section">
-            <h3>Основные параметры</h3>
+        <form method="POST">
+            <div class="row">
+                <div class="w-100 ">
+                    <!-- Основные параметры -->
+                    <div class="card ">
+                        <h3 class="subsection-title">Основные параметры</h3>
 
-            <label for="name">Название турнира:</label>
-            <input type="text" id="name" name="name" required>
+                        <label for="name">Название турнира:</label>
+                        <input type="text" id="name" name="name" required>
 
-            <label for="mode">Режим игры:</label>
-            <select id="mode" name="mode" required>
-                <option value="Соло">Соло</option>
-                <option value="Дуо">Дуо</option>
-                <option value="Сквад">Сквад</option>
-            </select>
+                        <label for="mode">Режим игры:</label>
+                        <select id="mode" name="mode" required>
+                            <option value="SOLO">SOLO</option>
+                            <option value="DUO">DUO</option>
+                            <option value="SQUAD">SQUAD</option>
+                        </select>
 
-            <label for="maps_count">Количество карт:</label>
-            <input type="number" id="maps_count" name="maps_count" min="1" max="10" value="3" required>
-        </div>
+                        <label for="maps_count">Количество карт:</label>
+                        <input type="number" id="maps_count" name="maps_count" min="1" max="10" value="3" required>
+                    </div>
 
-        <!-- Даты -->
-        <div class="form-section">
-            <h3>Даты проведения</h3>
+                    <!-- Даты -->
+                    <div class="card">
+                        <h3 class="subsection-title">Даты проведения</h3>
 
-            <label for="reg_start">Начало регистрации:</label>
-            <input type="datetime-local" id="reg_start" name="reg_start" required>
+                        <label for="reg_start">Начало регистрации:</label>
+                        <input type="datetime-local" id="reg_start" name="reg_start" required>
 
-            <label for="reg_end">Окончание регистрации:</label>
-            <input type="datetime-local" id="reg_end" name="reg_end" required>
+                        <label for="reg_end">Окончание регистрации:</label>
+                        <input type="datetime-local" id="reg_end" name="reg_end" required>
 
-            <label for="tournament_date">Дата проведения турнира:</label>
-            <input type="datetime-local" id="tournament_date" name="tournament_date" required>
-        </div>
+                        <label for="tournament_date">Дата проведения турнира:</label>
+                        <input type="datetime-local" id="tournament_date" name="tournament_date" required>
+                    </div>
+                </div>
+                <!-- Система подсчета очков -->
+                <div class="card w-100 ">
+                    <h3 class="subsection-title">Система подсчета очков</h3>
+                    <p class="form-note">Оставьте поле пустым, если баллы не начисляются</p>
 
-        <!-- Система подсчета очков -->
-        <div class="form-section">
-            <h3>Система подсчета очков</h3>
-            <p class="form-note">Оставьте поле пустым, если баллы не начисляются</p>
+                    <label for="kill_points">Очки за убийство:</label>
+                    <input type="number" id="kill_points" name="kill_points" step="0.1" min="0">
 
-            <label for="kill_points">Очки за убийство:</label>
-            <input type="number" id="kill_points" name="kill_points" step="0.1" min="0">
+                    <label for="first_place_points">Очки за 1 место:</label>
+                    <input type="number" id="first_place_points" name="first_place_points" step="0.1" min="0">
 
-            <label for="first_place_points">Очки за 1 место:</label>
-            <input type="number" id="first_place_points" name="first_place_points" step="0.1" min="0">
+                    <label for="second_place_points">Очки за 2 место:</label>
+                    <input type="number" id="second_place_points" name="second_place_points" step="0.1" min="0">
 
-            <label for="second_place_points">Очки за 2 место:</label>
-            <input type="number" id="second_place_points" name="second_place_points" step="0.1" min="0">
+                    <label for="third_place_points">Очки за 3 место:</label>
+                    <input type="number" id="third_place_points" name="third_place_points" step="0.1" min="0">
 
-            <label for="third_place_points">Очки за 3 место:</label>
-            <input type="number" id="third_place_points" name="third_place_points" step="0.1" min="0">
+                    <label for="damage_points">Очки за урон (за 100 урона):</label>
+                    <input type="number" id="damage_points" name="damage_points" step="0.01" min="0">
+                </div>
+            </div>
 
-            <label for="damage_points">Очки за урон (за 100 урона):</label>
-            <input type="number" id="damage_points" name="damage_points" step="0.01" min="0">
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="button">Создать турнир</button>
-            <a href="{{ url_for('admin.tournaments') }}" class="button button-secondary">Отмена</a>
-        </div>
-    </form>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Создать турнир</button>
+                <a href="{{ url_for('admin.tournaments') }}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </section>
 </div>
 {% endblock %}
 
