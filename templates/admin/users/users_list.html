@@ -6,66 +6,70 @@
 
 {% block content %}
 <div class="container">
-    <a class="btn btn-primary" href="{{url_for('admin.admin')}}">Назад в Адимин-панель</a>
-    <h1>Пользователи ({{users_count}})</h1>
-
-    <div class="collapsible-filters">
-        <div class="collapsible-header" onclick="toggleFilters(this)">
-            <span>Фильтры</span>
-            <span class="toggle-icon">▼</span>
+    <section id="admin_users_filter" data-aos="fade-right" class="section-padding_0">
+        <a class="btn btn-primary" href="{{url_for('admin.admin')}}">Назад в Админ-панель</a>
+        <div class="subsection-title">
+            <h3>Пользователи ({{users_count}})</h3>
         </div>
-        <!-- Форма фильтров -->
-        <div class="collapsible-content">
-            <form method="get" class="log-filters" action="{{ url_for('admin.users_list') }}">
-                <!-- Фильтр по роли -->
-                <label for="role_filter">Роль:</label>
-                <select name="role_filter" id="role_filter" class="form-control">
-                    <option value="all" {% if current_filters.role_filter == 'all' %}selected{% endif %}>Все пользователи</option>
-                    <option value="admins" {% if current_filters.role_filter == 'admins' %}selected{% endif %}>
-                        Администратор</option>
-                    <option value="moderators" {% if current_filters.role_filter == 'moderators' %}selected{% endif %}>
-                        Модератор</option>
-                    <option value="clan_members"
-                        {% if current_filters.role_filter == 'clan_members' %}selected{% endif %}>Член клана</option>
-                    <option value="clan_friend"
-                        {% if current_filters.role_filter == 'clan_friend' %}selected{% endif %}>Друг клана</option>
-                    <option value="guests" {% if current_filters.role_filter == 'guests' %}selected{% endif %}>Гость
-                    </option>
-                </select>
 
-                <input type="text" name="username" id="username" placeholder="Логин"
-                    value="{{ current_filters.username }}" class="form-control">
+        <div class="collapsible-filters">
+            <div class="collapsible-header" onclick="toggleFilters(this)">
+                <span>Фильтры</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <!-- Форма фильтров -->
+            <div class="collapsible-content">
+                <form method="get" class="log-filters" action="{{ url_for('admin.users_list') }}">
+                    <!-- Фильтр по роли -->
+                    <label for="role_filter">Роль:</label>
+                    <select name="role_filter" id="role_filter" class="form-control">
+                        <option value="all" {% if current_filters.role_filter == 'all' %}selected{% endif %}>Все пользователи</option>
+                        <option value="admins" {% if current_filters.role_filter == 'admins' %}selected{% endif %}>
+                            Администратор</option>
+                        <option value="moderators" {% if current_filters.role_filter == 'moderators' %}selected{% endif %}>
+                            Модератор</option>
+                        <option value="clan_members"
+                            {% if current_filters.role_filter == 'clan_members' %}selected{% endif %}>Член клана</option>
+                        <option value="clan_friend"
+                            {% if current_filters.role_filter == 'clan_friend' %}selected{% endif %}>Друг клана</option>
+                        <option value="guests" {% if current_filters.role_filter == 'guests' %}selected{% endif %}>Гость
+                        </option>
+                    </select>
 
-                <input type="text" name="pubg_nickname" id="pubg_nickname" placeholder="Ник в PUBG"
-                    value="{{ current_filters.pubg_nickname }}" class="form-control">
+                    <input type="text" name="username" id="username" placeholder="Логин"
+                        value="{{ current_filters.username }}" class="form-control">
 
-                <input type="text" name="name" id="name" placeholder="Имя" value="{{ current_filters.name }}"
-                    class="form-control">
+                    <input type="text" name="pubg_nickname" id="pubg_nickname" placeholder="Ник в PUBG"
+                        value="{{ current_filters.pubg_nickname }}" class="form-control">
 
-                <!-- Фильтры по дате -->
-                <label for="from">Дата регистрации с:</label>
-                <input type="date" name="from" id="from" value="{{ current_filters.from }}" class="form-control">
+                    <input type="text" name="name" id="name" placeholder="Имя" value="{{ current_filters.name }}"
+                        class="form-control">
 
-                <label for="to">Дата регистрации по:</label>
-                <input type="date" name="to" id="to" value="{{ current_filters.to }}" class="form-control">
+                    <!-- Фильтры по дате -->
+                    <label for="from">Дата регистрации с:</label>
+                    <input type="date" name="from" id="from" value="{{ current_filters.from }}" class="form-control">
 
-                <div style="margin-top: 10px; display: flex; gap: 10px;">
-                    <button type="submit" class="btn btn-primary">Применить фильтры</button>
-                    <a class="btn btn-primary" href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">Сбросить</a>
-                </div>
-            </form>
+                    <label for="to">Дата регистрации по:</label>
+                    <input type="date" name="to" id="to" value="{{ current_filters.to }}" class="form-control">
+
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                        <a class="btn btn-primary" href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">Сбросить</a>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+        
+    </section>    
 
-
-    <h2>Список пользователей</h2>
-    {% if users %}
+    <section id="admin_users_list" data-aos="fade-right" class="section-padding_0">
+    
+        {% if users %}
         <ul class="user_list">    
             {% for user in users %}
-                <li class="member-card" style="cursor: pointer;" onmouseover="this.style.backgroundColor='var(--dark-gray)'"
-            onmouseout="this.style.backgroundColor='var(--light-gray)'" onclick="handleRowClick(event, {{ user.id }})">
+                <li class="card pointer pointer-animation" onclick="handleRowClick(event, {{ user.id }})">
                     <div class="user-nickname">{{ user.pubg_nickname }}</div>
-                    <div class="user-info">
+                    <div class="grid-3fr">
                         <div class="text_group_flex">
                             <span>ID: {{ user.id }}</span>
                             <span>Логин: {{ user.username }}</span>
@@ -73,19 +77,19 @@
                         
                         <div class="text_group_flex">
                             <span>Имя: {{ user.name if user.name else '—' }}</span>
-                            <span>День рождения:{{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</span>
+                            <span>День рождения: {{ user.birthday.strftime('%d.%m.%Y') if user.birthday else '—' }}</span>
                         </div>
                         <div class="text_group_flex">
                             <span>Email: {{ user.email }}</span>
                             <span>Дата регистрации: {{ user.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</span>
                         </div>
                     </div>
-                    <div class="member-card-right_block">
+                    <div class="action_block mt-1">
                         {% if user.role in ['admin', 'moderator', 'clan_member', 'clan_friend'] %}
                             <div class="member-role {{user.role}}">{{ user.role }}</div>
                         {% endif %}
                         {% if user.id != current_user.id and user.username != "admin" and current_user.role == "admin" %}
-                            <button onclick='event.stopPropagation(); confirmDelete({{ user.id|tojson }})'>Удалить</button>
+                            <button class="btn btn-danger" onclick='event.stopPropagation(); confirmDelete({{ user.id|tojson }})'>Удалить</button>
                         {% endif %}
                         {% if user.username != "admin" and current_user.role == "admin" %}
                             <i class="fas fa-pencil-alt edit_btn" style="cursor:pointer; margin-left:10px;" 
@@ -119,7 +123,7 @@
                                         role_filter=current_filters.role_filter,
                                         from=current_filters.from,
                                         to=current_filters.to) }}"
-            class="btn {% if page_num == pagination.page %}active{% endif %}">
+            class="btn {% if page_num == pagination.page %}btn-primary{% endif %}">
             {{ page_num }}
         </a>
         {% else %}
@@ -137,13 +141,17 @@
                                     to=current_filters.to) }}" class="btn btn-primary">Вперед →</a>
         {% endif %}
     </div>
+    </section> 
+    
+
+    
 
     <!-- Удаление -->
     <div id="modalConfirm" class="modal_container" style="display:none;">
         <div class="modal-content">
             <p id="modalText">Подтвердите действие</p>
-            <button onclick="handleModalConfirm()">Да</button>
-            <button onclick="hideModal()">Отмена</button>
+            <button class="btn btn-danger" onclick="handleModalConfirm()">Да</button>
+            <button class="btn btn-primary" onclick="hideModal()">Отмена</button>
         </div>
     </div>
 
@@ -167,9 +175,9 @@
                     <option value="clan_friend">Друг клана</option>
                     <option value="guest">Гость</option>
                 </select>
-                <div class="button-flex-group">
+                <div class="button-flex-group mt-2">
                     <button type="submit" class="btn btn-primary">Сохранить</button>
-                    <button type="button" class="btn btn-primary" onclick="hideEdit()">Отмена</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideEdit()">Отмена</button>
                 </div>
             </form>
         </div>

@@ -101,7 +101,7 @@ body {
 .footer-bottom { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 16px 0 28px; border-top: 1px solid var(--panel-border-color); margin-top: 16px; }
 .copy, .made { color: #A5A7B0; font-size: 13px; }
 
-/*Dropdown profile menu*/
+/* Dropdown profile menu */
 .profile-dropdown {
     display: none;
     position: absolute;
@@ -159,6 +159,11 @@ body {
 .card { padding: 16px; background: var(--color-panel); backdrop-filter: var(--blur); border: 1px solid var(--panel-border-color); border-radius: 12px; margin-bottom: 14px; box-sizing: border-box;}
 .flex-horizontal { display: flex; justify-content: space-between;}
 
+/* Grids */
+.grid-1fr { display: grid; grid-template-columns: 1fr; }
+.grid-2fr { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3fr { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
 /* Modals */
 .modal_container{ display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); align-items: center;  justify-content: center; }
 .modal-content { background: var(--dark-gray); backdrop-filter: var(--blur); padding: 24px; border: 1px solid var(--white-gray); max-width: 50vw; min-width: 25vw; border-radius: 8px; position: relative;}
@@ -185,6 +190,11 @@ body {
 .scroll_up_btn:hover { background-color: var(--gold); }
 .scroll_up_btn:hover svg {fill: var(--black);}
 .pointer {cursor: pointer;}
+.pointer-animation:hover {transform: translateX(4px); border-color: var(--dark-gold); }
+.action_block {
+    display: flex;
+    justify-content: flex-end;
+}
 
 /* Statuses */
 .status_grn { background-color: var(--green); color:#0B0D12; border-color:var(--green);}
@@ -336,10 +346,12 @@ table th {
     justify-content: space-between;
     align-items: center;
     user-select: none;
+    color: var(--black);
+    font-weight: 600;
 }
 
 .collapsible-header:hover {
-    background-color: var(--dark-orange);
+    background-color: var(--light-gold);
 }
 
 .collapsible-content {
@@ -489,14 +501,6 @@ label[for="applicant_know_from_optional"] {
     gap: 32px;
 }
 
-.stat_card{
-    border: solid 2px var(--gold);
-    border-radius: 12px;
-    padding: 4px 16px;
-    background: var(--light-gray);
-    width: 100%;
-    box-sizing: border-box;
-}
 
 .profile_container {
     display: flex;

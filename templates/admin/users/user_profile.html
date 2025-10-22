@@ -6,81 +6,90 @@
 
 {% block content %}
 <div class="container">
-<a class="btn btn-primary" href="{{url_for('admin.users_list')}}">Назад к списку пользователей</a>
-<div class="profile_container">
     
-        <div class="container_left">
-            <h2>Профиль пользователя {{ user.pubg_nickname or '' }}</h2>
-            
-            <form>
+    <section id="admin_profile_main" data-aos="fade-right" class="section-padding_0">
+        <a class="btn btn-primary" href="{{url_for('admin.users_list')}}">Назад к списку пользователей</a>
+
+        <div class="subsection-title">
+        <h3 class="golden-text">Профиль {{ user.pubg_nickname }}</h3>
+        </div>
+
+        <div class="card">
+        <form method="post">
                 <input type="hidden" name="action" value="update_profile">
 
-                <label>Логин (нельзя изменить):</label>
+                <label>Логин:</label>
                 <input type="text" value="{{ user.username }}" disabled>
 
                 <label>Email:</label>
-                <input type="text" value="{{ user.email }}" disabled>
-
-                <label>Имя:</label>
-                <input type="text" name="name" value="{{ user.name or '' }}" disabled>
-
+                <input type="text" value="{{ masked_email }}" disabled>
+                
                 <label>PUBG Никнейм:</label>
                 <input type="text" name="pubg_nickname" value="{{ user.pubg_nickname or '' }}" disabled>
                 <small>Если вы сменили никнейм в PUBG - сообщите администраторам</small>
 
+                <label>Имя:</label>
+                <input type="text" name="name" value="{{ user.name or '' }}">
+                {% if not user.name %}
+                    <small>Необходимо заполнить</small>
+                {% endif %}
+
                 <label>Дата рождения:</label>
-                <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}" disabled>
+                <input type="date" name="birthday" value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
 
+                <button type="submit" class="btn btn-primary mt-2">Сохранить изменения профиля</button>
             </form>
-
         </div>
 
-        <div class="container_right">
-            {% if stats %}
-            <h2>Статистика PUBG за все время</h2>
-            <button class="btn btn-primary" onclick="updateStats(event, {{ user.id }})">Обновить статистику</button>
-            <h3>Обновлено: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
+    </section>
 
-            <div class="user_stats">
-                {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
-                    {% if stats.stats.get(mode) %}
-                    {% set values = stats.stats[mode] %}
-                    <div class="stat_card">
-                        <h3><strong>{{ mode|upper }}</strong></h3>
-                        <p>Убийств: {{ values.kills }}</p>
-                        <p>Побед: {{ values.wins }}</p>
-                        <p>Игр сыграно: {{ values.rounds_played }}</p>
-                        <p>Урон: {{ values.damage_dealt }}</p>
-                        <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
-                        <p>Хедшоты: {{ values.headshot_kills }}</p>
-                        <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-
-                
-            </div>
-
-
-            {% else %}
-            <p>Нет данных о статистике игрока.</p>
-            {% endif %}
-    
+    <section id="admin_profile_user_stats" data-aos="fade-right" class="section-padding_0">
+        {% if stats %}
+        <div class="subsection-title">
+            <h3>Статистика PUBG за все время</h3>
         </div>
-
-                    <div class="container_right">
-                {% if match_ids %}
-                <div class="matches-section">
-                    <h2>Последние матчи</h2>
-                    <ul>
-                        {% for match_id in match_ids %}
-                            <li><a style="text-decoration: none; color: var(--white)" href="../match/{{ match_id }}">{{ match_id }}</li></a>
-                        {% endfor %}
-                    </ul>
+        <h3>Последнее обновление статистики: {{updated_at.strftime('%Y-%m-%d %H:%M:%S')}}</h3>
+        <button class="btn btn-primary" onclick="updateStats(event, {{ user.id }})">Обновить статистику</button>
+        <div class="grid-3fr mt-2">
+            {% for mode in ['solo-fpp', 'duo-fpp', 'squad-fpp'] %}
+                {% if stats.stats.get(mode) %}
+                {% set values = stats.stats[mode] %}
+                <div class="card">
+                    <h3><strong>{{ mode|upper }}</strong></h3>
+                    <p>Убийств: {{ values.kills }}</p>
+                    <p>Побед: {{ values.wins }}</p>
+                    <p>Игр сыграно: {{ values.rounds_played }}</p>
+                    <p>Урон: {{ values.damage_dealt }}</p>
+                    <p>Самый длинный фраг: {{ values.longest_kill }} м</p>
+                    <p>Хедшоты: {{ values.headshot_kills }}</p>
+                    <p>K/D: {{ values.kd | round(2) if values.kd is not none else "—" }}</p>
                 </div>
                 {% endif %}
-            </div>
-    </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <p>Нет данных о статистике игрока.</p>
+        {% endif %}
+
+    </section>
+
+    {% if match_ids %}
+    <section id="admin_profile_user_matches" data-aos="fade-right" class="section-padding_0">
+        
+        <div class="subsection-title">
+            <h3>Последние матчи</h3>
+        </div>
+        <div class="card">
+            <h2>Последние матчи</h2>
+            <ul>
+                {% for match_id in match_ids %}
+                    <li><a style="text-decoration: none; color: var(--white)" href="../match/{{ match_id }}">{{ match_id }}</li></a>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+    {% endif %}
+
 </div>
 {% endblock %}
 
