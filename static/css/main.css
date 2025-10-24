@@ -37,10 +37,11 @@ html {
 
 /*Body*/
 body {
-    background: 
+    /*background: 
         url('/static/images/bg_pattern.png'),
         linear-gradient(to bottom, #443907c0 0%, var(--dark-gray) 20%);
-    background-color: var(--dark-gray); 
+    background-color: var(--dark-gray); */
+    background: linear-gradient(to bottom, #332c14 0%, #141414 60%, #0a0a0a 100%);
     color: var(--white); 
     line-height: 1.6; 
 }
@@ -70,24 +71,6 @@ body {
 .links a { display: flex; align-items: center;}
 .navbar_profile { cursor: pointer; text-align: center;}
 .navbar_profile:hover { color: var(--white-gray); }
-
-/* Hotline */
-.hotline-block {
-    position: sticky;
-    top: 76px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border: 1px solid var(--semi-light-gold);
-    border-radius: 12px;
-    padding: 0 16px;
-    background: linear-gradient(180deg, var(--gold), var(--light-orange));
-    height: 48px;
-    z-index: 999;
-}
-.hotline-block svg { cursor: pointer; display: none;}
-.hotline-content { display: flex; gap: 32px; align-items: center; margin: 0 auto;}
-.hotline-text { font-weight: 700; color: var(--black); }
 
 /* Footer */
 .site-footer { border-top: 1px solid var(--panel-border-color); padding-top: 28px; margin-top: 40px; }
@@ -143,6 +126,27 @@ body {
 .form-actions {margin-top: 16px;}
 .btn-hotline { color: (var(--white)); padding: 4px 8px; cursor: pointer; border-radius: 8px; background-color: var(--light-gray);}
 .btn-hotline:hover {background-color: var(--dark-gray);}
+
+
+/* Hotline */
+.hotline-block {
+    position: sticky;
+    top: 76px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--semi-light-gold);
+    border-radius: 12px;
+    padding: 0 16px;
+    background: linear-gradient(180deg, var(--gold), var(--light-orange));
+    height: 48px;
+    z-index: 999;
+}
+.hotline-block svg { cursor: pointer; display: none;}
+.hotline-content { display: flex; gap: 32px; align-items: center; margin: 0 auto;}
+.hotline-text { font-weight: 700; color: var(--black); }
+.btn-hotline-close {color: var(--black); top: 0}
+.btn-hotline-close:hover {color: var(--light-gray);}
 
 /* Containers */
 .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }

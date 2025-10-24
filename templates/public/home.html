@@ -11,7 +11,7 @@
 {% block content %}
 
     {% if (not current_user or current_user.role =="guest") %}
-    <div class="hotline-block">
+    <div id="hotline-block" class="hotline-block">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--black)"><path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z"/></svg>
         <div class="hotline-content">
             <span class="hotline-text">Хочешь присоединиться к нашему клану Golden Bulls? Жми →</span>
@@ -22,6 +22,7 @@
             {% endif %}
         </div>
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--black)"><path d="m321-80-71-71 329-329-329-329 71-71 400 400L321-80Z"/></svg>
+        <span id="hotline-close" class="btn-close btn-hotline-close">×</span>
     </div>
     {% endif %}
 
@@ -654,6 +655,23 @@
                 }
             });
         }
+
+        // Hotline
+        document.addEventListener('DOMContentLoaded', function () {
+            const consentBanner = document.getElementById('hotline-block');
+            const acceptBtn = document.getElementById('hotline-close');
+
+            // Проверяем, закрывал ли пользователь хотлайн ранее
+            if (!localStorage.getItem('hotline_close')) {
+                consentBanner.style.display = 'flex';
+            }
+
+            // Обработка закрытия
+            acceptBtn.addEventListener('click', function () {
+                localStorage.setItem('hotline_close', 'true');
+                consentBanner.style.display = 'none';
+            });
+        });
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/join_form.js') }}"></script>
 

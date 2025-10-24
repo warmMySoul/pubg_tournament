@@ -101,14 +101,14 @@
 
 
 /* CTA */
-.cta { backdrop-filter: var(--blur); margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border-color); border-radius: 12px; text-align: center; }
+.cta { backdrop-filter: var(--blur); margin-top: 24px; padding: 16px; background: var(--color-panel); border: 1px solid var(--panel-border-color); border-radius: 12px; text-align: center; }
 .cta-title { font-size: 20px; margin: 0 0 8px; }
 .cta-text { margin: 0 0 12px; color: #C9CBD2; }
 .cta-actions { display: flex; gap: 12px; justify-content: center; }
 
 /* FAQ */
 .faq { display: grid; gap: 12px; }
-.faq-item { backdrop-filter: var(--blur); background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border-color); border-radius: 12px; padding: 12px 16px; }
+.faq-item { backdrop-filter: var(--blur); background: var(--color-panel); border: 1px solid var(--panel-border-color); border-radius: 12px; padding: 12px 16px; }
 .faq-q { cursor: pointer; font-weight: 700; }
 .faq-a { color: #C9CBD2; margin-top: 8px; }
 
