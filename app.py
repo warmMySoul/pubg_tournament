@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 import os
+import logging
 
 def create_app():
     load_dotenv("secrets.env")
@@ -92,6 +93,25 @@ def create_default_admin():
         db.session.add(admin)
         db.session.commit()
 
+
+# Создаем директорию для логов в удобном месте
+log_dir = os.path.join(os.getcwd(), 'logs')
+os.makedirs(log_dir, exist_ok=True)
+
+# Настройка файлового логирования
+log_file = os.path.join(log_dir, f'app_{datetime.now().strftime("%Y%m%d")}.log')
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file, encoding='utf-8'),
+        logging.StreamHandler()  # Также выводим в консоль
+    ]
+)
+
+logger = logging.getLogger(__name__)
+logger.info("=== Flask application started ===")
 
 app = create_app()
 

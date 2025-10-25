@@ -1,5 +1,7 @@
 from inspect import getmembers, getsourcefile, isfunction
 from io import BytesIO
+import logging
+import traceback
 import io
 import os
 from pathlib import Path
@@ -19,6 +21,7 @@ from extensions.db_connection import db
 # Импорт логирования
 from pubg_api.models import MatchData
 from services.admin_log_service import log_admin_action as log
+logger = logging.getLogger(__name__)
 
 from models.pubg_api_models import MatchStats, PlayerStats
 from pubg_api.models.player import ParsedPlayerStats
@@ -106,29 +109,70 @@ def create_tournament():
 @admin_bp.route('/tournament/<tournament_id>')
 @role_required([RoleEnum.ADMIN, RoleEnum.MODERATOR])
 def tournament_info(tournament_id):
-    players = Player.query.filter_by(tournament_id=tournament_id).order_by(Player.registered_at.desc()).all()
-    matches = Match.query.filter_by(tournament_id=tournament_id).order_by(Match.map_number).all()
-    tournament = Tournament.query.get_or_404(tournament_id)
-
-    # Определяем статус турнира
-    now = datetime.now()
-    if tournament.reg_start < now and tournament.reg_end > now:
-        registration_status = 'open'
-    elif tournament.reg_end < now:
-        if tournament.tournament_date < now:
-            registration_status = "ended"
+    try:
+        logger.info(f"=== START tournament_info for ID: {tournament_id} ===")
+        
+        # 1. Логируем получение турнира
+        logger.info(f"1. Querying tournament: {tournament_id}")
+        tournament = Tournament.query.get(tournament_id)
+        if not tournament:
+            logger.error(f"Tournament {tournament_id} not found")
+            return "Tournament not found", 404
+        logger.info(f"Tournament found: {tournament.name}, mode: {tournament.mode}")
+        
+        # 2. Логируем получение игроков
+        logger.info(f"2. Querying players for tournament")
+        players = Player.query.filter_by(tournament_id=tournament_id).order_by(Player.registered_at.desc()).all()
+        logger.info(f"Found {len(players)} players")
+        
+        # 3. Логируем получение матчей
+        logger.info(f"3. Querying matches for tournament")
+        matches = Match.query.filter_by(tournament_id=tournament_id).order_by(Match.map_number).all()
+        logger.info(f"Found {len(matches)} matches")
+        
+        # 4. Логируем расчет статуса регистрации
+        logger.info(f"4. Calculating registration status")
+        now = datetime.now()
+        logger.info(f"Current time: {now}")
+        logger.info(f"Reg start: {tournament.reg_start}, Reg end: {tournament.reg_end}, Tournament date: {tournament.tournament_date}")
+        
+        if tournament.reg_start < now and tournament.reg_end > now:
+            registration_status = 'open'
+        elif tournament.reg_end < now:
+            if tournament.tournament_date < now:
+                registration_status = "ended"
+            else:
+                registration_status = 'closed'
         else:
-            registration_status = 'closed'
-    else:
-        registration_status = 'soon'
-
-    max_players = 4 if tournament.mode == 'SQUAD' else 2 if tournament.mode == 'DUO' else None
-    return render_template('admin/tournaments/tournament_info.html', 
-                           registration_status=registration_status,
-                           matches=matches,
-                           players=players,
-                           tournament=tournament,
-                           max_players=max_players)
+            registration_status = 'soon'
+            
+        logger.info(f"Registration status: {registration_status}")
+        
+        # 5. Логируем определение max_players
+        logger.info(f"5. Calculating max_players for mode: {tournament.mode}")
+        max_players = 4 if tournament.mode == 'SQUAD' else 2 if tournament.mode == 'DUO' else None
+        logger.info(f"Max players: {max_players}")
+        
+        # 6. Логируем рендеринг шаблона
+        logger.info(f"6. Rendering template with data")
+        logger.info(f"Template variables: players={len(players)}, matches={len(matches)}, tournament={tournament.name}")
+        
+        result = render_template('admin/tournaments/tournament_info.html', 
+                               registration_status=registration_status,
+                               matches=matches,
+                               players=players,
+                               tournament=tournament,
+                               max_players=max_players)
+        
+        logger.info(f"=== SUCCESS tournament_info for ID: {tournament_id} ===")
+        return result
+        
+    except Exception as e:
+        logger.error(f"=== ERROR in tournament_info for ID: {tournament_id} ===")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception message: {str(e)}")
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
+        return "Internal Server Error", 500
 
 # Экспорт турнира в Excell
 @admin_bp.route('/tournament/<tournament_id>/export', methods=['GET'])
