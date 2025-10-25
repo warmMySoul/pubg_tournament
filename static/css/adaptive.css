@@ -12,7 +12,9 @@
     font-size: 36px;
   }
 
-  .hotline-block{ display: none; }
+  .hotline-block{ display: none; height: auto;}
+  .hotline-content{ margin: 0 16px; font-size: 14px;}
+  .btn-hotline-close {right: 8px;}
 
 
 
