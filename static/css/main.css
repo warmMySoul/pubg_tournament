@@ -37,13 +37,11 @@ html {
 
 /*Body*/
 body {
-    /*background: 
-        url('/static/images/bg_pattern.png'),
-        linear-gradient(to bottom, #443907c0 0%, var(--dark-gray) 20%);
-    background-color: var(--dark-gray); */
     background: linear-gradient(to bottom, #31343D 0%, #202229 50%, #141414  100%);
+    background: url('/static/images/1.png');
     color: var(--white); 
     line-height: 1.6; 
+    background-size: contain;
 }
 .main_container { max-width: 1200px; margin: 0 auto; padding: 0 16px;}
 
