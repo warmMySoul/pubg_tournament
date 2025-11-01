@@ -159,19 +159,21 @@
                 <span class="meta-label">Требования:</span> {{tournament.req}}
             </div>
             {% endif %}
-            <div class="tournament-actions">
-                {% if (registration_status == 'open' and not existing_player) %}
-                    <a href="{{url_for('user.player_form',tournament_id=tournament.id)}}"
-                        class="btn btn-primary btn-wide">Записаться на турнир</a>
-                {% endif %}
-                {% if existing_player and registration_status in ['open','soon']%}
-                    <span>Вы зарегистрированы на турнир</span>
-                    <a href="#" class="btn btn-danger btn-wide" 
-                    onclick="openDeleteRegistrationModal('{{ tournament.id }}', '{{ existing_player.id }}')">
-                    Удалить свою запись с турнира
-                    </a>
-                {% endif %}
-            </div>
+            {% if (current_user.role in ['admin', 'moderator', 'clan_member'] <!-- TODO: Заменить проверку на список ролей, получаемых с бэка с tournament -->
+                <div class="tournament-actions">
+                    {% if (registration_status == 'open' and not existing_player) %}
+                        <a href="{{url_for('user.player_form',tournament_id=tournament.id)}}"
+                            class="btn btn-primary btn-wide">Записаться на турнир</a>
+                    {% endif %}
+                    {% if existing_player and registration_status in ['open','soon']%}
+                        <span>Вы зарегистрированы на турнир</span>
+                        <a href="#" class="btn btn-danger btn-wide" 
+                        onclick="openDeleteRegistrationModal('{{ tournament.id }}', '{{ existing_player.id }}')">
+                        Удалить свою запись с турнира
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
             </div>
     </section>
 
