@@ -161,7 +161,7 @@
             {% endif %}
             
             <!-- TODO: Заменить проверку на список ролей, получаемых с бэка с tournament -->
-            {% if (current_user.role in ['admin', 'moderator', 'clan_member'] 
+            {% if (current_user.role in ['admin', 'moderator', 'clan_member']) %}
                 <div class="tournament-actions">
                     {% if (registration_status == 'open' and not existing_player) %}
                         <a href="{{url_for('user.player_form',tournament_id=tournament.id)}}"
