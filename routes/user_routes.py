@@ -526,9 +526,10 @@ def player_form(tournament_id):
             # Для групповых режимов
             if tournament.mode in ['DUO', 'SQUAD']:
                 max_players = 4 if tournament.mode == 'SQUAD' else 2
-                if group_id == "new_group": # Создание новой группы
-                    max_group = db.session.query(func.max(PlayerGroup.group_number)) \
+                max_group = db.session.query(func.max(PlayerGroup.group_number)) \
                         .filter_by(tournament_id=tournament_id).scalar() or 0
+                if group_id == "new_group": # Создание новой группы
+                    
                     new_group = PlayerGroup(
                         tournament_id=tournament_id,
                         group_number=max_group + 1
@@ -551,7 +552,13 @@ def player_form(tournament_id):
                     if random_group:
                         group_id = random_group.id
                     else:
-                        group_id = None
+                        new_group = PlayerGroup(
+                            tournament_id=tournament_id,
+                            group_number=max_group + 1
+                            )
+                        db.session.add(new_group)
+                        db.session.flush()
+                        group_id = new_group.id
                 else:
                     group = PlayerGroup.query.get(group_id)
                     if group and len(group.players) >= max_players:
